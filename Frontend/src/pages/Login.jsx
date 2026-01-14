@@ -31,46 +31,58 @@ export default function Login() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-zinc-50 p-4">
-      <Card className="w-full max-w-md">
-        <h2 className="text-3xl font-black mb-6 text-center uppercase tracking-tighter">
+      <Card className="w-full max-w-md border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white p-6 md:p-8">
+        <h2 className="text-3xl md:text-4xl font-black mb-6 md:mb-8 text-center uppercase tracking-tighter">
           Campus Heist
         </h2>
         {error && (
-          <div className="bg-red-100 border border-red-500 text-red-700 p-2 mb-4 font-bold">
+          <div className="bg-red-100 border-2 border-red-500 text-red-900 p-3 mb-6 font-bold text-center uppercase tracking-wide">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block font-bold mb-1">Team ID</label>
+            <label className="block font-black mb-2 uppercase text-sm tracking-widest">
+              Team ID
+            </label>
             <Input
               type="text"
               placeholder="e.g. TITAN-X99"
               value={form.teamId}
               onChange={(e) => setForm({ ...form, teamId: e.target.value })}
               required
+              className="h-14 md:h-16 text-lg md:text-xl border-4 border-black bg-zinc-50 focus:bg-white transition-colors"
             />
           </div>
           <div>
-            <label className="block font-bold mb-1">Password</label>
+            <label className="block font-black mb-2 uppercase text-sm tracking-widest">
+              Password
+            </label>
             <Input
               type="password"
               placeholder="********"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               required
+              className="h-14 md:h-16 text-lg md:text-xl border-4 border-black bg-zinc-50 focus:bg-white transition-colors"
             />
           </div>
 
-          <Button type="submit" className="w-full">
+          <Button
+            type="submit"
+            className="w-full bg-black text-white hover:bg-zinc-800 h-16 text-xl md:text-2xl font-black tracking-widest uppercase rounded-none border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
+          >
             LOGIN
           </Button>
         </form>
 
-        <p className="mt-4 text-center text-sm font-semibold">
+        <p className="mt-8 text-center text-sm font-bold uppercase tracking-wide">
           New Team?{" "}
-          <Link to="/register" className="underline hover:text-blue-600">
+          <Link
+            to="/register"
+            className="underline hover:text-blue-600 decoration-2 underline-offset-4"
+          >
             Register Here
           </Link>
         </p>
