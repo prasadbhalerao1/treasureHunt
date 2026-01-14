@@ -1,5 +1,16 @@
 # 🏴‍☠️ TreasureHunt: The Final Simulation Guide
 
+## 📱 Mobile Configuration (CRITICAL)
+
+**Before starting the simulation:**
+
+1.  **Find your PC's IP Address**: Run `ipconfig` (Windows) or `ifconfig` (Mac/Linux). Look for IPv4 Address (e.g., `192.168.1.5`).
+2.  **Update Frontend Config**: Open `Frontend/.env` and set `VITE_API_URL=http://<YOUR_IP>:5000/api`.
+3.  **Connect Mobile**: Ensure your phone is on the **SAME Wi-Fi** as your PC.
+4.  **Access App**: Open Chrome on your phone and go to `http://<YOUR_IP>:5173`.
+
+---
+
 ## 🎭 Part 1: The Role-Based User Experience
 
 ### 🕵️ Role 1: The Candidate (The Player)
@@ -9,8 +20,8 @@ _The hero of the story. High-stress, fast-paced, mobile-first._
 #### 1. The Hook (Pre-Game)
 
 - **Trigger**: Team Leader registers 2 days prior.
-- **Notification**: On event morning, they get their **Team ID** (e.g., `TITAN-X99`).
-- **First Target**: "The place where time stands still (Clock Tower)."
+- **Notification**: **EMAIL RECEIVED** from "TreasureHunt HQ".
+- **Content**: "MISSION BRIEFING - Status: ACTIVATED. Your Team ID is **TITAN-X99**."
 
 #### 2. The Login (Event Start)
 
@@ -101,8 +112,9 @@ _The strategist. God Mode._
 
 ## 🚀 Running the Simulation
 
-1.  **Register a Team**: Use the Registration page. Add 3 other members (Total 4).
-    - _Try adding 5 to test the limit._
+1.  **Register a Team**: Use the Registration page.
+    - _No annoying popup!_ Watch for the **Green Mission Briefing** banner.
+    - _Check Email_: Get the Team ID from your inbox (or console logs).
 2.  **Login**: Use the generated Team ID.
 3.  **Play Level 1**:
     - As **Volunteer**: Verify the team.

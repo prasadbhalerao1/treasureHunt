@@ -13,6 +13,7 @@ export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,13 +29,20 @@ export default function Register() {
       }
 
       await register(form.teamName, form.email, form.password, membersArray);
-      alert(
-        "Registration Successful! Check your email (simulated) for Team ID."
-      );
-      navigate("/login");
+      setSuccess(true);
     } catch (err) {
       console.error("Registration Error:", err);
-      setError(err.response?.data?.msg || "Registration Failed");
+      if (!err.response) {
+        setError(
+          "Network Error: Unable to reach server. If on mobile, check your IP configuration."
+        );
+      } else {
+        setError(
+          err.response?.data?.msg ||
+            "Registration Failed. Please try again later."
+        );
+      }
+      setSuccess(false);
     }
   };
 
@@ -44,59 +52,86 @@ export default function Register() {
         <h2 className="text-3xl font-black mb-6 text-center uppercase tracking-tighter">
           Team Registration
         </h2>
-        {error && (
-          <div className="bg-red-100 border border-red-500 text-red-700 p-2 mb-4 font-bold">
-            {error}
+        {success ? (
+          <div className="text-center space-y-4 animate-in slide-in-from-bottom">
+            <div className="bg-green-100 border-4 border-green-500 text-green-900 p-6 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <h3 className="text-2xl uppercase mb-2">Registration Complete</h3>
+              <p>
+                Mission details sent to <strong>{form.email}</strong>.
+                <br />
+                Check your inbox for the Team ID.
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate("/login")}
+              className="w-full bg-black text-white font-black uppercase text-xl h-16 border-4 border-black hover:bg-zinc-800"
+            >
+              PROCEED TO LOGIN
+            </Button>
           </div>
+        ) : (
+          <>
+            {error && (
+              <div className="bg-red-100 border border-red-500 text-red-700 p-2 mb-4 font-bold">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block font-bold mb-1">Team Name</label>
+                <Input
+                  type="text"
+                  placeholder="The Avengers"
+                  value={form.teamName}
+                  onChange={(e) =>
+                    setForm({ ...form, teamName: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Leader Email</label>
+                <Input
+                  type="email"
+                  placeholder="leader@college.edu"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Password</label>
+                <Input
+                  type="password"
+                  placeholder="********"
+                  value={form.password}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">
+                  Members (Comma separated)
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Alice, Bob, Charlie"
+                  value={form.members}
+                  onChange={(e) =>
+                    setForm({ ...form, members: e.target.value })
+                  }
+                />
+              </div>
+
+              <Button type="submit" className="w-full">
+                REGISTER
+              </Button>
+            </form>
+          </>
         )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block font-bold mb-1">Team Name</label>
-            <Input
-              type="text"
-              placeholder="The Avengers"
-              value={form.teamName}
-              onChange={(e) => setForm({ ...form, teamName: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <label className="block font-bold mb-1">Leader Email</label>
-            <Input
-              type="email"
-              placeholder="leader@college.edu"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <label className="block font-bold mb-1">Password</label>
-            <Input
-              type="password"
-              placeholder="********"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <label className="block font-bold mb-1">
-              Members (Comma separated)
-            </label>
-            <Input
-              type="text"
-              placeholder="Alice, Bob, Charlie"
-              value={form.members}
-              onChange={(e) => setForm({ ...form, members: e.target.value })}
-            />
-          </div>
-
-          <Button type="submit" className="w-full">
-            REGISTER
-          </Button>
-        </form>
         <p className="mt-4 text-center text-sm font-semibold">
           <Link to="/login" className="underline hover:text-blue-600">
             Back to Login

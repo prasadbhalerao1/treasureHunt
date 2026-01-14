@@ -3,6 +3,7 @@ import { hashPassword, verifyPassword } from "../utils/auth.js";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "node:crypto";
 import dbConnect from "../config/dbConnect.js";
+import { sendTeamIdEmail } from "../utils/email.js";
 
 export const register = async (req, res) => {
   try {
@@ -42,6 +43,9 @@ export const register = async (req, res) => {
       members: members || [],
       activeSessions: [],
     });
+    // Send Email (Fire and Forget)
+    sendTeamIdEmail(email, teamName, teamId);
+
     console.log("Team Created:", newTeam._id);
 
     res.status(201).json({ msg: "Team Registered", teamId: newTeam.teamId });
