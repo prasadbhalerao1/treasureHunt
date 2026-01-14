@@ -17,6 +17,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Enable trust proxy for Vercel/proxies
+app.set("trust proxy", 1);
+
 // Security Middleware
 app.use(helmet());
 app.use(
@@ -27,12 +30,8 @@ app.use(
         "http://localhost:3000",
         "https://treasurehunt-gotham-ai.vercel.app",
       ];
-      // Allow Vercel deployments (regex matches any .vercel.app domain)
-      if (
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        origin.endsWith(".vercel.app")
-      ) {
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
@@ -47,9 +46,21 @@ app.use(cookieParser());
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 50000, // Extremely high limit (effectively disabled for humans)
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => {
+    // 1. If user is logged in (Bearer Token), use that
+    if (req.headers.authorization) {
+      return req.headers.authorization;
+    }
+    // 2. If trying to login/register, use the Team ID or Email if provided to throttle specific accounts
+    if (req.body && req.body.teamId) {
+      return req.body.teamId;
+    }
+    // 3. Fallback to IP for anonymous traffic (e.g. landing page)
+    return req.ip;
+  },
 });
 app.use("/api", limiter);
 

@@ -34,7 +34,7 @@ export default function Register() {
       console.error("Registration Error:", err);
       if (!err.response) {
         setError(
-          "Network Error: Unable to reach server. If on mobile, check your IP configuration."
+          "Network Error: Unable to reach server. Please check your connection."
         );
       } else {
         setError(
