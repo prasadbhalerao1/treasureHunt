@@ -31,6 +31,7 @@ export const getGameState = async (req, res) => {
     const response = {
       level: team.currentLevel,
       status: currentStatus ? currentStatus.status : "LOCKED",
+      verified: currentStatus ? currentStatus.verified : false,
       // Show hint ONLY if unlocked
       hint: levelInfo.hintText,
       // Location is only for internal debug or if we want to show it after solving
@@ -171,11 +172,9 @@ export const submitAnswer = async (req, res) => {
 
     // Only allow for Level 7 (Finale)
     if (team.currentLevel !== 7) {
-      return res
-        .status(400)
-        .json({
-          msg: "No text submission required for this level. Find the Volunteer!",
-        });
+      return res.status(400).json({
+        msg: "No text submission required for this level. Find the Volunteer!",
+      });
     }
 
     const level = await Level.findOne({ levelNumber: 7 });

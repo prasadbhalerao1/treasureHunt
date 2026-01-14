@@ -63,7 +63,8 @@ export default function Dashboard() {
       <div className="p-8 text-center text-red-600 font-bold">SIGNAL LOST</div>
     );
 
-  const { level, status, hint, location, collectedKeywords } = gameState;
+  const { level, status, verified, hint, location, collectedKeywords } =
+    gameState;
 
   return (
     <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white p-6">
@@ -169,7 +170,7 @@ export default function Dashboard() {
 
               {/* Status Indicator */}
               <div className="py-4">
-                {status.status === "AWAITING_QR" ? (
+                {status === "AWAITING_QR" ? (
                   <div className="space-y-6 text-center">
                     <div className="inline-flex items-center justify-center p-6 border-4 border-black bg-green-400 text-black mb-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-full">
                       <MapPin size={48} className="animate-bounce" />
@@ -236,7 +237,7 @@ export default function Dashboard() {
               Team {user?.id?.slice(-4) || "UNK"}
             </span>
             <span className="flex items-center gap-2">
-              {status.verified ? (
+              {verified ? (
                 <span className="text-black flex items-center gap-1 font-black bg-green-400 px-2 py-1 border-2 border-black">
                   <CheckCircle size={16} /> VERIFIED
                 </span>
