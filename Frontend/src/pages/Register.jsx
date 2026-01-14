@@ -124,7 +124,7 @@ export default function Register() {
                 </label>
                 <Input
                   type="email"
-                  placeholder="leader@college.edu"
+                  placeholder="leader@gmail.com"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   required
