@@ -26,9 +26,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (teamName, email, password, members) => {
-    await api.post("/auth/register", { teamName, email, password, members });
-    // After register, auto-login or redirect to login?
-    // Usually redirect to login.
+    const { data } = await api.post("/auth/register", {
+      teamName,
+      email,
+      password,
+      members,
+    });
+    return data;
   };
 
   const logout = () => {

@@ -28,8 +28,13 @@ export default function Register() {
         return;
       }
 
-      await register(form.teamName, form.email, form.password, membersArray);
-      setSuccess(true);
+      const data = await register(
+        form.teamName,
+        form.email,
+        form.password,
+        membersArray
+      );
+      setSuccess(data.teamId);
     } catch (err) {
       console.error("Registration Error:", err);
       if (!err.response) {
@@ -59,7 +64,12 @@ export default function Register() {
               <p>
                 Mission details sent to <strong>{form.email}</strong>.
                 <br />
-                Check your inbox for the Team ID.
+                <span className="block mt-4 text-3xl font-black bg-white p-4 border-2 border-black">
+                  YOUR TEAM ID: {success}
+                </span>
+                <span className="text-sm">
+                  (Save this ID! You need it to login)
+                </span>
               </p>
             </div>
             <Button
