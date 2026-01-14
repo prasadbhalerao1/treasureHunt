@@ -59,11 +59,11 @@ export const volunteerVerify = async (req, res) => {
     const team = await Team.findOne({ teamId });
     if (!team) return res.status(404).json({ msg: "Team not found" });
 
-    // 0. Check if Game is Completed (Level > 7)
+    // 0. Check if Game Completed (Level > 7)
     if (team.currentLevel > 7) {
       return res.status(200).json({
         code: "GAME_COMPLETED",
-        msg: "MISSION COMPLETE. This team has finished the game.",
+        msg: "Team has successfully completed the mission!",
       });
     }
 

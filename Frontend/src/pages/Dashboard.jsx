@@ -155,29 +155,6 @@ export default function Dashboard() {
                 </Button>
               </form>
             </div>
-          ) : level > 7 || status === "COMPLETED" ? (
-            /* VICTORY MODE */
-            <div className="border-4 border-black bg-white p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-center animate-in zoom-in duration-500">
-              <div className="mb-6 flex justify-center">
-                <div className="border-4 border-black rounded-full p-4 bg-yellow-400">
-                  <CheckCircle size={64} className="text-black" />
-                </div>
-              </div>
-              <h1 className="text-5xl font-black text-black tracking-tighter uppercase mb-4 leading-none">
-                MISSION
-                <br />
-                ACCOMPLISHED
-              </h1>
-              <div className="w-full h-1 bg-black mb-6"></div>
-              <p className="text-xl font-bold uppercase tracking-widest mb-8">
-                Congratulations Agent.
-                <br />
-                You have successfully secured the campus.
-              </p>
-              <div className="bg-black text-white p-4 font-black uppercase tracking-widest border-2 border-black">
-                Status: HONORABLE DISCHARGE
-              </div>
-            </div>
           ) : (
             /* STANDARD LEVEL UI */
             <div className="space-y-8">

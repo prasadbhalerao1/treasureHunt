@@ -37,6 +37,11 @@ export default function Volunteer() {
         });
       } else if (err.response?.data?.code === "ALREADY_VERIFIED") {
         setMsg({ type: "info", text: "ALREADY VERIFIED: Team is good to go." });
+      } else if (err.response?.data?.code === "GAME_COMPLETED") {
+        setMsg({
+          type: "success",
+          text: "MISSION ACCOMPLISHED: Team has finished the game.",
+        });
       } else {
         setError({
           type: "error",
