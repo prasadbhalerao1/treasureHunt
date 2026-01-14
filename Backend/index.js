@@ -21,7 +21,19 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:3000"], // Explicit origins for credentials
+    origin: (origin, callback) => {
+      const allowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
+      // Allow Vercel deployments (regex matches any .vercel.app domain)
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
@@ -54,17 +66,21 @@ app.get("/", (req, res) => {
   res.send("Campus Heist API Active");
 });
 
-// Connect to DB and Start Server
-const startServer = async () => {
-  try {
-    await dbConnect();
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (err) {
-    console.error("Database connection failed", err);
-    process.exit(1);
-  }
-};
+// Helper to start server if running directly
+if (process.env.NODE_ENV !== "production") {
+  const startServer = async () => {
+    try {
+      await dbConnect();
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    } catch (err) {
+      console.error("Database connection failed", err);
+      process.exit(1);
+    }
+  };
+  startServer();
+}
 
-startServer();
+// Export for Vercel
+export default app;
