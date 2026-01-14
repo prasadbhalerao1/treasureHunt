@@ -84,7 +84,12 @@ export const login = async (req, res) => {
 
     res.json({
       token,
-      team: { name: team.name, role: team.role, level: team.currentLevel },
+      team: {
+        teamId: team.teamId,
+        name: team.name,
+        role: team.role,
+        level: team.currentLevel,
+      },
     });
   } catch (err) {
     console.error(err);

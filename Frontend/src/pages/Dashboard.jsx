@@ -256,7 +256,7 @@ export default function Dashboard() {
         <footer className="mt-8 border-t-4 border-black pt-4">
           <div className="flex items-center justify-between text-sm font-black text-black">
             <span className="uppercase tracking-widest bg-black text-white px-2 py-1">
-              Team {gameState?.teamId || "UNK"}
+              Team {gameState?.teamId || user?.teamId || "UNK"}
             </span>
             <span className="flex items-center gap-2">
               {verified ? (
