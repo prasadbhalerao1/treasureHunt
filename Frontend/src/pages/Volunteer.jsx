@@ -1,10 +1,8 @@
+import { useState } from "react";
+import api from "../utils/api";
+import { Button, Input } from "../components/ui";
 import Loader from "../components/Loader";
-
-// ... inside component ...
-
-// ... imports ...
-
-// removed misplaced code
+import { CheckCircle, XCircle, LogOut } from "lucide-react";
 
 export default function Volunteer() {
   const [teamId, setTeamId] = useState("");
