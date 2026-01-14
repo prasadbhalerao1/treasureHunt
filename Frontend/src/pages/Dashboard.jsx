@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
 import { Button, Input } from "../components/ui";
 import Scanner from "../components/Scanner";
+import Loader from "../components/Loader";
 import { RefreshCw, Lock, MapPin, QrCode, CheckCircle } from "lucide-react";
 
 export default function Dashboard() {
@@ -54,10 +55,7 @@ export default function Dashboard() {
     }
   };
 
-  if (loading)
-    return (
-      <div className="p-8 text-center font-bold">CONTACTING SATELLITE...</div>
-    );
+  if (loading) return <Loader fullScreen text="CONTACTING SATELLITE" />;
   if (!gameState)
     return (
       <div className="p-8 text-center text-red-600 font-bold">SIGNAL LOST</div>
@@ -117,7 +115,7 @@ export default function Dashboard() {
             /* VICTORY SCREEN */
             <div className="border-4 border-black bg-white p-4 md:p-8 text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in duration-500 flex flex-col items-center justify-center min-h-[50vh]">
               <div className="mb-6">
-                <div className="w-20 h-20 bg-black flex items-center justify-center animate-bounce border-4 border-black bg-green-500">
+                <div className="w-20 h-20 flex items-center justify-center animate-bounce border-4 border-black bg-green-500">
                   <CheckCircle size={48} className="text-black" />
                 </div>
               </div>
@@ -256,7 +254,7 @@ export default function Dashboard() {
         <footer className="mt-8 border-t-4 border-black pt-4">
           <div className="flex items-center justify-between text-sm font-black text-black">
             <span className="uppercase tracking-widest bg-black text-white px-2 py-1">
-              Team {gameState?.teamId || user?.teamId || "UNK"}
+              {gameState?.teamId || user?.teamId || "LETS GOO!"}
             </span>
             <span className="flex items-center gap-2">
               {verified ? (

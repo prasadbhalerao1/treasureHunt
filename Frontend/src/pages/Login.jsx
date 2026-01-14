@@ -2,15 +2,19 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Button, Input, Card } from "../components/ui";
+import Loader from "../components/Loader";
 
 export default function Login() {
   const [form, setForm] = useState({ teamId: "", password: "" });
   const { login } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
     try {
       const data = await login(form.teamId, form.password);
 
@@ -26,8 +30,13 @@ export default function Login() {
     } catch (err) {
       console.error("Login Error:", err);
       setError(err.response?.data?.msg || "Login Failed");
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return <Loader fullScreen text="AUTHENTICATING" />;
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-zinc-50 p-4">
@@ -71,9 +80,10 @@ export default function Login() {
 
           <Button
             type="submit"
-            className="w-full bg-black text-white hover:bg-zinc-800 h-16 text-xl md:text-2xl font-black tracking-widest uppercase rounded-none border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
+            disabled={loading}
+            className="w-full bg-black text-white hover:bg-zinc-800 h-16 text-xl md:text-2xl font-black tracking-widest uppercase rounded-none border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all disabled:opacity-50"
           >
-            LOGIN
+            {loading ? "LOGIN..." : "LOGIN"}
           </Button>
         </form>
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Button, Input, Card } from "../components/ui";
+import Loader from "../components/Loader";
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -14,9 +15,13 @@ export default function Register() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
+
     try {
       const membersArray = form.members
         .split(",")
@@ -25,6 +30,7 @@ export default function Register() {
 
       if (membersArray.length > 4) {
         setError("Maximum 4 members allowed (including you if applicable).");
+        setLoading(false);
         return;
       }
 
@@ -48,8 +54,15 @@ export default function Register() {
         );
       }
       setSuccess(false);
+    } finally {
+      if (!success) setLoading(false); // Keep loading true if success to prevent flash before UI switch? No, success state handles UI.
+      // Wait, if success is true, we show success UI. Correct.
     }
   };
+
+  if (loading && !success) {
+    return <Loader fullScreen text="REGISTERING TEAM" />;
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-zinc-50 p-4">
@@ -150,9 +163,10 @@ export default function Register() {
 
               <Button
                 type="submit"
-                className="w-full bg-black text-white hover:bg-zinc-800 h-16 text-xl md:text-2xl font-black tracking-widest uppercase rounded-none border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
+                disabled={loading}
+                className="w-full bg-black text-white hover:bg-zinc-800 h-16 text-xl md:text-2xl font-black tracking-widest uppercase rounded-none border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                REGISTER
+                {loading ? "REGISTERING..." : "REGISTER"}
               </Button>
             </form>
           </>

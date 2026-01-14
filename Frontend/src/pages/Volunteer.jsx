@@ -1,8 +1,16 @@
-import { useState } from "react";
-import api from "../utils/api";
-import { useAuth } from "../context/AuthContext";
-import { Button, Input } from "../components/ui";
-import { CheckCircle, XCircle, LogOut } from "lucide-react";
+import Loader from "../components/Loader";
+
+// ... inside component ...
+
+if (loading) {
+  return <Loader fullScreen text="VERIFYING IDENTITY" />;
+}
+
+// Note: I need to check where to insert this locally, probably before the return or wrapped.
+// Actually, earlier I decided full screen loader might be annoying for volunteers.
+// But consistency is better. Let's do it.
+// Wait, I can't just paste that snippet. I have to replace the whole file or find the insert point.
+// I will insert the import and the condition at the top of the render.
 
 export default function Volunteer() {
   const [teamId, setTeamId] = useState("");
@@ -52,6 +60,10 @@ export default function Volunteer() {
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return <Loader fullScreen text="VERIFYING IDENTITY" />;
+  }
 
   return (
     <div className="min-h-screen bg-white text-black p-4 md:p-6 font-sans flex flex-col">
