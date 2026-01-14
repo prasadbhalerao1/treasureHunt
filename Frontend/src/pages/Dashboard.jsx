@@ -115,22 +115,22 @@ export default function Dashboard() {
 
           {status === "COMPLETED" || level > 7 ? (
             /* VICTORY SCREEN */
-            <div className="border-4 border-black bg-white p-8 text-center shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in duration-500">
-              <div className="flex justify-center mb-6">
-                <div className="w-24 h-24 bg-black rounded-full flex items-center justify-center animate-pulse">
-                  <CheckCircle size={64} className="text-green-500" />
+            <div className="border-4 border-black bg-white p-4 md:p-8 text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in duration-500 flex flex-col items-center justify-center min-h-[50vh]">
+              <div className="mb-6">
+                <div className="w-20 h-20 bg-black flex items-center justify-center animate-bounce border-4 border-black bg-green-500">
+                  <CheckCircle size={48} className="text-black" />
                 </div>
               </div>
-              <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter mb-4 leading-none">
+              <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-4 leading-none break-words w-full">
                 MISSION ACCOMPLISHED
               </h1>
-              <p className="text-xl font-black uppercase tracking-widest text-zinc-500 mb-8">
+              <p className="text-lg md:text-xl font-black uppercase tracking-widest text-zinc-500 mb-8">
                 ALL OBJECTIVES SECURED
               </p>
-              <div className="bg-black text-white p-4 font-mono text-sm border-2 border-green-500">
+              <div className="bg-black text-white p-4 font-mono text-xs md:text-sm border-2 border-green-500 w-full">
                 <p>AGENT STATUS: LEGENDARY</p>
                 <p>FINAL SCORE: MAX</p>
-                <p className="mt-2 text-green-400">
+                <p className="mt-2 text-green-400 font-bold">
                   RETURN TO BASE FOR DEBRIEF.
                 </p>
               </div>
@@ -256,7 +256,7 @@ export default function Dashboard() {
         <footer className="mt-8 border-t-4 border-black pt-4">
           <div className="flex items-center justify-between text-sm font-black text-black">
             <span className="uppercase tracking-widest bg-black text-white px-2 py-1">
-              Team {user?.id?.slice(-4) || "UNK"}
+              Team {gameState?.teamId || "UNK"}
             </span>
             <span className="flex items-center gap-2">
               {verified ? (

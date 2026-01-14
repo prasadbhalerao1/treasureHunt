@@ -29,6 +29,8 @@ export const getGameState = async (req, res) => {
 
     // Construct response
     const response = {
+      teamId: team.teamId,
+      name: team.name,
       level: team.currentLevel,
       status: currentStatus ? currentStatus.status : "LOCKED",
       verified: currentStatus ? currentStatus.verified : false,
