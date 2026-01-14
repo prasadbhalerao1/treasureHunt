@@ -43,8 +43,15 @@ export const register = async (req, res) => {
       members: members || [],
       activeSessions: [],
     });
-    // Send Email (Fire and Forget)
-    sendTeamIdEmail(email, teamName, teamId);
+    // Send Email (Await to ensure it works)
+    console.log(`Sending email to ${email}...`);
+    const emailSent = await sendTeamIdEmail(email, teamName, teamId);
+    if (!emailSent) {
+      console.error("FAILED TO SEND EMAIL in register controller");
+      // Optional: return error or just warn? For now warn.
+    } else {
+      console.log("Email successfully handed off to nodemailer.");
+    }
 
     console.log("Team Created:", newTeam._id);
 

@@ -1,53 +1,151 @@
 export const getTeamIdEmailTemplate = (teamName, teamId) => {
   return `
-    <div style="background-color: #f4f4f5; padding: 40px; font-family: Verdana, sans-serif;">
-      <div style="background-color: #ffffff; border: 4px solid #000000; max-width: 600px; margin: 0 auto; padding: 0;">
-        
-        <!-- Header -->
-        <div style="border-bottom: 4px solid #000000; padding: 20px; background-color: #000000; color: #ffffff;">
-          <h1 style="margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; font-weight: 900;">
-            Mission Briefing
-          </h1>
-        </div>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Heist</title>
+</head>
 
-        <!-- Content -->
-        <div style="padding: 30px;">
-          <p style="font-size: 14px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; color: #555;">
-            Attention Agent:
-          </p>
-          <p style="font-size: 20px; font-weight: 900; text-transform: uppercase; margin-top: 0; color: #000;">
-            ${teamName}
-          </p>
+<body style="
+  margin:0;
+  padding:0;
+  background:#ffffff;
+  color:#000;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+">
 
-          <hr style="border: 0; border-top: 2px dashed #000; margin: 20px 0;" />
+  <div style="
+    max-width:420px;
+    margin:0 auto;
+    padding:24px 16px;
+  ">
 
-          <p style="font-size: 14px; color: #333; line-height: 1.5;">
-            Your team has been activated for the upcoming operation. 
-            Below is your unique identifier required for secure login.
-          </p>
+    <div style="
+      border:2.5px solid #000;
+      padding:24px 20px;
+    ">
 
-          <!-- Team ID Box -->
-          <div style="margin: 30px 0; background-color: #000000; color: #ffffff; padding: 20px; text-align: center; border: 2px solid #000; box-shadow: 6px 6px 0px 0px rgba(0,0,0,0.2);">
-            <p style="margin: 0; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #ccc;">
-              Your Team ID
-            </p>
-            <h2 style="margin: 10px 0 0 0; font-size: 32px; letter-spacing: 3px; font-weight: 900; text-transform: uppercase;">
-              ${teamId}
-            </h2>
-          </div>
+      <!-- Title -->
+      <h1 style="
+        margin:0 0 18px 0;
+        font-size:24px;
+        font-weight:900;
+        text-transform:uppercase;
+        letter-spacing:-0.6px;
+        text-align:center;
+      ">
+        Campus Heist
+      </h1>
 
-          <p style="font-size: 12px; color: #666; font-style: italic;">
-            Do not share this credential with unauthorized personnel.
-          </p>
-        </div>
+      <!-- Sub line -->
+      <p style="
+        margin:0 0 14px 0;
+        font-size:15px;
+        line-height:1.55;
+        text-align:center;
+        font-weight:600;
+      ">
+        <strong>Gotham AI</strong> welcomes you to the<br/>
+        <strong>Treasure Hunt</strong>
+      </p>
 
-        <!-- Footer -->
-        <div style="background-color: #f4f4f5; border-top: 4px solid #000000; padding: 15px; text-align: center;">
-          <p style="margin: 0; font-size: 10px; font-weight: bold; text-transform: uppercase; color: #000;">
-            TreasureHunt HQ &bull; Secure Transmission
-          </p>
-        </div>
+      <p style="
+        margin:0 0 20px 0;
+        font-size:14px;
+        line-height:1.6;
+        text-align:center;
+        font-weight:500;
+      ">
+        Your team has been successfully registered.
+        Keep your Team ID safe.
+      </p>
+
+      <!-- Label -->
+      <p style="
+        margin:0 0 6px 0;
+        font-size:11px;
+        font-weight:700;
+        text-transform:uppercase;
+        letter-spacing:1px;
+      ">
+        Team ID
+      </p>
+
+      <!-- Team ID -->
+      <div style="
+        border:2.5px solid #000;
+        padding:14px;
+        margin-bottom:16px;
+        text-align:center;
+        font-family:
+          'SFMono-Regular',
+          Menlo,
+          Monaco,
+          Consolas,
+          'Liberation Mono',
+          'Courier New',
+          monospace;
+        font-size:22px;
+        font-weight:800;
+        letter-spacing:1.4px;
+        word-break:break-word;
+      ">
+        ${teamId}
       </div>
+
+      <!-- Team name -->
+      <p style="
+        margin:0 0 24px 0;
+        font-size:12px;
+        text-transform:uppercase;
+        letter-spacing:0.6px;
+        font-weight:600;
+      ">
+        Team Name: <strong>${teamName}</strong>
+      </p>
+
+      <!-- CTA -->
+      <a href="https://treasurehunt-gotham-ai.vercel.app/login"
+        style="
+          display:block;
+          width:100%;
+          padding:14px 0;
+          border:2.5px solid #000;
+          text-align:center;
+          text-decoration:none;
+          color:#000;
+          font-weight:900;
+          text-transform:uppercase;
+          font-size:13px;
+          letter-spacing:0.6px;
+        ">
+        Go to Login
+      </a>
+
+      <p style="
+        margin-top:28px;
+        font-size:10.5px;
+        line-height:1.5;
+        text-transform:uppercase;
+        letter-spacing:0.6px;
+        font-weight:600;
+      ">
+        Automated message. Do not reply or share your Team ID.
+      </p>
+
     </div>
-  `;
+  </div>
+
+</body>
+</html>
+`;
 };
