@@ -22,7 +22,11 @@ app.use(helmet());
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
+      const allowedOrigins = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://treasurehunt-gotham-ai.vercel.app",
+      ];
       // Allow Vercel deployments (regex matches any .vercel.app domain)
       if (
         !origin ||
