@@ -17,10 +17,12 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log(
-      `[API REQUEST] ${config.method.toUpperCase()} ${config.url}`,
-      config.data || ""
-    );
+    if (import.meta.env.MODE === "development") {
+      console.log(
+        `[API REQUEST] ${config.method.toUpperCase()} ${config.url}`,
+        config.data || ""
+      );
+    }
     return config;
   },
   (error) => {
@@ -31,10 +33,12 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
-    console.log(
-      `[API RESPONSE] ${response.status} ${response.config.url}`,
-      response.data
-    );
+    if (import.meta.env.MODE === "development") {
+      console.log(
+        `[API RESPONSE] ${response.status} ${response.config.url}`,
+        response.data
+      );
+    }
     return response;
   },
   (error) => {

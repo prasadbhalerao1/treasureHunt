@@ -121,3 +121,17 @@ _The strategist. God Mode._
     - As **Candidate**: Scan the generated QR code (found in `public/qr_codes` or displayed on screen if testing).
 4.  **Repeat**: Until Level 7.
 5.  **Win**: Enter the final sequence.
+
+---
+
+## 🔑 Ready-to-Use Test Accounts
+
+### Administrators
+
+- **Main**: `ADMIN-MAIN` (Password: `adminpassword123`)
+- **Backup**: `ADMIN-BACKUP` (Password: `adminpassword456`)
+
+### Volunteers (10 Stations)
+
+- **Password**: `volunteerpassword123`
+- **IDs**: `VOLUNTEER-1` to `VOLUNTEER-10`

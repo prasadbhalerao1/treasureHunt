@@ -60,16 +60,18 @@ These accounts are created when running the seed script (`npm run seed:users` in
 ### Admin Dashboard
 
 - **URL**: `/admin`
-- **Team ID**: `ADMIN-MAIN`
-- **Password**: `adminpassword123`
-- **Role**: `ADMIN`
+- **Main Admin**: `ADMIN-MAIN` / `adminpassword123`
+- **Backup Admin**: `ADMIN-BACKUP` / `adminpassword456`
 
 ### Volunteer Portal
 
 - **URL**: `/volunteer`
-- **Team ID**: `VOLUNTEER-1`
-- **Password**: `volunteerpassword123`
-- **Role**: `VOLUNTEER`
+- **Default Password**: `volunteerpassword123`
+- **Volunteers**:
+  - `VOLUNTEER-1` (Station 1)
+  - `VOLUNTEER-2` (Station 2)
+  - `VOLUNTEER-3` (Station 3)
+  - ... up to `VOLUNTEER-10`
 
 ### Player Team
 

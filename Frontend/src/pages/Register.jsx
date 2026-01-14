@@ -28,8 +28,8 @@ export default function Register() {
         .map((m) => m.trim())
         .filter((m) => m !== "");
 
-      if (membersArray.length > 4) {
-        setError("Maximum 4 members allowed (including you if applicable).");
+      if (membersArray.length > 3) {
+        setError("Maximum 4 members allowed (You + 3 others).");
         setLoading(false);
         return;
       }

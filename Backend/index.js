@@ -40,13 +40,13 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json({ limit: "10kb" })); // Body limit
+app.use(express.json({ limit: "50kb" })); // Body limit relaxed
 app.use(cookieParser());
 
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50000, // Extremely high limit (effectively disabled for humans)
+  max: 300000, // Relaxed limit for Campus Wi-Fi (NAT) support
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => {

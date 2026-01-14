@@ -114,6 +114,16 @@ export const scanQR = async (req, res) => {
     // Triangulation Check
     const statusObj = team.levelStatus.get(String(team.currentLevel));
 
+    // 0. Idempotency Check: Already Completed?
+    if (statusObj.status === "COMPLETED") {
+      return res.status(200).json({
+        msg: "Level Already Completed",
+        keyword: level.keyword, // Return keyword again so client stays in sync
+        nextLevel: team.currentLevel + 1,
+        nextHint: "Wait for update...", // Fallback
+      });
+    }
+
     // 1. Volunteer Verification Required
     if (!statusObj.verified) {
       return res.status(403).json({
