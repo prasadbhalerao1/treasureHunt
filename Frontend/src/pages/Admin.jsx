@@ -43,13 +43,15 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-zinc-50 p-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <h1 className="text-4xl font-black uppercase">Mission Control</h1>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b-4 border-black pb-8">
+        <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">
+          Mission Control
+        </h1>
         <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
           <select
             value={selectedLevel}
             onChange={(e) => setSelectedLevel(e.target.value)}
-            className="p-2 border-2 border-black font-bold w-full md:w-auto"
+            className="p-3 border-4 border-black font-black uppercase tracking-widest w-full md:w-auto focus:bg-zinc-100 rounded-none text-lg"
           >
             <option value="Global">Global Overview</option>
             {[1, 2, 3, 4, 5, 6, 7].map((l) => (
@@ -64,7 +66,7 @@ export default function Admin() {
               localStorage.removeItem("user");
               window.location.reload();
             }}
-            className="w-12 h-12 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+            className="w-14 h-14 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
             title="Logout"
           >
             <LogOut size={24} />
@@ -74,72 +76,106 @@ export default function Admin() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         {stats.distribution && (
-          <Card>
-            <h2 className="text-xl font-bold mb-4">Team Distribution</h2>
-            <div className="h-64">
+          <Card className="border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-none p-6">
+            <h2 className="text-2xl font-black mb-6 uppercase tracking-tighter border-b-4 border-black pb-2">
+              Team Distribution
+            </h2>
+            <div className="h-64 font-mono font-bold">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats.distribution}>
-                  <XAxis dataKey="level" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#000000" />
+                  <XAxis
+                    dataKey="level"
+                    tick={{ fill: "black", fontWeight: "bold" }}
+                    axisLine={{ stroke: "black", strokeWidth: 2 }}
+                  />
+                  <YAxis
+                    tick={{ fill: "black", fontWeight: "bold" }}
+                    axisLine={{ stroke: "black", strokeWidth: 2 }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      border: "4px solid black",
+                      borderRadius: "0px",
+                      fontWeight: "bold",
+                      textTransform: "uppercase",
+                    }}
+                    cursor={{ fill: "#f4f4f5" }}
+                  />
+                  <Bar dataKey="count" fill="#000000" radius={[0, 0, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </Card>
         )}
 
-        <Card className={stats.distribution ? "" : "col-span-2"}>
-          <h2 className="text-xl font-bold mb-4">
-            {selectedLevel === "Global"
-              ? "Top 10 Leaders"
-              : `Fastest Teams (Level ${selectedLevel})`}
+        <Card
+          className={`border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-none p-6 ${
+            stats.distribution ? "" : "col-span-2"
+          }`}
+        >
+          <h2 className="text-2xl font-black mb-6 uppercase tracking-tighter border-b-4 border-black pb-2 flex justify-between items-center">
+            <span>
+              {selectedLevel === "Global"
+                ? "Top 10 Leaders"
+                : `Fastest Teams (Level ${selectedLevel})`}
+            </span>
+            <span className="text-xs bg-black text-white px-2 py-1 tracking-widest">
+              LIVE
+            </span>
           </h2>
           <div className="overflow-auto max-h-96">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b-2 border-black">
-                  <th className="p-2">Rank</th>
-                  <th className="p-2">Team</th>
-                  {selectedLevel !== "Global" && (
-                    <th className="p-2">Time Taken</th>
-                  )}
-                  <th className="p-2">Completed At / Current Lvl</th>
+                <tr className="border-b-4 border-black text-black font-black uppercase text-sm tracking-widest">
+                  <th className="p-3">Rank</th>
+                  <th className="p-3">Team</th>
+                  {selectedLevel !== "Global" && <th className="p-3">Time</th>}
+                  <th className="p-3">
+                    {selectedLevel === "Global"
+                      ? "Current Lvl"
+                      : "Completed At"}
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="font-bold text-sm uppercase">
                 {stats.leaderboard?.map((team, idx) => (
                   <tr
                     key={team.teamId}
-                    className="border-b border-zinc-200 hover:bg-zinc-100"
+                    className="border-b-2 border-zinc-100 hover:bg-zinc-50 transition-colors"
                   >
-                    <td className="p-2 font-bold">#{idx + 1}</td>
-                    <td className="p-2">
-                      <div className="font-bold">{team.name}</div>
-                      <div className="text-xs text-zinc-400 font-mono">
+                    <td className="p-3 font-black">#{idx + 1}</td>
+                    <td className="p-3">
+                      <div className="font-black text-lg">{team.name}</div>
+                      <div className="text-xs text-zinc-500 tracking-widest">
                         {team.teamId}
                       </div>
                     </td>
                     {selectedLevel !== "Global" && (
-                      <td className="p-2 font-mono text-blue-600 font-bold">
+                      <td className="p-3 font-mono text-blue-600 font-bold">
                         {formatTime(team.timeTaken)}
                       </td>
                     )}
-                    <td className="p-2 text-zinc-500 text-sm">
+                    <td className="p-3 text-zinc-600">
                       {selectedLevel === "Global" ? (
-                        <span className="bg-black text-white px-2 py-1 font-mono">
-                          {team.currentLevel}
+                        <span className="bg-black text-white px-3 py-1 font-black text-xs">
+                          LVL {team.currentLevel}
                         </span>
                       ) : (
-                        new Date(team.completedAt).toLocaleTimeString()
+                        new Date(team.completedAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                       )}
                     </td>
                   </tr>
                 ))}
                 {(!stats.leaderboard || stats.leaderboard.length === 0) && (
                   <tr>
-                    <td colSpan="4" className="p-4 text-center text-zinc-400">
-                      No Data
+                    <td
+                      colSpan="4"
+                      className="p-8 text-center text-zinc-400 font-black italic"
+                    >
+                      NO DATA AVAILABLE
                     </td>
                   </tr>
                 )}
