@@ -11,12 +11,39 @@ const api = axios.create({
   },
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    console.log(
+      `[API REQUEST] ${config.method.toUpperCase()} ${config.url}`,
+      config.data || ""
+    );
+    return config;
+  },
+  (error) => {
+    console.error("[API REQUEST ERROR]", error);
+    return Promise.reject(error);
   }
-  return config;
-});
+);
+
+api.interceptors.response.use(
+  (response) => {
+    console.log(
+      `[API RESPONSE] ${response.status} ${response.config.url}`,
+      response.data
+    );
+    return response;
+  },
+  (error) => {
+    console.error(
+      "[API RESPONSE ERROR]",
+      error.response?.data || error.message
+    );
+    return Promise.reject(error);
+  }
+);
 
 export default api;

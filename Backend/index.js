@@ -57,10 +57,29 @@ app.use((req, res, next) => {
   next();
 });
 
+// REQUEST LOGGER
+app.use((req, res, next) => {
+  console.log(
+    `[${new Date().toISOString()}] ${req.method} ${req.url} - IP: ${req.ip}`
+  );
+  next();
+});
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/game", gameRoutes);
 app.use("/api/admin", adminRoutes);
+
+// GLOBAL ERROR HANDLER
+app.use((err, req, res, next) => {
+  console.error(`[ERROR] ${err.stack}`);
+  const status = err.statusCode || 500;
+  const msg = err.message || "Internal Server Error";
+  res.status(status).json({
+    msg,
+    error: process.env.NODE_ENV === "development" ? err : {},
+  });
+});
 
 app.get("/", (req, res) => {
   res.send("Campus Heist API Active");

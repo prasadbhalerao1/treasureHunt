@@ -66,126 +66,123 @@ export default function Dashboard() {
   const { level, status, hint, location, collectedKeywords } = gameState;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-sans selection:bg-red-500 selection:text-white">
-      {/* Glitch Overlay Effect */}
-      <div className="fixed inset-0 pointer-events-none opacity-5 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-800 via-zinc-950 to-black"></div>
-
-      <div className="max-w-md mx-auto min-h-screen flex flex-col relative z-10">
+    <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white p-6">
+      <div className="max-w-xl mx-auto min-h-screen flex flex-col">
         {/* Header - Level Indicator */}
-        <header className="p-6 flex justify-between items-start">
+        <header className="mb-8 flex justify-between items-start border-4 border-black p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white">
           <div>
-            <div className="text-zinc-500 text-xs font-bold tracking-[0.2em] uppercase mb-1">
-              Current Protocol
+            <div className="text-black text-xs font-black tracking-widest uppercase mb-1">
+              CURRENT PROTOCOL
             </div>
-            <h1 className="text-7xl font-black tracking-tighter text-white leading-none">
+            <h1 className="text-7xl font-black tracking-tighter text-black leading-none">
               {String(level).padStart(2, "0")}
             </h1>
           </div>
           <Button
             onClick={fetchState}
-            className="rounded-full w-12 h-12 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-400 p-0 flex items-center justify-center transition-all active:scale-95"
+            className="w-12 h-12 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
           >
-            <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
+            <RefreshCw
+              size={24}
+              className={`text-black ${loading ? "animate-spin" : ""}`}
+            />
           </Button>
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-6 flex flex-col justify-center">
+        <main className="flex-1 flex flex-col justify-center">
           {msg && (
-            <div className="mb-6 p-4 bg-red-500/10 border-l-2 border-red-500 text-red-400 text-sm font-bold animate-pulse">
+            <div className="mb-6 p-4 bg-yellow-300 border-4 border-black text-black text-sm font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-bounce">
               {msg}
             </div>
           )}
 
           {level === 7 ? (
             /* FINALE MODE */
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <div className="border border-red-900/50 bg-red-950/20 p-6 rounded-lg backdrop-blur-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-2 opacity-20">
-                  <Lock size={100} className="text-red-500" />
-                </div>
-                <h2 className="text-3xl font-black text-red-500 mb-2 tracking-tighter">
+            <div className="border-4 border-black bg-white p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-4xl font-black text-black tracking-tighter uppercase">
                   BITLOCKER
                 </h2>
-                <p className="text-red-200/80 text-sm font-mono mb-6">
-                  FINAL DECRYPTION SEQUENCE REQUIRED. ARRANGE KEYWORDS
-                  ALPHABETICALLY.
-                </p>
-
-                <div className="grid grid-cols-2 gap-2 mb-6">
-                  {collectedKeywords.map((k, i) => (
-                    <div
-                      key={i}
-                      className="bg-black/40 border border-red-900/30 p-2 text-center font-mono text-red-400 text-xs tracking-widest"
-                    >
-                      {k}
-                    </div>
-                  ))}
-                </div>
-
-                <form onSubmit={submitAnswer} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-red-500 uppercase tracking-widest">
-                      Victory Token
-                    </label>
-                    <Input
-                      value={answer}
-                      onChange={(e) => setAnswer(e.target.value)}
-                      className="bg-black/50 border-red-900/50 text-red-500 font-mono text-center tracking-widest uppercase placeholder:text-red-900/50 h-14 text-lg"
-                      placeholder="BERLIN-HEIST-..."
-                    />
-                  </div>
-                  <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-black tracking-widest h-14 text-lg border-none shadow-[0_0_20px_rgba(220,38,38,0.5)]">
-                    DECRYPT
-                  </Button>
-                </form>
+                <Lock size={48} className="text-black" />
               </div>
+              <p className="text-black font-bold uppercase tracking-widest mb-6 border-b-4 border-black pb-4">
+                FINAL DECRYPTION SEQUENCE REQUIRED. ARRANGE KEYWORDS
+                ALPHABETICALLY.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {collectedKeywords.map((k, i) => (
+                  <div
+                    key={i}
+                    className="bg-black text-white p-3 text-center font-black uppercase tracking-widest border-2 border-black"
+                  >
+                    {k}
+                  </div>
+                ))}
+              </div>
+
+              <form onSubmit={submitAnswer} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-black text-black uppercase tracking-widest block">
+                    Victory Token
+                  </label>
+                  <Input
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    className="bg-white border-4 border-black text-black font-black text-center tracking-widest uppercase placeholder:text-zinc-400 h-16 text-xl rounded-none focus:ring-0 focus:border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                    placeholder="BERLIN-HEIST-..."
+                  />
+                </div>
+                <Button className="w-full bg-black hover:bg-zinc-800 text-white font-black tracking-widest h-16 text-xl rounded-none border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all">
+                  DECRYPT
+                </Button>
+              </form>
             </div>
           ) : (
             /* STANDARD LEVEL UI */
             <div className="space-y-8">
-              {/* Riddle / Hint */}
-              <div className="space-y-4">
-                <div className="h-1 w-12 bg-red-600"></div>
-                <p className="text-3xl font-light leading-tight text-zinc-200">
-                  {hint}
-                </p>
-                <div className="text-zinc-600 text-xs uppercase tracking-widest font-bold">
-                  Target Information
+              {/* Riddle / Hint Card */}
+              <div className="border-4 border-black p-6 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative">
+                <div className="absolute -top-3 -left-3 bg-black text-white px-2 py-1 font-black text-xs uppercase tracking-widest transform -rotate-2">
+                  Target Info
                 </div>
+                <p className="text-3xl font-black leading-tight text-black mt-2">
+                  "{hint}"
+                </p>
               </div>
 
               {/* Status Indicator */}
-              <div className="py-8">
+              <div className="py-4">
                 {status.status === "AWAITING_QR" ? (
-                  <div className="space-y-6 text-center animate-in zoom-in duration-300">
-                    <div className="inline-flex items-center justify-center p-4 rounded-full bg-green-500/10 text-green-500 mb-2 ring-1 ring-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
+                  <div className="space-y-6 text-center">
+                    <div className="inline-flex items-center justify-center p-6 border-4 border-black bg-green-400 text-black mb-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-full">
                       <MapPin size={48} className="animate-bounce" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white tracking-widest uppercase">
+                      <h3 className="text-2xl font-black text-black tracking-tighter uppercase bg-white inline-block px-2">
                         Location Verified
                       </h3>
                     </div>
                     <Button
                       onClick={() => setScanMode(true)}
-                      className="w-full bg-white text-black font-black uppercase tracking-widest h-16 text-lg hover:bg-zinc-200 transition-all shadow-xl"
+                      className="w-full bg-black text-white font-black uppercase tracking-widest h-20 text-2xl hover:bg-zinc-900 transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-x-2 active:translate-y-2 active:shadow-none rounded-none border-4 border-black"
                     >
-                      <QrCode className="mr-2" />
-                      Initiate Scan
+                      <QrCode className="mr-4 w-8 h-8" />
+                      INITIATE SCAN
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-6 text-center opacity-80">
-                    <div className="inline-flex items-center justify-center p-6 rounded-full bg-zinc-900 text-zinc-600 mb-2 border border-zinc-800">
+                  <div className="space-y-6 text-center opacity-100">
+                    <div className="inline-flex items-center justify-center p-6 border-4 border-black bg-zinc-200 text-black mb-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-full">
                       <Lock size={32} />
                     </div>
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-bold text-zinc-400 uppercase tracking-widest">
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-black text-black uppercase tracking-widest bg-zinc-100 inline-block px-2 border-2 border-black">
                         Signal Locked
                       </h3>
-                      <p className="text-xs text-zinc-600 font-mono">
-                        LOCATE VOLUNTEER FOR BIOMETRIC VERIFICATION
+                      <p className="text-sm text-black font-bold uppercase tracking-widest">
+                        LOCATE VOLUNTEER TO VERIFY
                       </p>
                     </div>
                   </div>
@@ -194,16 +191,20 @@ export default function Dashboard() {
 
               {/* Scanner Overlay */}
               {scanMode && (
-                <div className="fixed inset-0 z-50 bg-black flex flex-col p-6 animate-in slide-in-from-bottom duration-300">
-                  <div className="flex-1 rounded-2xl overflow-hidden relative border border-zinc-800 bg-zinc-900">
-                    <Scanner onScan={handleScan} />
-                    <div className="absolute inset-0 border-2 border-green-500/30 pointer-events-none">
-                      <div className="absolute top-1/2 left-0 w-full h-0.5 bg-red-500 animate-[ping_2s_infinite]"></div>
-                    </div>
+                <div className="fixed inset-0 z-50 bg-white flex flex-col p-6 animate-in slide-in-from-bottom duration-300">
+                  <div className="flex justify-between items-center mb-6 border-b-4 border-black pb-4">
+                    <h2 className="text-3xl font-black uppercase">SCANNER</h2>
+                    <div className="w-4 h-4 bg-red-600 animate-pulse rounded-full"></div>
                   </div>
+
+                  <div className="flex-1 overflow-hidden relative border-4 border-black bg-black">
+                    <Scanner onScan={handleScan} />
+                    <div className="absolute inset-0 border-4 border-green-500 pointer-events-none opacity-50"></div>
+                  </div>
+
                   <Button
                     onClick={() => setScanMode(false)}
-                    className="mt-6 w-full bg-zinc-800 text-white font-bold h-14 border border-zinc-700 hover:bg-zinc-700"
+                    className="mt-6 w-full bg-white text-black font-black h-16 text-xl border-4 border-black hover:bg-zinc-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 rounded-none"
                   >
                     ABORT SCAN
                   </Button>
@@ -214,19 +215,19 @@ export default function Dashboard() {
         </main>
 
         {/* Status Footer */}
-        <footer className="p-6 border-t border-zinc-900/50">
-          <div className="flex items-center justify-between text-xs font-mono text-zinc-600">
-            <span className="uppercase tracking-widest">
+        <footer className="mt-8 border-t-4 border-black pt-4">
+          <div className="flex items-center justify-between text-sm font-black text-black">
+            <span className="uppercase tracking-widest bg-black text-white px-2 py-1">
               Team {user?.id?.slice(-4) || "UNK"}
             </span>
             <span className="flex items-center gap-2">
               {status.verified ? (
-                <span className="text-green-600 flex items-center gap-1 font-bold">
-                  <CheckCircle size={12} /> VERIFIED
+                <span className="text-black flex items-center gap-1 font-black bg-green-400 px-2 py-1 border-2 border-black">
+                  <CheckCircle size={16} /> VERIFIED
                 </span>
               ) : (
-                <span className="text-zinc-700 flex items-center gap-1">
-                  <Lock size={12} /> ENCRYPTED
+                <span className="text-black flex items-center gap-1 bg-zinc-200 px-2 py-1 border-2 border-black">
+                  <Lock size={16} /> ENCRYPTED
                 </span>
               )}
             </span>

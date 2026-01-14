@@ -49,76 +49,92 @@ export default function Volunteer() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-white p-4">
-      <div className="max-w-md mx-auto space-y-6">
-        <h1 className="text-3xl font-black uppercase text-center text-yellow-400">
-          Volunteer Deck
-        </h1>
+    <div className="min-h-screen bg-white text-black p-6 font-sans">
+      <div className="max-w-xl mx-auto space-y-8">
+        <header className="flex justify-between items-center border-b-4 border-black pb-4">
+          <h1 className="text-4xl font-black uppercase tracking-tighter text-black">
+            Volunteer Deck
+          </h1>
+          <div className="w-6 h-6 bg-green-500 border-2 border-black animate-pulse"></div>
+        </header>
 
-        {/* Level Selector (Simulated Station Assignment) */}
-        <div className="bg-zinc-800 p-4 rounded border border-zinc-700">
-          <label className="block text-sm font-bold mb-2 uppercase text-zinc-400">
-            Current Station (Level)
+        {/* Level Selector */}
+        <div className="bg-white p-6 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <label className="block text-sm font-black mb-2 uppercase text-black tracking-widest">
+            Current Station Assignment
           </label>
           <select
             value={myLevel}
             onChange={(e) => setMyLevel(e.target.value)}
-            className="w-full bg-black text-white p-2 border border-zinc-600 font-bold"
+            className="w-full bg-white text-black text-2xl p-4 border-4 border-black font-black focus:outline-none focus:bg-zinc-100 uppercase rounded-none"
           >
             {[1, 2, 3, 4, 5, 6, 7].map((l) => (
               <option key={l} value={l}>
-                Level {l}
+                LEVEL {l}
               </option>
             ))}
           </select>
         </div>
 
-        <Card className="bg-white text-black">
-          <form onSubmit={handleVerify} className="space-y-4">
+        {/* Main Action Area */}
+        <div className="bg-zinc-50 p-6 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative">
+          <div className="absolute -top-3 -right-3 bg-black text-white px-2 py-1 font-black text-xs uppercase tracking-widest transform rotate-2">
+            Verification Protocol
+          </div>
+          <form onSubmit={handleVerify} className="space-y-6">
             <div>
-              <label className="block font-bold mb-1">TEAM ID</label>
+              <label className="block font-black mb-2 text-black uppercase text-sm tracking-widest">
+                Team Identifier
+              </label>
               <Input
                 value={teamId}
                 onChange={(e) => setTeamId(e.target.value.toUpperCase())}
                 placeholder="TITAN-X99"
-                className="text-2xl font-black uppercase tracking-widest text-center"
+                className="text-4xl font-black uppercase tracking-widest text-center h-24 bg-white text-black border-4 border-black focus:border-black focus:ring-0 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] placeholder:text-zinc-300"
+                autoFocus
               />
             </div>
 
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-black text-white hover:bg-zinc-800 py-6 text-xl font-bold"
+              className="w-full bg-black text-white hover:bg-zinc-800 py-8 text-2xl font-black tracking-widest uppercase rounded-none border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
             >
-              {loading ? "VERIFYING..." : "VERIFY TEAM"}
+              {loading ? "VERIFYING..." : "VERIFY NOW"}
             </Button>
           </form>
-        </Card>
+        </div>
 
-        {/* Feedback Display */}
+        {/* Feedback Display - Huge text for quick reading */}
         {msg && (
           <div
-            className={`p-6 text-center border-4 ${
+            className={`p-8 text-center border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-top-4 ${
               msg.type === "success"
-                ? "bg-green-100 border-green-600 text-green-800"
-                : "bg-blue-100 border-blue-600 text-blue-800"
+                ? "bg-green-400 text-black"
+                : "bg-blue-400 text-black"
             }`}
           >
             {msg.type === "success" && (
-              <CheckCircle size={48} className="mx-auto mb-2" />
+              <CheckCircle size={64} className="mx-auto mb-4 text-black" />
             )}
-            <h2 className="text-2xl font-black uppercase">
+            <h2 className="text-5xl font-black uppercase mb-2 tracking-tighter">
               {msg.type === "success" ? "APPROVED" : "INFO"}
             </h2>
-            <p className="font-bold">{msg.text}</p>
+            <p className="font-bold text-xl uppercase tracking-wide">
+              {msg.text}
+            </p>
           </div>
         )}
 
         {error && (
-          <div className="p-6 text-center bg-red-100 border-4 border-red-600 text-red-800">
-            <XCircle size={48} className="mx-auto mb-2" />
-            <h2 className="text-2xl font-black uppercase">DENIED</h2>
-            <p className="font-bold">{error.text}</p>
+          <div className="p-8 text-center bg-red-500 border-4 border-black text-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-top-4">
+            <XCircle size={64} className="mx-auto mb-4" />
+            <h2 className="text-5xl font-black uppercase mb-2 tracking-tighter">
+              DENIED
+            </h2>
+            <p className="font-bold text-xl uppercase tracking-wide">
+              {error.text}
+            </p>
           </div>
         )}
       </div>
