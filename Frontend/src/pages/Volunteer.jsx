@@ -9,6 +9,7 @@ export default function Volunteer() {
   const [msg, setMsg] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  // Vercel Trigger Fix
 
   // In a real app, this might be dynamic or assigned.
   // Ideally, the Volunteer selects their location ONCE per session.
