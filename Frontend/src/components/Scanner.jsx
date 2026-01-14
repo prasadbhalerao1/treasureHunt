@@ -8,25 +8,37 @@ const Scanner = ({ onScan, onError }) => {
     // ID of the element
     const scannerId = "reader";
 
-    const scanner = new Html5QrcodeScanner(
-      scannerId,
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      /* verbose= */ false
-    );
+    // Clear any existing instance first
+    try {
+      const html5QrcodeScanner = new Html5QrcodeScanner(
+        scannerId,
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+          showTorchButtonIfSupported: true,
+        },
+        /* verbose= */ false
+      );
 
-    scanner.render(
-      (decodedText, decodedResult) => {
-        // Success callback
-        scanner.clear();
-        onScan(decodedText);
-      },
-      (errorMessage) => {
-        // Error callback
-        if (onError) onError(errorMessage);
-      }
-    );
+      html5QrcodeScanner.render(
+        (decodedText, decodedResult) => {
+          // Success callback
+          // Optional: Stop scanning after success? User usually wants this.
+          // html5QrcodeScanner.clear(); // We let the parent decide or the component unmount
+          onScan(decodedText);
+        },
+        (errorMessage) => {
+          // parse error, ignore commonly
+          // console.warn(errorMessage);
+          if (onError) onError(errorMessage);
+        }
+      );
 
-    scannerRef.current = scanner;
+      scannerRef.current = html5QrcodeScanner;
+    } catch (e) {
+      console.error("Scanner Init Error", e);
+    }
 
     // Cleanup
     return () => {
@@ -39,10 +51,14 @@ const Scanner = ({ onScan, onError }) => {
   }, []);
 
   return (
-    <div
-      id="reader"
-      className="w-[300px] h-[300px] mx-auto bg-black border-2 border-white"
-    ></div>
+    <div className="w-full max-w-md mx-auto">
+      {/* The library will render here. We give it full width. */}
+      <div id="reader" className="w-full bg-black"></div>
+      <p className="text-white text-xs text-center mt-2 px-4">
+        If camera doesn't open: 1. Ensure you are on HTTPS (or localhost). 2.
+        Check browser permissions.
+      </p>
+    </div>
   );
 };
 
