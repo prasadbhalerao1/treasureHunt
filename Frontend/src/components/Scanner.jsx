@@ -1,10 +1,22 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 
 const Scanner = ({ onScan, onError }) => {
   const scannerRef = useRef(null);
+  const [permError, setPermError] = useState(null);
 
   useEffect(() => {
+    // 1. Check for Secure Context (HTTPS)
+    if (
+      window.location.hostname !== "localhost" &&
+      window.location.protocol !== "https:"
+    ) {
+      setPermError(
+        "Camera access requires HTTPS. Please access via the secure Vercel link, not your local IP."
+      );
+      return;
+    }
+
     // ID of the element
     const scannerId = "reader";
 
@@ -38,6 +50,7 @@ const Scanner = ({ onScan, onError }) => {
       scannerRef.current = html5QrcodeScanner;
     } catch (e) {
       console.error("Scanner Init Error", e);
+      setPermError("Failed to start camera. " + e.message);
     }
 
     // Cleanup
@@ -51,13 +64,21 @@ const Scanner = ({ onScan, onError }) => {
   }, []);
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      {/* The library will render here. We give it full width. */}
-      <div id="reader" className="w-full bg-black"></div>
-      <p className="text-white text-xs text-center mt-2 px-4">
-        If camera doesn't open: 1. Ensure you are on HTTPS (or localhost). 2.
-        Check browser permissions.
-      </p>
+    <div className="w-full max-w-md mx-auto relative">
+      {permError ? (
+        <div className="bg-red-500 text-white p-6 text-center font-bold border-4 border-black">
+          <h3 className="text-xl mb-2 uppercase">Camera Error</h3>
+          <p>{permError}</p>
+        </div>
+      ) : (
+        <>
+          {/* The library will render here. We give it full width. */}
+          <div id="reader" className="w-full bg-black min-h-[300px]"></div>
+          <p className="text-white text-xs text-center mt-2 px-4 opacity-75">
+            If camera doesn't open, check browser permissions.
+          </p>
+        </>
+      )}
     </div>
   );
 };
