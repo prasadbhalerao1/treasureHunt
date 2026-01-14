@@ -17,7 +17,16 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const membersArray = form.members.split(",").map((m) => m.trim());
+      const membersArray = form.members
+        .split(",")
+        .map((m) => m.trim())
+        .filter((m) => m !== "");
+
+      if (membersArray.length > 4) {
+        setError("Maximum 4 members allowed (including you if applicable).");
+        return;
+      }
+
       await register(form.teamName, form.email, form.password, membersArray);
       alert(
         "Registration Successful! Check your email (simulated) for Team ID."

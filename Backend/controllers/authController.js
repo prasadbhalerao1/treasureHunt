@@ -9,6 +9,12 @@ export const register = async (req, res) => {
     await dbConnect();
     const { teamName, email, password, members } = req.body;
 
+    if (members && members.length > 4) {
+      return res
+        .status(400)
+        .json({ msg: "Maximum 4 members allowed per team." });
+    }
+
     const existing = await Team.findOne({
       $or: [{ name: teamName }, { email }],
     });
