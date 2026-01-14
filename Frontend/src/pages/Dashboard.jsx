@@ -113,7 +113,29 @@ export default function Dashboard() {
             </div>
           )}
 
-          {level === 7 ? (
+          {status === "COMPLETED" || level > 7 ? (
+            /* VICTORY SCREEN */
+            <div className="border-4 border-black bg-white p-8 text-center shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in duration-500">
+              <div className="flex justify-center mb-6">
+                <div className="w-24 h-24 bg-black rounded-full flex items-center justify-center animate-pulse">
+                  <CheckCircle size={64} className="text-green-500" />
+                </div>
+              </div>
+              <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter mb-4 leading-none">
+                MISSION ACCOMPLISHED
+              </h1>
+              <p className="text-xl font-black uppercase tracking-widest text-zinc-500 mb-8">
+                ALL OBJECTIVES SECURED
+              </p>
+              <div className="bg-black text-white p-4 font-mono text-sm border-2 border-green-500">
+                <p>AGENT STATUS: LEGENDARY</p>
+                <p>FINAL SCORE: MAX</p>
+                <p className="mt-2 text-green-400">
+                  RETURN TO BASE FOR DEBRIEF.
+                </p>
+              </div>
+            </div>
+          ) : level === 7 ? (
             /* FINALE MODE */
             <div className="border-4 border-black bg-white p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
               <div className="flex justify-between items-center mb-6">
