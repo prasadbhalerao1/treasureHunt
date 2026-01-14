@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
 export const sendTeamIdEmail = async (toEmail, teamName, teamId) => {
   try {
     const mailOptions = {
-      from: '"TreasureHunt HQ" <noreply@treasurehunt.com>',
+      from: `"TreasureHunt HQ" <${process.env.EMAIL_USER}>`,
       to: toEmail,
       subject: "YOUR MISSION DETAIL: Team ID Assigned",
       html: getTeamIdEmailTemplate(teamName, teamId),

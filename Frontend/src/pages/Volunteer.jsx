@@ -2,15 +2,9 @@ import Loader from "../components/Loader";
 
 // ... inside component ...
 
-if (loading) {
-  return <Loader fullScreen text="VERIFYING IDENTITY" />;
-}
+// ... imports ...
 
-// Note: I need to check where to insert this locally, probably before the return or wrapped.
-// Actually, earlier I decided full screen loader might be annoying for volunteers.
-// But consistency is better. Let's do it.
-// Wait, I can't just paste that snippet. I have to replace the whole file or find the insert point.
-// I will insert the import and the condition at the top of the render.
+// removed misplaced code
 
 export default function Volunteer() {
   const [teamId, setTeamId] = useState("");
