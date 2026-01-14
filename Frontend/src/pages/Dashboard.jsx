@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
-import { Button, Input, Card } from "../components/ui";
+import { Button, Input } from "../components/ui";
 import Scanner from "../components/Scanner";
 import { RefreshCw, Lock, MapPin, QrCode, CheckCircle } from "lucide-react";
 
@@ -78,15 +78,30 @@ export default function Dashboard() {
               {String(level).padStart(2, "0")}
             </h1>
           </div>
-          <Button
-            onClick={fetchState}
-            className="w-12 h-12 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-          >
-            <RefreshCw
-              size={24}
-              className={`text-black ${loading ? "animate-spin" : ""}`}
-            />
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                window.location.reload();
+              }}
+              className="w-12 h-12 bg-red-600 text-white border-4 border-black rounded-none hover:bg-red-700 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              title="Logout"
+            >
+              <div className="w-4 h-4 border-2 border-white rounded-full relative">
+                <div className="absolute top-0 right-0 w-2 h-0.5 bg-white transform rotate-45 origin-center"></div>
+              </div>
+            </Button>
+            <Button
+              onClick={fetchState}
+              className="w-12 h-12 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+            >
+              <RefreshCw
+                size={24}
+                className={`text-black ${loading ? "animate-spin" : ""}`}
+              />
+            </Button>
+          </div>
         </header>
 
         {/* Main Content Area */}

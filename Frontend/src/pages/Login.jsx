@@ -12,11 +12,17 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await login(form.teamId, form.password);
-      // Auto-redirect handled by protected route check or here?
-      // Better here to be explicit about role redirection, but AuthContext updates User.
-      // We'll let the User effect in App or Dashboard handle it, OR just nav to /dashboard.
-      navigate("/dashboard");
+      const data = await login(form.teamId, form.password);
+
+      // Role-Based Redirection
+      const role = data.team.role;
+      if (role === "ADMIN") {
+        navigate("/admin");
+      } else if (role === "VOLUNTEER") {
+        navigate("/volunteer");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       console.error("Login Error:", err);
       setError(err.response?.data?.msg || "Login Failed");

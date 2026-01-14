@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../utils/api";
-import { Card } from "../components/ui";
+import { Card, Button } from "../components/ui";
 import {
   BarChart,
   Bar,
@@ -9,6 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { LogOut } from "lucide-react";
 
 export default function Admin() {
   const [stats, setStats] = useState(null);
@@ -42,20 +43,33 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-zinc-50 p-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <h1 className="text-4xl font-black uppercase">Mission Control</h1>
-        <select
-          value={selectedLevel}
-          onChange={(e) => setSelectedLevel(e.target.value)}
-          className="p-2 border-2 border-black font-bold"
-        >
-          <option value="Global">Global Overview</option>
-          {[1, 2, 3, 4, 5, 6, 7].map((l) => (
-            <option key={l} value={l}>
-              Level {l}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+          <select
+            value={selectedLevel}
+            onChange={(e) => setSelectedLevel(e.target.value)}
+            className="p-2 border-2 border-black font-bold w-full md:w-auto"
+          >
+            <option value="Global">Global Overview</option>
+            {[1, 2, 3, 4, 5, 6, 7].map((l) => (
+              <option key={l} value={l}>
+                Level {l}
+              </option>
+            ))}
+          </select>
+          <Button
+            onClick={() => {
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
+              window.location.reload();
+            }}
+            className="w-12 h-12 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+            title="Logout"
+          >
+            <LogOut size={24} />
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">

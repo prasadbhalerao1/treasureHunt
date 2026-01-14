@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.team));
     setUser(data.team);
+    return data;
   };
 
   const register = async (teamName, email, password, members) => {

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
-import { Button, Input, Card } from "../components/ui";
-import { CheckCircle, XCircle } from "lucide-react";
+import { Button, Input } from "../components/ui";
+import { CheckCircle, XCircle, LogOut } from "lucide-react";
 
 export default function Volunteer() {
   const [teamId, setTeamId] = useState("");
@@ -55,7 +55,20 @@ export default function Volunteer() {
           <h1 className="text-4xl font-black uppercase tracking-tighter text-black">
             Volunteer Deck
           </h1>
-          <div className="w-6 h-6 bg-green-500 border-2 border-black animate-pulse"></div>
+          <div className="flex gap-4 items-center">
+            <div className="w-6 h-6 bg-green-500 border-2 border-black animate-pulse hidden sm:block"></div>
+            <Button
+              onClick={() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                window.location.reload();
+              }}
+              className="w-12 h-12 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              title="Logout"
+            >
+              <LogOut size={24} />
+            </Button>
+          </div>
         </header>
 
         {/* Level Selector */}
