@@ -9,11 +9,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { LogOut } from "lucide-react";
+import { LogOut, RefreshCw } from "lucide-react";
 
 export default function Admin() {
   const [stats, setStats] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState("1"); // Default to Level 1 view or Global
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchStats = async () => {
     try {
@@ -23,6 +24,12 @@ export default function Admin() {
     } catch (e) {
       console.error("Admin Fetch Error:", e);
     }
+  };
+
+  const handleManualRefresh = async () => {
+    setRefreshing(true);
+    await fetchStats();
+    setRefreshing(false);
   };
 
   useEffect(() => {
@@ -60,17 +67,29 @@ export default function Admin() {
               </option>
             ))}
           </select>
-          <Button
-            onClick={() => {
-              localStorage.removeItem("token");
-              localStorage.removeItem("user");
-              window.location.reload();
-            }}
-            className="w-14 h-14 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-            title="Logout"
-          >
-            <LogOut size={24} />
-          </Button>
+          <div className="flex gap-4">
+            <Button
+              onClick={handleManualRefresh}
+              className="w-14 h-14 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              title="Refresh Data"
+            >
+              <RefreshCw
+                size={24}
+                className={refreshing ? "animate-spin" : ""}
+              />
+            </Button>
+            <Button
+              onClick={() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                window.location.reload();
+              }}
+              className="w-14 h-14 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              title="Logout"
+            >
+              <LogOut size={24} />
+            </Button>
+          </div>
         </div>
       </div>
 

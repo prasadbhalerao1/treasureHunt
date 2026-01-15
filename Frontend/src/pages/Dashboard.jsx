@@ -27,8 +27,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchState();
-    // User triggers state changes manually (Scan/Submit), so no polling needed.
-    // This saves ~4800 requests/min for 400 teams.
+    // Safety Polling: Every 15s to keep UI updated and prevent "Refresh Rage"
+    const interval = setInterval(fetchState, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   const submitAnswer = async (e) => {
@@ -240,9 +241,15 @@ export default function Dashboard() {
               {gameState?.teamId || user?.teamId || "LETS GOO!"}
             </span>
             <span className="flex items-center gap-2">
-              <span className="text-black flex items-center gap-1 font-black bg-green-400 px-2 py-1 border-2 border-black">
-                ACTIVE
-              </span>
+              {level > 7 ? (
+                <span className="text-black flex items-center gap-1 font-black bg-green-400 px-2 py-1 border-2 border-black">
+                  <CheckCircle size={16} /> COMPLETED
+                </span>
+              ) : (
+                <span className="text-black flex items-center gap-1 bg-zinc-200 px-2 py-1 border-2 border-black">
+                  <Lock size={16} /> ENCRYPTED
+                </span>
+              )}
             </span>
           </div>
         </footer>
