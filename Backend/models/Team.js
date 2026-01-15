@@ -9,6 +9,7 @@ const TeamSchema = new mongoose.Schema(
     salt: { type: String, required: true }, // Unique salt
     members: [{ type: String }], // Member names
 
+    // Role - Restored for Authorization checks
     role: {
       type: String,
       enum: ["CANDIDATE", "VOLUNTEER", "ADMIN"],
@@ -35,8 +36,8 @@ const TeamSchema = new mongoose.Schema(
             ],
             default: "HINT_UNLOCKED",
           },
-          verified: { type: Boolean, default: false },
-          volunteerVerifiedAt: { type: Date },
+          // verified: { type: Boolean, default: false }, // REMOVED
+          // volunteerVerifiedAt: { type: Date }, // REMOVED
           completedAt: { type: Date },
         },
         { _id: false }
@@ -53,15 +54,15 @@ const TeamSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Compound Index for Volunteer Dashboard
-TeamSchema.index({ currentLevel: 1, teamId: 1 });
+// Compound Index for Volunteer Dashboard - REMOVED
+// TeamSchema.index({ currentLevel: 1, teamId: 1 });
 
 // Ensure levelStatus is initialized for Level 1
 TeamSchema.pre("save", function (next) {
   if (this.isNew && !this.levelStatus.has("1")) {
     this.levelStatus.set("1", {
       status: "HINT_UNLOCKED",
-      verified: false,
+      // verified: false,
     });
   }
   next();

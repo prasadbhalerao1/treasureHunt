@@ -22,8 +22,6 @@ export default function Login() {
       const role = data.team.role;
       if (role === "ADMIN") {
         navigate("/admin");
-      } else if (role === "VOLUNTEER") {
-        navigate("/volunteer");
       } else {
         navigate("/dashboard");
       }
