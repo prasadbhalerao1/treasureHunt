@@ -5,6 +5,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import mongoSanitize from "mongo-sanitize";
 import cookieParser from "cookie-parser";
+import compression from "compression";
 
 // Routes
 import authRoutes from "./routes/authRoutes.js";
@@ -22,6 +23,7 @@ app.set("trust proxy", 1);
 
 // Security Middleware
 app.use(helmet());
+app.use(compression());
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -31,7 +33,7 @@ app.use(
         "https://treasurehunt-gotham-ai.vercel.app",
       ];
 
-      if (allowedOrigins.indexOf(origin) !== -1) {
+      if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));

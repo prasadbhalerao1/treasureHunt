@@ -49,7 +49,9 @@ const TeamSchema = new mongoose.Schema(
     collectedKeywords: [{ type: String }],
 
     // Security
-    activeSessions: [{ type: String }], // Array of JTI tokens (Max 3)
+    activeSessions: [{ type: String }], // Array of JTI tokens (Max 5)
+    resetPasswordOtp: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );

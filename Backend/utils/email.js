@@ -1,6 +1,9 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-import { getTeamIdEmailTemplate } from "./emailTemplates.js";
+import {
+  getTeamIdEmailTemplate,
+  getOtpEmailTemplate,
+} from "./emailTemplates.js";
 
 dotenv.config();
 
@@ -26,6 +29,24 @@ export const sendTeamIdEmail = async (toEmail, teamName, teamId) => {
     return true;
   } catch (error) {
     console.error("Error sending email:", error);
+    return false;
+  }
+};
+
+export const sendOtpEmail = async (toEmail, otp, teamId) => {
+  try {
+    const mailOptions = {
+      from: `"TreasureHunt HQ" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
+      subject: "RESET PROTOCOL: OTP & Team ID Verification",
+      html: getOtpEmailTemplate(otp, teamId),
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("OTP Email sent: %s", info.messageId);
+    return true;
+  } catch (error) {
+    console.error("Error sending OTP email:", error);
     return false;
   }
 };

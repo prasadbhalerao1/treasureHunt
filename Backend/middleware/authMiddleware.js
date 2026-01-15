@@ -12,21 +12,28 @@ export const protect = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Verify Session Logic?
-      // If we strictly enforce session token presence in DB:
-      // But that requires DB hit every request.
-      // PRD says: "store Role in JWT to avoid DB lookups".
-      // But concurrent session limiting requires DB check or Redis.
-      // PRD 1.2: "activeSessions" in DB.
-      // If we want to really eject the 4th user, we must check if `jti` is in `activeSessions`.
-      // Validation Triangulation implies strictness.
-      // However, hitting DB every request invalidates the "avoid DB lookups" benefit.
-      // But the User Schema has `activeSessions`.
-      // Compromise: We will trust the token for most things, but critical actions (Scan/Verify) might check DB.
-      // OR: We check DB here. Since `activeSessions` is on the User document, detailed session management usually implies checking it.
-      // Given 1000 users, finding by ID is fast.
+      // Verify Session Logic - STRICT MODE for Production
+      // We check if the JTI is still in the user's activeSessions
+      const team = await Team.findById(decoded.id).select(
+        "activeSessions role"
+      );
+
+      if (!team) {
+        return res.status(401).json({ msg: "User not found" });
+      }
+
+      if (!team.activeSessions.includes(decoded.jti)) {
+        return res
+          .status(401)
+          .json({
+            msg: "Session expired or invalidated (Max devices reached)",
+          });
+      }
 
       req.user = decoded; // { teamId, role, id, jti }
+      // Update role from DB to ensure it's fresh? (Optional, but good for security)
+      req.user.role = team.role;
+
       next();
     } catch (error) {
       console.error(error);

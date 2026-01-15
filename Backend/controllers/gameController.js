@@ -3,7 +3,7 @@ import Level from "../models/Level.js";
 import dbConnect from "../config/dbConnect.js";
 
 // getGameState Modified: Removed verification check
-export const getGameState = async (req, res) => {
+export const getGameState = async (req, res, next) => {
   try {
     await dbConnect();
     const team = await Team.findById(req.user.id);
@@ -42,12 +42,11 @@ export const getGameState = async (req, res) => {
 
     res.json(response);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
+    next(err);
   }
 };
 
-export const scanQR = async (req, res) => {
+export const scanQR = async (req, res, next) => {
   try {
     const { qrString } = req.body;
     await dbConnect();
@@ -118,12 +117,11 @@ export const scanQR = async (req, res) => {
       nextHint: nextLevelInfo ? nextLevelInfo.hintText : "Finale",
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
+    next(err);
   }
 };
 
-export const submitAnswer = async (req, res) => {
+export const submitAnswer = async (req, res, next) => {
   // Mostly used for the Finale (Bitlocker) now, as Levels 1-6 are purely QR scan driven?
   // User Prompt: "The Login... Dashboard... Find Volunteer... Scan QR... Next Clue"
   // It doesn't mention solving a text riddle to get the location. It says "Riddle pointing to Location 1".
@@ -169,7 +167,6 @@ export const submitAnswer = async (req, res) => {
         .json({ msg: "DECRYPTION FAILED. INVALID SEQUENCE." });
     }
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
+    next(err);
   }
 };
