@@ -269,9 +269,9 @@ export default function Dashboard() {
               {gameState?.teamId || user?.teamId || "LETS GOO!"}
             </span>
             <span className="flex items-center gap-2">
-              {verified ? (
+              {level > 7 ? (
                 <span className="text-black flex items-center gap-1 font-black bg-green-400 px-2 py-1 border-2 border-black">
-                  <CheckCircle size={16} /> VERIFIED
+                  <CheckCircle size={16} /> COMPLETED
                 </span>
               ) : (
                 <span className="text-black flex items-center gap-1 bg-zinc-200 px-2 py-1 border-2 border-black">
