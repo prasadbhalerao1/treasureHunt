@@ -27,9 +27,21 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchState();
-    const interval = setInterval(fetchState, 5000); // Polling every 5s
-    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    // Smart Polling Logic:
+    // Case 1: Waiting for Volunteer (LOCKED / Unverified) -> Poll every 5s (Critical for "Real Time" feel)
+    // Case 2: Verified (AWAITING_QR / Solving) -> Poll every 15s (Less urgent, user is busy solving)
+    const isWaitingForVolunteer =
+      gameState && gameState.status !== "AWAITING_QR" && gameState.level <= 7;
+
+    // Default to 5s if no state (loading) or waiting, 15s if verified
+    const intervalTime = isWaitingForVolunteer ? 5000 : 15000;
+
+    const interval = setInterval(fetchState, intervalTime);
+    return () => clearInterval(interval);
+  }, [gameState?.status, gameState?.level]);
 
   const submitAnswer = async (e) => {
     e.preventDefault();
