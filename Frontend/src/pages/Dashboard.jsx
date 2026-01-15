@@ -27,8 +27,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchState();
-    const interval = setInterval(fetchState, 5000); // Polling every 5s
-    return () => clearInterval(interval);
+    // User triggers state changes manually (Scan/Submit), so no polling needed.
+    // This saves ~4800 requests/min for 400 teams.
   }, []);
 
   const submitAnswer = async (e) => {
@@ -61,14 +61,13 @@ export default function Dashboard() {
       <div className="p-8 text-center text-red-600 font-bold">SIGNAL LOST</div>
     );
 
-  const { level, status, verified, hint, location, collectedKeywords } =
-    gameState;
+  const { level, status, hint, location, collectedKeywords } = gameState;
 
   return (
     <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white p-6">
       <div className="max-w-xl mx-auto min-h-screen flex flex-col">
         {/* Header - Level Indicator */}
-        <header className="mb-8 flex justify-between items-start border-4 border-black p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white">
+        <header className="mb-4 flex justify-between items-start border-4 border-black p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white">
           <div>
             <div className="text-black text-xs font-black tracking-widest uppercase mb-1">
               CURRENT PROTOCOL
@@ -188,41 +187,25 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              {/* Status Indicator */}
               <div className="py-4">
-                {status === "AWAITING_QR" ? (
-                  <div className="space-y-6 text-center">
-                    <div className="inline-flex items-center justify-center p-6 border-4 border-black bg-green-400 text-black mb-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-full">
-                      <MapPin size={48} className="animate-bounce" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-black text-black tracking-tighter uppercase bg-white inline-block px-2">
-                        Location Verified
-                      </h3>
-                    </div>
-                    <Button
-                      onClick={() => setScanMode(true)}
-                      className="w-full bg-black text-white font-black uppercase tracking-widest h-20 text-2xl hover:bg-zinc-900 transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-x-2 active:translate-y-2 active:shadow-none rounded-none border-4 border-black"
-                    >
-                      <QrCode className="mr-4 w-8 h-8" />
-                      INITIATE SCAN
-                    </Button>
+                {/* Always allow scanning for unlocked levels */}
+                <div className="space-y-4 text-center">
+                  <div className="inline-flex items-center justify-center p-4 border-4 border-black bg-green-400 text-black mb-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-full">
+                    <MapPin size={40} className="animate-bounce" />
                   </div>
-                ) : (
-                  <div className="space-y-6 text-center opacity-100">
-                    <div className="inline-flex items-center justify-center p-6 border-4 border-black bg-zinc-200 text-black mb-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-full">
-                      <Lock size={32} />
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-black text-black uppercase tracking-widest bg-zinc-100 inline-block px-2 border-2 border-black">
-                        Signal Locked
-                      </h3>
-                      <p className="text-sm text-black font-bold uppercase tracking-widest">
-                        LOCATE VOLUNTEER TO VERIFY
-                      </p>
-                    </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-black tracking-tighter uppercase bg-white inline-block px-2">
+                      Target Location
+                    </h3>
                   </div>
-                )}
+                  <Button
+                    onClick={() => setScanMode(true)}
+                    className="w-full bg-black text-white font-black uppercase tracking-widest h-20 text-2xl hover:bg-zinc-900 transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-x-2 active:translate-y-2 active:shadow-none rounded-none border-4 border-black"
+                  >
+                    <QrCode className="mr-4 w-8 h-8" />
+                    INITIATE SCAN
+                  </Button>
+                </div>
               </div>
 
               {/* Scanner Overlay */}
@@ -257,15 +240,9 @@ export default function Dashboard() {
               {gameState?.teamId || user?.teamId || "LETS GOO!"}
             </span>
             <span className="flex items-center gap-2">
-              {verified ? (
-                <span className="text-black flex items-center gap-1 font-black bg-green-400 px-2 py-1 border-2 border-black">
-                  <CheckCircle size={16} /> VERIFIED
-                </span>
-              ) : (
-                <span className="text-black flex items-center gap-1 bg-zinc-200 px-2 py-1 border-2 border-black">
-                  <Lock size={16} /> ENCRYPTED
-                </span>
-              )}
+              <span className="text-black flex items-center gap-1 font-black bg-green-400 px-2 py-1 border-2 border-black">
+                ACTIVE
+              </span>
             </span>
           </div>
         </footer>

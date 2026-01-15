@@ -2,6 +2,7 @@ import Team from "../models/Team.js";
 import Level from "../models/Level.js";
 import dbConnect from "../config/dbConnect.js";
 
+// getGameState Modified: Removed verification check
 export const getGameState = async (req, res) => {
   try {
     await dbConnect();
@@ -33,69 +34,13 @@ export const getGameState = async (req, res) => {
       name: team.name,
       level: team.currentLevel,
       status: currentStatus ? currentStatus.status : "LOCKED",
-      verified: currentStatus ? currentStatus.verified : false,
+      // verified removed
       // Show hint ONLY if unlocked
       hint: levelInfo.hintText,
-      // Location is only for internal debug or if we want to show it after solving
       collectedKeywords: team.collectedKeywords,
     };
 
     res.json(response);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
-  }
-};
-
-export const volunteerVerify = async (req, res) => {
-  try {
-    await dbConnect();
-    const { teamId, levelToVerify } = req.body;
-
-    // Get the Volunteer's assigned level (IN A REAL APP).
-    // For now, we trust the volunteer or assume the client sends the Volunteer's location.
-    // However, the PROMPT says: "Volunteer types 'TIT' ... Case B: Team is on Level 1, but they ran to Level 3 Volunteer -> WRONG LOCATION"
-    // This implies the System checks "Is Team.currentLevel == Volunteer.assignedLevel?"
-    // Since we don't have Volunteer.assignedLevel in the DB, we will assume the request includes verificationLevel.
-
-    const team = await Team.findOne({ teamId });
-    if (!team) return res.status(404).json({ msg: "Team not found" });
-
-    // 0. Check if Game Completed (Level > 7)
-    if (team.currentLevel > 7) {
-      return res.status(200).json({
-        code: "GAME_COMPLETED",
-        msg: "Team has successfully completed the mission!",
-      });
-    }
-
-    // 1. Strict Sequential Check
-    if (team.currentLevel !== parseInt(levelToVerify)) {
-      return res.status(400).json({
-        code: "WRONG_LOCATION",
-        msg: `Team is on Level ${team.currentLevel}, but you are verifying for Level ${levelToVerify}.`,
-        currentLevel: team.currentLevel,
-      });
-    }
-
-    // 2. Check if they have already verified
-    const statusObj = team.levelStatus.get(String(team.currentLevel));
-    if (statusObj.verified) {
-      return res.status(200).json({
-        code: "ALREADY_VERIFIED",
-        msg: "Team already verified for this level.",
-      });
-    }
-
-    // 3. Mark as Verified (Unlock Scanner)
-    statusObj.verified = true;
-    statusObj.volunteerVerifiedAt = new Date();
-    statusObj.status = "AWAITING_QR"; // Ready to scan
-
-    team.levelStatus.set(String(team.currentLevel), statusObj);
-    await team.save();
-
-    res.json({ msg: "VERIFIED. Scanner Unlocked on Candidate Device." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Server Error" });
@@ -124,16 +69,16 @@ export const scanQR = async (req, res) => {
       });
     }
 
-    // 1. Volunteer Verification Required
-    if (!statusObj.verified) {
-      return res.status(403).json({
-        msg: "Scanner Locked. You must be verified by a Volunteer first.",
-      });
-    }
+    // 1. Volunteer Verification Required - REMOVED
 
     // 2. Validate QR Content
+    // Strict Sequential Check: The 'level' var is fetched based on team.currentLevel
+    // So if I scan "LEVEL_6_SECRET" but I am on Level 1, level.qrSecret will be "LEVEL_1_SECRET"
+    // Comparison fails -> Invalid QR
     if (qrString !== level.qrSecret) {
-      return res.status(400).json({ msg: "Invalid QR Code for this Level." });
+      return res
+        .status(400)
+        .json({ msg: "Invalid QR Code. Are you at the correct location?" });
     }
 
     // Success!
@@ -157,7 +102,7 @@ export const scanQR = async (req, res) => {
       // Levels 1-6 are standard
       team.levelStatus.set(String(nextLevel), {
         status: "HINT_UNLOCKED", // Immediately show hint for next level
-        verified: false,
+        // verified: false, // REMOVED
       });
     }
 
@@ -223,33 +168,6 @@ export const submitAnswer = async (req, res) => {
         .status(400)
         .json({ msg: "DECRYPTION FAILED. INVALID SEQUENCE." });
     }
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
-  }
-};
-export const lookupTeam = async (req, res) => {
-  try {
-    const { q } = req.query;
-    if (!q) return res.json(null);
-    await dbConnect();
-
-    const team = await Team.findOne({
-      $or: [
-        { teamId: { $regex: q, $options: "i" } },
-        { name: { $regex: q, $options: "i" } },
-      ],
-    });
-
-    if (!team) return res.status(404).json({ msg: "Not found" });
-
-    const statusObj = team.levelStatus.get(String(team.currentLevel));
-    res.json({
-      teamId: team.teamId,
-      name: team.name,
-      currentLevel: team.currentLevel,
-      status: statusObj ? statusObj.status : "UNKNOWN",
-    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Server Error" });

@@ -8,7 +8,6 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-import Volunteer from "./pages/Volunteer";
 import Admin from "./pages/Admin";
 
 const ProtectedRoute = ({ children, roles }) => {
@@ -45,7 +44,8 @@ const RoleRedirect = () => {
   if (!user) return <Navigate to="/login" />;
 
   if (user.role === "ADMIN") return <Navigate to="/admin" />;
-  if (user.role === "VOLUNTEER") return <Navigate to="/volunteer" />;
+  if (user.role === "ADMIN") return <Navigate to="/admin" />;
+  // Volunteer check removed
   return <Navigate to="/dashboard" />;
 };
 
@@ -62,15 +62,6 @@ function App() {
             element={
               <ProtectedRoute roles={["CANDIDATE"]}>
                 <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/volunteer"
-            element={
-              <ProtectedRoute roles={["VOLUNTEER", "ADMIN"]}>
-                <Volunteer />
               </ProtectedRoute>
             }
           />
