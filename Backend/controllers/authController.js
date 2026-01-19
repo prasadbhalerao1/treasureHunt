@@ -55,6 +55,36 @@ export const register = async (req, res) => {
 
     console.log("Team Created:", newTeam._id);
 
+    // Send to Make.com Webhook
+    try {
+      console.log("Sending registration details to Webhook...");
+      const webhookResponse = await fetch(
+        "https://hook.eu1.make.com/37yxq8dipsc3d5z8pz6kuxqy6r1pg8h6",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            teamName,
+            email,
+            members: members || [],
+            teamId: newTeam.teamId,
+            role: newTeam.role,
+            currentLevel: newTeam.currentLevel,
+            createdAt: newTeam.createdAt,
+            // Including other potential fields if they were populated
+            levelStatus: newTeam.levelStatus,
+          }),
+        },
+      );
+      if (webhookResponse.ok) {
+        console.log("Webhook sent successfully.");
+      } else {
+        console.error("Webhook failed with status:", webhookResponse.status);
+      }
+    } catch (webhookError) {
+      console.error("Error sending to webhook:", webhookError);
+    }
+
     res.status(201).json({ msg: "Team Registered", teamId: newTeam.teamId });
   } catch (err) {
     console.error("REGISTER ERROR:", err);
@@ -83,7 +113,7 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { teamId: team.teamId, role: team.role, id: team._id, jti },
       process.env.JWT_SECRET,
-      { expiresIn: "12h" }
+      { expiresIn: "12h" },
     );
 
     team.activeSessions.push(jti);

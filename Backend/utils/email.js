@@ -7,27 +7,16 @@ import {
 
 dotenv.config();
 
-const getTransporter = () => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.error(
-      "❌ CRITICAL: EMAIL_USER or EMAIL_PASS is missing in env variables."
-    );
-    return null;
-  }
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-};
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 export const sendTeamIdEmail = async (toEmail, teamName, teamId) => {
   try {
-    const transporter = getTransporter();
-    if (!transporter) return false;
-
     const mailOptions = {
       from: `"TreasureHunt HQ" <${process.env.EMAIL_USER}>`,
       to: toEmail,
@@ -46,9 +35,6 @@ export const sendTeamIdEmail = async (toEmail, teamName, teamId) => {
 
 export const sendOtpEmail = async (toEmail, otp, teamId) => {
   try {
-    const transporter = getTransporter();
-    if (!transporter) return false;
-
     const mailOptions = {
       from: `"TreasureHunt HQ" <${process.env.EMAIL_USER}>`,
       to: toEmail,
