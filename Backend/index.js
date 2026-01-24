@@ -40,7 +40,7 @@ app.use(
       }
     },
     credentials: true,
-  })
+  }),
 );
 app.use(express.json({ limit: "50kb" })); // Body limit relaxed
 app.use(cookieParser());
@@ -77,7 +77,7 @@ app.use((req, res, next) => {
 // REQUEST LOGGER
 app.use((req, res, next) => {
   console.log(
-    `[${new Date().toISOString()}] ${req.method} ${req.url} - IP: ${req.ip}`
+    `[${new Date().toISOString()}] ${req.method} ${req.url} - IP: ${req.ip}`,
   );
   next();
 });
