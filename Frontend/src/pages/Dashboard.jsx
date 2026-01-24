@@ -27,8 +27,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchState();
-    // User triggers state changes manually (Scan/Submit), so no polling needed.
-    // This saves ~4800 requests/min for 400 teams.
   }, []);
 
   const submitAnswer = async (e) => {
@@ -61,7 +59,7 @@ export default function Dashboard() {
       <div className="p-8 text-center text-red-600 font-bold">SIGNAL LOST</div>
     );
 
-  const { level, status, hint, location, collectedKeywords } = gameState;
+  const { level, status, hint, collectedKeywords } = gameState;
 
   return (
     <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white p-6">

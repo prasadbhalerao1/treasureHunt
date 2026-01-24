@@ -30,15 +30,15 @@ app.use(
         "http://localhost:3000",
         "https://treasurehunt-gotham-ai.vercel.app",
       ];
-
-      if (allowedOrigins.indexOf(origin) !== -1) {
+      // Allow requests with no origin (serverless, Postman, etc.)
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
-  })
+  }),
 );
 app.use(express.json({ limit: "50kb" })); // Body limit relaxed
 app.use(cookieParser());
@@ -75,7 +75,7 @@ app.use((req, res, next) => {
 // REQUEST LOGGER
 app.use((req, res, next) => {
   console.log(
-    `[${new Date().toISOString()}] ${req.method} ${req.url} - IP: ${req.ip}`
+    `[${new Date().toISOString()}] ${req.method} ${req.url} - IP: ${req.ip}`,
   );
   next();
 });

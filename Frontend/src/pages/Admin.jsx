@@ -149,7 +149,7 @@ export default function Admin() {
                     <td className="p-3 text-zinc-600">
                       {selectedLevel === "Global" ? (
                         <span className="bg-black text-white px-3 py-1 font-black text-xs">
-                          {team.currentLevelIndex} (Loc {team.path ? "?" : "?"})
+                          {team.currentLevelIndex} ({team.locationName})
                         </span>
                       ) : (
                         new Date(team.completedAt).toLocaleTimeString([], {

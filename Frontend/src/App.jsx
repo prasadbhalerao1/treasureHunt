@@ -6,7 +6,6 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 
@@ -37,15 +36,12 @@ const ProtectedRoute = ({ children, roles }) => {
   return children;
 };
 
-// Auto-navigate based on role
 const RoleRedirect = () => {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" />;
 
   if (user.role === "ADMIN") return <Navigate to="/admin" />;
-  if (user.role === "ADMIN") return <Navigate to="/admin" />;
-  // Volunteer check removed
   return <Navigate to="/dashboard" />;
 };
 
@@ -55,7 +51,6 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
 
           <Route
             path="/dashboard"
