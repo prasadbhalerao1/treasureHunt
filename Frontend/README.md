@@ -1,6 +1,6 @@
-# 📱 Campus Heist Client (Frontend)
+# 📱 BERLIN HEIST Client (Frontend)
 
-> A **Brutalist**, mobile-first React application for players, volunteers, and admins.
+> A **Brutalist**, mobile-first React application for players and admins.
 
 ---
 
@@ -11,42 +11,44 @@
 | **🎨 Brutalist UI**     | High-contrast black/white with neon accents. No gradients, hard 4px borders. |
 | **📷 Browser Scanner**  | `html5-qrcode` integration. Works on mobile without app install.             |
 | **🔄 Real-Time Sync**   | Dashboard polls API every 5 seconds for live state updates.                  |
-| **🛡️ Role-Based Views** | Candidates see game UI, Volunteers see verify panel, Admins see analytics.   |
+| **🛡️ Role-Based Views** | Candidates see game UI, Admins see analytics and team management.            |
 | **📊 Admin Charts**     | `recharts` powered leaderboard and level distribution graphs.                |
 
 ---
 
-## � File Structure
+## 📂 File Structure
 
 ```
 Frontend/
-├── public/
-│   └── qr_codes/          # Pre-generated level QR images
+├── public/             # Static assets
 │
 ├── src/
 │   ├── components/
-│   │   ├── Loader.jsx     # "CONTACTING SATELLITE" spinner
-│   │   ├── Scanner.jsx    # QR Camera wrapper
-│   │   └── ui/            # Button, Input, Card primitives
+│   │   ├── admin/
+│   │   │   ├── FlowManagement.jsx
+│   │   │   ├── LocationManagement.jsx
+│   │   │   └── UserManagement.jsx
+│   │   ├── ui/
+│   │   │   └── index.jsx      # Button, Input, Card primitives
+│   │   ├── Loader.jsx         # "CONTACTING SATELLITE" spinner
+│   │   └── Scanner.jsx        # QR Camera wrapper
 │   │
 │   ├── context/
-│   │   └── AuthContext.jsx # Global auth state (user, token)
+│   │   └── AuthContext.jsx    # Global auth state (user, token)
 │   │
 │   ├── pages/
-│   │   ├── Login.jsx      # Team ID + Password
-│   │   ├── Register.jsx   # Team creation (max 4 members)
-│   │   ├── Dashboard.jsx  # Main game UI (Candidate)
-│   │   ├── Volunteer.jsx  # Team lookup & verify
-│   │   └── Admin.jsx      # Stats + Leaderboard
+│   │   ├── Login.jsx          # Team ID + Password
+│   │   ├── Dashboard.jsx      # Main game UI (Candidate)
+│   │   └── Admin.jsx          # Stats + Leaderboard + Management
 │   │
 │   ├── utils/
-│   │   └── api.js         # Axios instance with interceptors
+│   │   └── api.js             # Axios instance with interceptors
 │   │
-│   ├── App.jsx            # React Router setup
-│   ├── main.jsx           # Entry point
-│   └── index.css          # Tailwind directives
+│   ├── App.jsx                # React Router setup
+│   ├── main.jsx               # Entry point
+│   └── index.css              # Tailwind directives
 │
-├── .env                   # VITE_API_URL
+├── .env                       # VITE_API_URL
 ├── tailwind.config.js
 └── vite.config.js
 ```
@@ -67,13 +69,11 @@ Frontend/
 
 ## 📄 Pages
 
-| Page          | Route        | Role      | Description                       |
-| :------------ | :----------- | :-------- | :-------------------------------- |
-| **Login**     | `/login`     | All       | Enter Team ID + Password.         |
-| **Register**  | `/register`  | Public    | Create new team (email required). |
-| **Dashboard** | `/`          | Candidate | View level, hint, scan QR.        |
-| **Volunteer** | `/volunteer` | Volunteer | Search & verify teams.            |
-| **Admin**     | `/admin`     | Admin     | Live leaderboard & stats.         |
+| Page          | Route    | Role      | Description                               |
+| :------------ | :------- | :-------- | :---------------------------------------- |
+| **Login**     | `/login` | All       | Enter Team ID + Password.                 |
+| **Dashboard** | `/`      | Candidate | View level, hint, scan QR.                |
+| **Admin**     | `/admin` | Admin     | Live leaderboard, stats, team management. |
 
 ---
 

@@ -97,7 +97,7 @@ app.use((err, req, res, next) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Campus Heist API Active");
+  res.send("BERLIN HEIST API Active");
 });
 
 // Helper to start server if running directly

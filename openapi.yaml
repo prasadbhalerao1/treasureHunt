@@ -1,0 +1,690 @@
+openapi: 3.0.3
+info:
+  title: BERLIN HEIST API
+  description: |
+    Real-time QR-based treasure hunt game API for 400+ concurrent players.
+
+    ## Authentication
+    All protected endpoints require a JWT token in the Authorization header:
+    ```
+    Authorization: Bearer <token>
+    ```
+
+    ## Rate Limiting
+    - 300,000 requests per 15 minutes per IP
+    - Designed for campus Wi-Fi shared NAT environments
+
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@berlinheist.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://treasure-hunt-gothamai-backend.vercel.app/api
+    description: Production server
+  - url: http://localhost:5000/api
+    description: Development server
+
+tags:
+  - name: Auth
+    description: Authentication endpoints
+  - name: Game
+    description: Game state and progression
+  - name: Admin
+    description: Admin dashboard and management (Admin only)
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Team login
+      description: Authenticate a team and receive JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - teamId
+                - password
+              properties:
+                teamId:
+                  type: string
+                  example: "TITAN-X99"
+                  description: Unique team identifier
+                password:
+                  type: string
+                  format: password
+                  example: "secretpassword"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT token (12h expiry)
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  team:
+                    type: object
+                    properties:
+                      teamId:
+                        type: string
+                        example: "TITAN-X99"
+                      name:
+                        type: string
+                        example: "Titans"
+                      role:
+                        type: string
+                        enum: [CANDIDATE, ADMIN]
+                        example: "CANDIDATE"
+                      level:
+                        type: integer
+                        example: 0
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /game/state:
+    get:
+      tags:
+        - Game
+      summary: Get current game state
+      description: Retrieve team's current level, hint, and collected keywords
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Game state retrieved
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GameStateActive"
+                  - $ref: "#/components/schemas/GameStateFinale"
+                  - $ref: "#/components/schemas/GameStateCompleted"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Team not found
+
+  /game/scan:
+    post:
+      tags:
+        - Game
+      summary: Scan QR code
+      description: Submit scanned QR code to progress to next level
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - qrString
+              properties:
+                qrString:
+                  type: string
+                  example: "LOC-5-SECRET"
+                  description: QR code content
+      responses:
+        "200":
+          description: QR scan successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Level Completed!"
+                  keyword:
+                    type: string
+                    example: "PROFESSOR"
+                  nextLevel:
+                    type: integer
+                    example: 1
+                  nextHint:
+                    type: string
+                    example: "Where knowledge meets the sky..."
+        "400":
+          description: Invalid QR code or wrong location
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /game/submit:
+    post:
+      tags:
+        - Game
+      summary: Submit finale answer
+      description: Submit sorted keywords for final level (Bitlocker)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - answer
+              properties:
+                answer:
+                  type: string
+                  example: "BERLIN-HEIST-MINT-PLAN-PROFESSOR-TOKYO"
+                  description: Keywords sorted alphabetically, joined with hyphens
+      responses:
+        "200":
+          description: Decryption successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "DECRYPTION SUCCESSFUL. STATUS: LEGENDARY."
+        "400":
+          description: Incorrect answer or not at finale
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /admin/stats:
+    get:
+      tags:
+        - Admin
+      summary: Get dashboard statistics
+      description: Retrieve leaderboard and team distribution data
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: level
+          in: query
+          description: Filter by specific level (0-6) or "Global"
+          schema:
+            type: string
+            enum: [Global, "0", "1", "2", "3", "4", "5", "6"]
+            default: Global
+      responses:
+        "200":
+          description: Statistics retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  distribution:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        level:
+                          type: string
+                          example: "Level 0"
+                        count:
+                          type: integer
+                          example: 15
+                  leaderboard:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LeaderboardEntry"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/teams:
+    get:
+      tags:
+        - Admin
+      summary: List all teams
+      description: Get all candidate teams (excludes admins)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Teams list retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+    post:
+      tags:
+        - Admin
+      summary: Create new team
+      description: Create a new team and trigger webhook email
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - members
+                - password
+              properties:
+                name:
+                  type: string
+                  example: "Titans"
+                email:
+                  type: string
+                  format: email
+                  example: "leader@titans.com"
+                members:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Alice", "Bob", "Charlie"]
+                  minItems: 1
+                  maxItems: 4
+                password:
+                  type: string
+                  format: password
+                  example: "teampassword123"
+      responses:
+        "201":
+          description: Team created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Team Created"
+                  team:
+                    $ref: "#/components/schemas/Team"
+        "400":
+          description: Team name or email already taken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/teams/{id}:
+    delete:
+      tags:
+        - Admin
+      summary: Delete team
+      description: Remove a team and all their progress
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Team MongoDB ObjectId
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+      responses:
+        "200":
+          description: Team deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Team Deleted"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/teams/{id}/path:
+    put:
+      tags:
+        - Admin
+      summary: Update team path
+      description: Modify a team's location sequence
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Team MongoDB ObjectId
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - path
+              properties:
+                path:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 0
+                    maximum: 16
+                  minItems: 7
+                  maxItems: 7
+                  example: [0, 5, 12, 3, 8, 15, 1]
+                  description: Must start with 0, followed by 6 unique locations (1-16)
+      responses:
+        "200":
+          description: Path updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Path Updated"
+                  team:
+                    $ref: "#/components/schemas/Team"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Team not found
+
+  /admin/locations:
+    get:
+      tags:
+        - Admin
+      summary: List all locations
+      description: Get all 17 locations (0-16)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Locations retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Location"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/locations/{id}:
+    put:
+      tags:
+        - Admin
+      summary: Update location
+      description: Modify location hint or QR secret
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Location ID (0-16)
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 16
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hint:
+                  type: string
+                  example: "Where knowledge meets the sky..."
+                qrSecret:
+                  type: string
+                  example: "LOC-5-SECRET"
+      responses:
+        "200":
+          description: Location updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Location Updated"
+                  location:
+                    $ref: "#/components/schemas/Location"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Location not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /auth/login
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "Invalid Credentials"
+
+    GameStateActive:
+      type: object
+      properties:
+        teamId:
+          type: string
+          example: "TITAN-X99"
+        name:
+          type: string
+          example: "Titans"
+        level:
+          type: integer
+          example: 0
+          description: Current level index (0-6)
+        status:
+          type: string
+          enum: [HINT_UNLOCKED]
+          example: "HINT_UNLOCKED"
+        hint:
+          type: string
+          example: "Where knowledge meets the sky..."
+        collectedKeywords:
+          type: array
+          items:
+            type: string
+          example: ["PROFESSOR", "BERLIN"]
+
+    GameStateFinale:
+      type: object
+      properties:
+        teamId:
+          type: string
+        level:
+          type: integer
+          example: 7
+          description: Visual override for finale
+        status:
+          type: string
+          enum: [FINALE]
+        hint:
+          type: string
+          example: "The password is the sequence. Arrange in alphabetical order."
+        collectedKeywords:
+          type: array
+          items:
+            type: string
+          example: ["PROFESSOR", "BERLIN", "HEIST", "MINT", "TOKYO", "PLAN"]
+
+    GameStateCompleted:
+      type: object
+      properties:
+        teamId:
+          type: string
+        level:
+          type: integer
+          example: 7
+        status:
+          type: string
+          enum: [COMPLETED]
+        hint:
+          type: string
+          example: "Congratulations! You have completed the Treasure Hunt."
+        collectedKeywords:
+          type: array
+          items:
+            type: string
+
+    Team:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        teamId:
+          type: string
+          example: "TITAN-X99"
+        name:
+          type: string
+          example: "Titans"
+        email:
+          type: string
+          example: "leader@titans.com"
+        members:
+          type: array
+          items:
+            type: string
+          example: ["Alice", "Bob", "Charlie"]
+        role:
+          type: string
+          enum: [CANDIDATE, ADMIN]
+        path:
+          type: array
+          items:
+            type: integer
+          example: [0, 5, 12, 3, 8, 15, 1]
+        currentLevelIndex:
+          type: integer
+          example: 0
+        collectedKeywords:
+          type: array
+          items:
+            type: string
+        lastLevelCompletedAt:
+          type: string
+          format: date-time
+        levelHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              level:
+                type: integer
+              completedAt:
+                type: string
+                format: date-time
+
+    Location:
+      type: object
+      properties:
+        _id:
+          type: string
+        locationId:
+          type: integer
+          example: 5
+        name:
+          type: string
+          example: "Location-5"
+        hint:
+          type: string
+          example: "Where knowledge meets the sky..."
+        qrSecret:
+          type: string
+          example: "LOC-5-SECRET"
+        keyword:
+          type: string
+          example: "Keyword-5"
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        teamId:
+          type: string
+          example: "TITAN-X99"
+        name:
+          type: string
+          example: "Titans"
+        currentLevelIndex:
+          type: integer
+          example: 3
+        locationName:
+          type: string
+          example: "Location-8"
+        completedAt:
+          type: string
+          format: date-time
+        timeTaken:
+          type: integer
+          description: Time in milliseconds
+          example: 45000
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid JWT token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            msg: "Unauthorized"
+
+    Forbidden:
+      description: Insufficient permissions (Admin role required)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            msg: "Access Denied"

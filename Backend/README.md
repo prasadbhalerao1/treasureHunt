@@ -1,18 +1,18 @@
-# ⚙️ Campus Heist API (Backend)
+# ⚙️ BERLIN HEIST API (Backend)
 
-> The core game engine handling authentication, game state, and verification logic.
+> The core game engine handling authentication, game state, and QR verification logic.
 
 ---
 
 ## ✨ Core Features
 
-| Feature                  | Description                                                        |
-| :----------------------- | :----------------------------------------------------------------- |
-| **🔐 Scrypt Auth**       | Native Node.js crypto for password hashing (no bcrypt dependency). |
-| **🎫 JWT Sessions**      | Stateless auth with max 3 concurrent devices per team.             |
-| **📧 Email Dispatch**    | Nodemailer sends styled Team ID emails on registration.            |
-| **🛡️ Two-Factor Verify** | Volunteer verify + QR scan required to progress levels.            |
-| **📊 Admin Analytics**   | Aggregated stats: leaderboard, team distribution per level.        |
+| Feature                 | Description                                                        |
+| :---------------------- | :----------------------------------------------------------------- |
+| **🔐 Scrypt Auth**      | Native Node.js crypto for password hashing (no bcrypt dependency). |
+| **🎫 JWT Sessions**     | Stateless auth with max 3 concurrent devices per team.             |
+| **📧 Webhook Dispatch** | Make.com integration for instant team emails.                      |
+| **🎯 QR Validation**    | Sequential QR scanning with location-based progression.            |
+| **📊 Admin Analytics**  | Aggregated stats: leaderboard, team distribution per level.        |
 
 ---
 
@@ -24,31 +24,24 @@ Backend/
 │   └── dbConnect.js       # MongoDB Singleton (Serverless-safe)
 │
 ├── controllers/
-│   ├── authController.js  # Register, Login
-│   ├── gameController.js  # getState, volunteerVerify, scanQR, submitAnswer
-│   └── adminController.js # getDashboardStats
+│   ├── authController.js  # Login
+│   ├── gameController.js  # Game State & QR Scanning
+│   └── adminController.js # Dashboard & Team Mgmt
+│
+├── services/
+│   └── teamService.js     # Team Creation & Webhook
 │
 ├── middleware/
-│   └── isAuth.js          # JWT Verification Guard
+│   └── authMiddleware.js  # JWT Verification Guard
 │
 ├── models/
-│   ├── Team.js            # User/Team Schema (levelStatus Map)
-│   └── Level.js           # Level hints, QR secrets, keywords
+│   ├── Team.js            # User/Team Schema
+│   └── Location.js        # Level hints, QR secrets
 │
 ├── routes/
 │   ├── authRoutes.js      # /api/auth/*
 │   ├── gameRoutes.js      # /api/game/*
 │   └── adminRoutes.js     # /api/admin/*
-│
-├── scripts/
-│   ├── seedUsers.js       # Populate Admins & Volunteers
-│   ├── seedLevels.js      # Populate Level data & QR codes
-│   └── verifyEmailCycle.js# End-to-end registration test
-│
-├── utils/
-│   ├── auth.js            # hashPassword, verifyPassword
-│   ├── email.js           # sendTeamIdEmail
-│   └── emailTemplates.js  # HTML email template
 │
 ├── index.js               # Express app entry
 └── vercel.json            # Serverless routing config
@@ -60,35 +53,37 @@ Backend/
 
 ### Auth (`/api/auth`)
 
-| Method | Route       | Description                                    |
-| :----- | :---------- | :--------------------------------------------- |
-| `POST` | `/register` | Create team (max 4 members). Returns `teamId`. |
-| `POST` | `/login`    | Returns JWT token + team object.               |
+| Method | Route    | Description                      |
+| :----- | :------- | :------------------------------- |
+| `POST` | `/login` | Returns JWT token + team object. |
 
 ### Game (`/api/game`)
 
-| Method | Route               | Auth         | Description                                  |
-| :----- | :------------------ | :----------- | :------------------------------------------- |
-| `GET`  | `/state`            | ✅           | Current level, hint, verified status.        |
-| `POST` | `/scan`             | ✅           | Submit QR string. Advances level on success. |
-| `POST` | `/submit`           | ✅           | Final level (Bitlocker) text answer.         |
-| `POST` | `/volunteer/verify` | ✅ Volunteer | Unlock a team's scanner.                     |
-| `GET`  | `/lookup`           | ✅ Volunteer | Search team by ID/name.                      |
+| Method | Route     | Auth | Description                                  |
+| :----- | :-------- | :--- | :------------------------------------------- |
+| `GET`  | `/state`  | ✅   | Current level, hint, collected keywords.     |
+| `POST` | `/scan`   | ✅   | Submit QR string. Advances level on success. |
+| `POST` | `/submit` | ✅   | Final level answer submission.               |
 
 ### Admin (`/api/admin`)
 
-| Method | Route    | Auth     | Description                      |
-| :----- | :------- | :------- | :------------------------------- |
-| `GET`  | `/stats` | ✅ Admin | Team distribution + leaderboard. |
+| Method   | Route             | Auth     | Description                         |
+| :------- | :---------------- | :------- | :---------------------------------- |
+| `GET`    | `/stats`          | ✅ Admin | Team distribution + leaderboard.    |
+| `GET`    | `/teams`          | ✅ Admin | List all teams.                     |
+| `POST`   | `/teams`          | ✅ Admin | Create new team (triggers webhook). |
+| `DELETE` | `/teams/:id`      | ✅ Admin | Delete team.                        |
+| `PUT`    | `/teams/:id/path` | ✅ Admin | Update team's location path.        |
+| `GET`    | `/locations`      | ✅ Admin | List all locations.                 |
+| `PUT`    | `/locations/:id`  | ✅ Admin | Update location hint/QR secret.     |
 
 ---
 
 ## 🛠️ Scripts
 
-| Script         | Command              | Description                                    |
-| :------------- | :------------------- | :--------------------------------------------- |
-| **Seed Users** | `npm run seed:users` | ⚠️ Wipes DB. Creates 2 Admins + 10 Volunteers. |
-| **Dev Server** | `npm run dev`        | Starts with `--watch` for hot reload.          |
+| Script         | Command       | Description                           |
+| :------------- | :------------ | :------------------------------------ |
+| **Dev Server** | `npm run dev` | Starts with `--watch` for hot reload. |
 
 ---
 
@@ -96,3 +91,4 @@ Backend/
 
 - Set `MONGODB_URI` whitelist to `0.0.0.0/0` (Vercel uses dynamic IPs).
 - Connection pooling is set to `maxPoolSize: 1` to prevent storms.
+- Webhook is fire-and-forget (non-blocking) for instant responses.

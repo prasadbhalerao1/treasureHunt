@@ -4,7 +4,7 @@
 
 ### **Team Model** (`Team.js`)
 
-- **teamId**: String (Unique, e.g., "Team-1", "TITAN-X99")
+- **teamId**: String (Unique, e.g., "TITAN-X99")
 - **name**: String
 - **email**: String (Unique)
 - **passwordHash**: String (Scrypt)
@@ -19,7 +19,11 @@
   - 0 = At Start
   - 1 = Completed Start, looking for Path[1]
   - ...
+  - 7 = Completed all levels
 - **collectedKeywords**: [String]
+- **lastLevelCompletedAt**: Date
+- **levelHistory**: [{level: Number, completedAt: Date}]
+- **activeSessions**: [String] (JWT session IDs, max 3)
 
 ### **Location Model** (`Location.js`)
 
@@ -83,7 +87,7 @@
 
 ### **Location Management**
 
-- List all 16 locations.
+- List all 17 locations.
 - Edit `Hint` and `QRSecret`.
 - Updates reflect immediately for all players targeting that location.
 
@@ -91,7 +95,7 @@
 
 ## 5. Webhook Integration
 
-- **URL**: `https://hook.eu1.make.com/o1qfhpirrv28e23foyesurdomstppmdk`
+- **URL**: `https://hook.eu1.make.com/jsaqs5qehyc9uqea03dtzzwv36mnqy52`
 - **Trigger**: `createTeam` (Admin)
 - **Payload**:
   ```json
@@ -99,8 +103,27 @@
     "teamId": "TITAN-X99",
     "name": "Titans",
     "email": "leader@titans.com",
+    "to": "leader@titans.com",
     "members": ["A", "B"],
     "password": "...",
     "pathAsString": "0->5->12..."
   }
   ```
+
+---
+
+## 6. Game Progression
+
+### **State Machine**
+
+1. **Login** -> Dashboard shows Level 0, Hint for Location 1
+2. **Scan QR at Location 1** -> Keyword collected, Level advances to 1
+3. **Dashboard updates** -> Shows Level 1, Hint for Location 2
+4. **Repeat** -> Until Level 6 completed
+5. **Finale** -> Submit sorted keywords
+
+### **Finale Logic**
+
+- Keywords sorted alphabetically, joined with "-"
+- Override: "OVERRIDE-VICTORY" bypasses validation
+- Success -> `currentLevelIndex = 7` (COMPLETED)

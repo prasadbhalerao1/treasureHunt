@@ -40,7 +40,7 @@ export default function Login() {
     <div className="flex items-center justify-center min-h-screen bg-zinc-50 p-4">
       <Card className="w-full max-w-md border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white p-6 md:p-8">
         <h2 className="text-3xl md:text-4xl font-black mb-6 md:mb-8 text-center uppercase tracking-tighter">
-          Campus Heist
+          BERLIN HEIST
         </h2>
         {error && (
           <div className="bg-red-100 border-2 border-red-500 text-red-900 p-3 mb-6 font-bold text-center uppercase tracking-wide">
@@ -84,16 +84,6 @@ export default function Login() {
             {loading ? "LOGIN..." : "LOGIN"}
           </Button>
         </form>
-
-        <p className="mt-8 text-center text-sm font-bold uppercase tracking-wide">
-          New Team?{" "}
-          <Link
-            to="/register"
-            className="underline hover:text-blue-600 decoration-2 underline-offset-4"
-          >
-            Register Here
-          </Link>
-        </p>
       </Card>
     </div>
   );

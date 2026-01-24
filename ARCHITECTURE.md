@@ -66,15 +66,15 @@ A real-time QR-based treasure hunt game for 400+ concurrent users on Vercel Free
 
 ### Admin
 
-| Method | Endpoint              | Request                            | Response          |
-| ------ | --------------------- | ---------------------------------- | ----------------- | ----------------------------- |
-| GET    | /admin/stats          | `?level=Global                     | 0-6`              | `{distribution, leaderboard}` |
-| GET    | /admin/teams          | -                                  | `[Team]`          |
-| POST   | /admin/teams          | `{name, email, members, password}` | `{msg, team}`     |
-| DELETE | /admin/teams/:id      | -                                  | `{msg}`           |
-| PUT    | /admin/teams/:id/path | `{path: [Number]}`                 | `{msg, team}`     |
-| GET    | /admin/locations      | -                                  | `[Location]`      |
-| PUT    | /admin/locations/:id  | `{hint?, qrSecret?}`               | `{msg, location}` |
+| Method | Endpoint              | Request                            | Response                      |
+| ------ | --------------------- | ---------------------------------- | ----------------------------- |
+| GET    | /admin/stats          | `?level=Global\|0-6`               | `{distribution, leaderboard}` |
+| GET    | /admin/teams          | -                                  | `[Team]`                      |
+| POST   | /admin/teams          | `{name, email, members, password}` | `{msg, team}`                 |
+| DELETE | /admin/teams/:id      | -                                  | `{msg}`                       |
+| PUT    | /admin/teams/:id/path | `{path: [Number]}`                 | `{msg, team}`                 |
+| GET    | /admin/locations      | -                                  | `[Location]`                  |
+| PUT    | /admin/locations/:id  | `{hint?, qrSecret?}`               | `{msg, location}`             |
 
 ---
 

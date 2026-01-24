@@ -14,10 +14,9 @@ export const getGameState = async (req, res) => {
     const team = await Team.findById(req.user.id);
     if (!team) return res.status(404).json({ msg: "Team not found" });
 
-    const nextIndex = team.currentLevelIndex + 1;
-
-    // Check for Game Completion
-    if (nextIndex >= team.path.length) {
+    // 1. Check for COMPLETED (Index 7+)
+    // Note: path.length is 7 (Indices 0-6)
+    if (team.currentLevelIndex >= team.path.length) {
       return res.json({
         teamId: team.teamId,
         level: team.currentLevelIndex,
@@ -27,13 +26,28 @@ export const getGameState = async (req, res) => {
       });
     }
 
+    // 2. Check for FINALE (Index 6)
+    // Team has scanned scanning all 6 QRs, now needs to solve Bitlocker
+    if (team.currentLevelIndex === team.path.length - 1) {
+      return res.json({
+        teamId: team.teamId,
+        level: 7, // Send 7 to trigger Dashboard "Finale Mode"
+        status: "FINALE",
+        hint: "The password is the sequence. Arrange in alphabetical order.",
+        collectedKeywords: team.collectedKeywords,
+      });
+    }
+
+    // 3. Normal Gameplay (Index 0-5)
+    // Show hint for NEXT location
+    const nextIndex = team.currentLevelIndex + 1;
     const nextLocationId = team.path[nextIndex];
     const hint = await getHintForLocation(nextLocationId);
 
     res.json({
       teamId: team.teamId,
       name: team.name,
-      level: team.currentLevelIndex, // Display "Level 0" if at start
+      level: team.currentLevelIndex, // e.g. 0
       status: "HINT_UNLOCKED",
       hint: hint,
       collectedKeywords: team.collectedKeywords,
@@ -97,14 +111,23 @@ export const scanQR = async (req, res) => {
     await team.save();
 
     // Prepare Response (Next Hint)
+
+    // Check if we just entered Finale
+    if (team.currentLevelIndex === team.path.length - 1) {
+      return res.json({
+        msg: "Level Completed!",
+        keyword: keyword,
+        nextLevel: 7, // Visual override for Finale
+        nextHint: "Finale Decryption Required",
+      });
+    }
+
     const newNextIndex = team.currentLevelIndex + 1;
     let nextHint = "Finale";
 
     if (newNextIndex < team.path.length) {
       const nextLocId = team.path[newNextIndex];
       nextHint = await getHintForLocation(nextLocId);
-    } else {
-      nextHint = "Congratulations! You have executed the heist successfully.";
     }
 
     res.json({
@@ -119,9 +142,6 @@ export const scanQR = async (req, res) => {
   }
 };
 
-// submitAnswer - Keeping simplified/placeholder if they need text submission
-// User didn't ask for it in new flow, but safe to keep a basic version or remove.
-// I'll keep a stub.
 // submitAnswer - Handles the Finale (BitLocker) decryption
 export const submitAnswer = async (req, res) => {
   try {
@@ -131,21 +151,21 @@ export const submitAnswer = async (req, res) => {
 
     if (!team) return res.status(404).json({ msg: "Team not found" });
 
-    // Ensure they are at the finale
-    if (team.currentLevelIndex < team.path.length) {
+    // Ensure they are at the finale (Index 6)
+    const finaleIndex = team.path.length - 1;
+
+    if (team.currentLevelIndex < finaleIndex) {
       return res
         .status(400)
         .json({ msg: "Not authorized for finale decryption." });
     }
 
-    if (team.currentLevelIndex > team.path.length) {
+    if (team.currentLevelIndex > finaleIndex) {
       return res.json({ msg: "Already Completed" });
     }
 
     // Validation Logic: "ARRANGE KEYWORDS ALPHABETICALLY"
-    // Expectation: ALPHA-BETA-GAMMA... (Hyphenated? Space? Or just concatenated?)
-    // Dashboard placeholder says "BERLIN-HEIST-..."
-    // Let's assume Case Insensitive, Hyphen Separated.
+    // Expectation: ALPHA-BETA-GAMMA... (Hyphenated, Case Insensitive)
 
     // 1. Get Collected Keywords
     // 2. Sort them
@@ -163,13 +183,7 @@ export const submitAnswer = async (req, res) => {
         .json({ msg: "Decryption Failed. Verify Sequence." });
     }
 
-    // Success
-    // Mark as Completed (We can set currentLevelIndex to path.length + 1 or similar, or just leave it)
-    // My getGameState checks "if index >= path.length" -> Completed.
-    // Wait, if they are AT the finale, index == path.length.
-    // Dashboard: "level === 7" (which is path.length) -> Shows Finale UI.
-    // So to show "Mission Accomplished", index must be > path.length? Or we add a field?
-    // Let's increment Index one last time.
+    // Success: Mark as Completed (Level 7+)
 
     team.currentLevelIndex = team.path.length + 1;
     team.lastLevelCompletedAt = new Date();

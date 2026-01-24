@@ -1,20 +1,20 @@
-# 🏴‍☠️ Campus Heist
+# 🏴‍☠️ BERLIN HEIST
 
 > A **MERN-based** real-world treasure hunt platform for collegiate events.
-> Designed to orchestrate **500+ concurrent players** with a "Brutalist" aesthetic.
+> Designed to orchestrate **400+ concurrent players** on Vercel Free Tier.
 
 ---
 
 ## ✨ Core Features
 
-| Feature                        | Description                                                             |
-| :----------------------------- | :---------------------------------------------------------------------- |
-| **📱 Mobile-First UI**         | Brutalist design optimized for handheld play. No app download required. |
-| **🔒 Two-Factor Verification** | Players must be verified by a Volunteer AND scan a QR code to progress. |
-| **📧 Email Delivery**          | Team IDs sent via styled HTML email upon registration.                  |
-| **📊 Live Admin Dashboard**    | Real-time leaderboard and team distribution charts.                     |
-| **⚡ Campus Wi-Fi Ready**      | Relaxed rate limits (300k/15min) to handle shared NAT IPs.              |
-| **☁️ Vercel Optimized**        | Serverless-ready MongoDB connection pooling (`maxPoolSize: 1`).         |
+| Feature                     | Description                                                             |
+| :-------------------------- | :---------------------------------------------------------------------- |
+| **📱 Mobile-First UI**      | Brutalist design optimized for handheld play. No app download required. |
+| **🔒 QR Code Progression**  | Players scan QR codes at physical locations to advance levels.          |
+| **📧 Webhook Dispatch**     | Teams receive activation emails via Make.com webhook.                   |
+| **📊 Live Admin Dashboard** | Real-time leaderboard and team distribution charts.                     |
+| **⚡ Campus Wi-Fi Ready**   | Relaxed rate limits (300k/15min) to handle shared NAT IPs.              |
+| **☁️ Vercel Optimized**     | Serverless-ready MongoDB connection pooling (`maxPoolSize: 1`).         |
 
 ---
 
@@ -22,15 +22,14 @@
 
 ### Backend
 
-| Package              | Purpose                 |
-| :------------------- | :---------------------- |
-| `express`            | REST API Framework      |
-| `mongoose`           | MongoDB ODM             |
-| `jsonwebtoken`       | JWT Authentication      |
-| `helmet`             | Security Headers        |
-| `express-rate-limit` | API Throttling          |
-| `nodemailer`         | Email Dispatch          |
-| `qrcode`             | QR Generation (Seeding) |
+| Package              | Purpose            |
+| :------------------- | :----------------- |
+| `express`            | REST API Framework |
+| `mongoose`           | MongoDB ODM        |
+| `jsonwebtoken`       | JWT Authentication |
+| `helmet`             | Security Headers   |
+| `express-rate-limit` | API Throttling     |
+| `node-fetch`         | Webhook Trigger    |
 
 ### Frontend
 
@@ -52,25 +51,25 @@ TreasureHunt/
 ├── Backend/
 │   ├── config/          # Database connection (Singleton)
 │   ├── controllers/     # Business Logic (Auth, Game, Admin)
-│   ├── middleware/      # Auth Guard (isAuth.js)
-│   ├── models/          # Mongoose Schemas (Team, Level)
+│   ├── services/        # Logic Layer (TeamService)
+│   ├── middleware/      # Auth Guard (authMiddleware.js)
+│   ├── models/          # Mongoose Schemas (Team, Location)
 │   ├── routes/          # API Endpoints
-│   ├── scripts/         # Seeding & Testing Utilities
-│   ├── utils/           # Helpers (Email, Crypto, Templates)
+│   ├── utils/           # Helpers (Crypto)
 │   ├── index.js         # Express Entry Point
 │   └── vercel.json      # Serverless Config
 │
 ├── Frontend/
 │   ├── src/
-│   │   ├── components/  # UI Primitives (Scanner, Loader)
-│   │   ├── context/     # AuthContext (Global State)
-│   │   ├── pages/       # Route Views (Login, Dashboard, Volunteer, Admin)
-│   │   └── utils/       # API Client (Axios instance)
-│   └── public/
-│       └── qr_codes/    # Pre-generated Level QR Images
+│   │   ├── components/  # UI Primitives & Admin Components
+│   │   ├── context/     # AuthContext
+│   │   ├── pages/       # Route Views (Login, Dashboard, Admin)
+│   │   └── utils/       # API Client
+│   └── public/          # Static Assets
 │
-├── credentials.md       # Login Reference for Admins/Volunteers
-└── simulation_guide.md  # How to run a mock event
+├── credentials.md       # Login Reference for Admins
+├── simulation_guide.md  # How to run a mock event
+└── ARCHITECTURE.md      # Detailed System Design
 ```
 
 ---
@@ -82,7 +81,7 @@ TreasureHunt/
 ```ini
 # Server
 PORT=5000
-NODE_ENV=development
+NODE_ENV=production
 
 # Database
 MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/treasurehunt
@@ -90,9 +89,8 @@ MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/treasurehunt
 # Security
 JWT_SECRET=your_super_secret_key
 
-# Email (Gmail App Password)
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_16_char_app_password
+# Webhook (Make.com)
+MAKE_WEBHOOK_URL=https://hook.eu1.make.com/your_webhook_id
 ```
 
 ### Frontend (`Frontend/.env`)
@@ -127,16 +125,7 @@ npm install
 
 Create `.env` files in both `Backend/` and `Frontend/` directories using the variables above.
 
-### 3. Seed Database
-
-```bash
-cd Backend
-npm run seed:users
-```
-
-> ⚠️ **Warning**: This wipes all users and creates 2 Admins + 10 Volunteers.
-
-### 4. Run Development Servers
+### 3. Run Development Servers
 
 **Terminal 1 (API)**
 
@@ -156,16 +145,37 @@ Access at `http://localhost:5173`.
 
 ---
 
+## 🌐 Production Deployment
+
+**Frontend**: [https://treasurehunt-gotham-ai.vercel.app](https://treasurehunt-gotham-ai.vercel.app)  
+**Backend API**: [https://treasure-hunt-gothamai-backend.vercel.app](https://treasure-hunt-gothamai-backend.vercel.app)
+
+Both deployed on Vercel with automatic CI/CD from GitHub.
+
+---
+
+## 🎮 Game Flow
+
+1. **Admin Creates Team** → Webhook sends email with Team ID
+2. **Team Logs In** → Dashboard shows current level and hint
+3. **Team Finds Location** → Scans QR code at physical location
+4. **Level Complete** → Keyword collected, next hint unlocked
+5. **Repeat** → Until all 6 levels completed
+6. **Finale** → Submit sorted keywords to win
+
+---
+
 ## 📚 Additional Docs
 
 - **[Backend Details](./Backend/README.md)**: API Endpoints, Security Config.
-- **[Frontend Details](./Frontend/README.md)**: Design System, Component Guide.
-- **[Credentials](./credentials.md)**: Test Logins (Admins, Volunteers).
+- **[Architecture](./ARCHITECTURE.md)**: System Design & Scalability.
 - **[Simulation Guide](./simulation_guide.md)**: Step-by-step mock event.
+- **[Deployment Guide](./DEPLOYMENT.md)**: Production deployment & monitoring.
+- **[API Documentation](./openapi.yaml)**: OpenAPI/Swagger specification.
 
 ---
 
 ## 🏆 Credits
 
-**Built by**: Gotham AI
+**Built by**: Gotham AI  
 **License**: MIT
