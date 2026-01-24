@@ -91,13 +91,13 @@ export default function FlowManagement({ initialTeamId }) {
               <div className="flex gap-2">
                 <Button
                   onClick={() => setEditingPath(null)}
-                  className="bg-white text-black border-4 border-black px-4 py-2 font-bold uppercase flex items-center gap-2"
+                  className="bg-white text-black border-4 border-black px-4 py-2 font-bold uppercase flex items-center gap-2 hover:bg-zinc-100"
                 >
                   <X size={16} /> Cancel
                 </Button>
                 <Button
                   onClick={savePath}
-                  className="bg-green-600 text-white border-4 border-black px-4 py-2 font-bold uppercase flex items-center gap-2"
+                  className="bg-green-600 text-white border-4 border-black px-4 py-2 font-bold uppercase flex items-center gap-2 hover:bg-green-700"
                 >
                   <Save size={16} /> Save Changes
                 </Button>

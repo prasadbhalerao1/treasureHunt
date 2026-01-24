@@ -105,7 +105,7 @@ export default function LocationManagement() {
                 </p>
                 <Button
                   onClick={() => handleEdit(loc)}
-                  className="mt-2 w-full bg-white text-black border-2 border-black text-xs font-bold uppercase hover:bg-zinc-100"
+                  className="mt-2 w-full border-2 border-black text-xs font-bold uppercase bg-white text-black hover:bg-zinc-100"
                 >
                   Edit
                 </Button>
