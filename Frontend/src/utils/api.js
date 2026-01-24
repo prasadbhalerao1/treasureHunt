@@ -20,7 +20,7 @@ api.interceptors.request.use(
     if (import.meta.env.MODE === "development") {
       console.log(
         `[API REQUEST] ${config.method.toUpperCase()} ${config.url}`,
-        config.data || ""
+        config.data || "",
       );
     }
     return config;
@@ -28,7 +28,7 @@ api.interceptors.request.use(
   (error) => {
     console.error("[API REQUEST ERROR]", error);
     return Promise.reject(error);
-  }
+  },
 );
 
 api.interceptors.response.use(
@@ -36,18 +36,23 @@ api.interceptors.response.use(
     if (import.meta.env.MODE === "development") {
       console.log(
         `[API RESPONSE] ${response.status} ${response.config.url}`,
-        response.data
+        response.data,
       );
     }
     return response;
   },
   (error) => {
-    console.error(
-      "[API RESPONSE ERROR]",
-      error.response?.data || error.message
-    );
+    if (import.meta.env.MODE === "development") {
+      console.groupCollapsed(
+        `[API ERROR] ${error.response?.status || "Network"} ${error.config?.url}`,
+      );
+      console.error("Message:", error.message);
+      console.error("Status:", error.response?.status);
+      console.error("Data:", error.response?.data);
+      console.groupEnd();
+    }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

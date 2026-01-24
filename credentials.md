@@ -1,10 +1,10 @@
 # Project Credentials & Environment Variables
 
-This document lists the required environment variables for the TreasureHunt project.
+This document lists the required environment variables and credentials for the TreasureHunt project (Refactored Version 3.0).
 
 ## Backend Configuration
 
-Create a file named `.env` in the `Backend/` directory with the following variables:
+Create a file named `.env` in the `Backend/` directory:
 
 ```ini
 # Server Configuration
@@ -12,70 +12,58 @@ PORT=5000
 NODE_ENV=development
 
 # Database Connection (MongoDB)
-# Get this from MongoDB Atlas or use a local instance
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.example.mongodb.net/treasurehunt?retryWrites=true&w=majority
 
 # Security (JWT)
-# Use a strong, random string for production
 JWT_SECRET=your_super_secret_jwt_key_here_change_this
 
-# Email Service (Nodemailer)
-# Used for sending Team IDs after registration
+# Email Service
+# (Used for sending Team IDs if implemented, currently flow is Admin-driven)
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_app_specific_password
+
+# Integrations
+MAKE_WEBHOOK_URL=https://hook.eu1.make.com/o1qfhpirrv28e23foyesurdomstppmdk
 ```
-
-### Notes:
-
-- **EMAIL_PASS**: If using Gmail, you must use an **App Password**, not your regular login password. Enable 2FA on your Google Account to generate one.
-- **MONGODB_URI**:
-  - For **Vercel Deployment**: You must whitelist `0.0.0.0/0` (Allow Access from Anywhere) in MongoDB Atlas Network Access, because Vercel uses dynamic IPs.
-  - For **Local Dev**: Whitelist your current IP.
-
----
 
 ## Frontend Configuration
 
-Create a file named `.env` in the `Frontend/` directory with the following variables:
+Create a file named `.env` in the `Frontend/` directory:
 
 ```ini
-# API URL
-# Points to the backend server.
-# For local development: http://localhost:5000/api
-# For production: Your deployed backend URL
 VITE_API_URL=http://localhost:5000/api
 ```
 
-### Notes:
+---
 
-- The frontend uses **Vite**, so variables must start with `VITE_` to be exposed to the client.
-- You may need to restart the development server (`npm run dev`) after changing `.env` files.
+## 🔐 Credentials / Logins
+
+### 👨‍✈️ Admin Access
+
+- **URL**: `/admin`
+- **Team ID**: `ADMIN-MAIN` (Preserved from cleanup)
+- **Password**: _Existing Password_ (Typically `adminpassword123`)
+  - _Note: If no admin existed, the system created `ADMIN-01` / `admin123`._
+  - **Note to User**: Since the database was wiped, please **Logout and Login again** to refresh your token.
+
+### 🕵️‍♂️ Team Logins (Candidates)
+
+All teams have been seeded with the default password: **`123456`**
+
+| Team ID     | Name    | Role      | Steps              |
+| :---------- | :------ | :-------- | :----------------- |
+| **Team-1**  | Team 1  | Candidate | Random 7-step path |
+| **Team-2**  | Team 2  | Candidate | Random 7-step path |
+| ...         | ...     | ...       | ...                |
+| **Team-25** | Team 25 | Candidate | Random 7-step path |
 
 ---
 
-## Demo Logins
+## 📍 Locations & Keywords
 
-These accounts are created when running the seed script (`npm run seed:users` in Backend folder).
+**Locations now use randomized QR Secrets for security.**
 
-### Admin Dashboard
-
-- **URL**: `/admin`
-- **Main Admin**: `ADMIN-MAIN` / `adminpassword123`
-- **Backup Admin**: `ADMIN-BACKUP` / `adminpassword456`
-
-### Volunteer Portal
-
-- **URL**: `/volunteer`
-- **Default Password**: `volunteerpassword123`
-- **Volunteers**:
-  - `VOLUNTEER-1` (Station 1)
-  - `VOLUNTEER-2` (Station 2)
-  - `VOLUNTEER-3` (Station 3)
-  - ... up to `VOLUNTEER-10`
-
-### Player Team
-
-- **URL**: `/login`
-- **Team ID**: Generated upon registration (e.g., `TEA-A1B2`)
-- **Password**: Set during registration
-- **Note**: To test the player experience, go to `/register` and create a new team. You will receive a Team ID which is used for login.
+| Location ID   | Keyword     | QR Code     |
+| :------------ | :---------- | :---------- |
+| **0 (Start)** | `START`     | `loc-0.png` |
+| **1-16**      | `Keyword-N` | `loc-N.png` |

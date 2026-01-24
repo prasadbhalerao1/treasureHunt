@@ -1,46 +1,48 @@
 import Team from "../models/Team.js";
-import Level from "../models/Level.js";
+import Location from "../models/Location.js";
 import dbConnect from "../config/dbConnect.js";
 
-// getGameState Modified: Removed verification check
+// Helper: Get Hint for a specific location ID
+const getHintForLocation = async (locId) => {
+  const loc = await Location.findOne({ locationId: locId });
+  return loc ? loc.hint : "Hint not found.";
+};
+
 export const getGameState = async (req, res) => {
   try {
     await dbConnect();
     const team = await Team.findById(req.user.id);
     if (!team) return res.status(404).json({ msg: "Team not found" });
 
-    // Fetch Level Info
-    const levelInfo = await Level.findOne({ levelNumber: team.currentLevel });
+    // Path Logic:
+    // path = [0, 5, 12, ...]. Length = 7 (Start + 6 Levels).
+    // currentLevelIndex = 0 (At Start).
+    // Next Target = path[currentLevelIndex + 1].
 
-    // If level not found (e.g. finished game), handle gracefully
-    if (!levelInfo && team.currentLevel > 7) {
+    const nextIndex = team.currentLevelIndex + 1;
+
+    // Check if Game Completed
+    if (nextIndex >= team.path.length) {
       return res.json({
-        level: team.currentLevel,
+        teamId: team.teamId,
+        level: team.currentLevelIndex, // 6
         status: "COMPLETED",
-        hint: "Mission Accomplished. You have successfully completed all challenges.",
+        hint: "Congratulations! You have completed the Treasure Hunt.",
         collectedKeywords: team.collectedKeywords,
       });
     }
 
-    if (!levelInfo) {
-      return res.status(404).json({ msg: "Level data not found" });
-    }
+    const nextLocationId = team.path[nextIndex];
+    const hint = await getHintForLocation(nextLocationId);
 
-    const currentStatus = team.levelStatus.get(String(team.currentLevel));
-
-    // Construct response
-    const response = {
+    res.json({
       teamId: team.teamId,
       name: team.name,
-      level: team.currentLevel,
-      status: currentStatus ? currentStatus.status : "LOCKED",
-      // verified removed
-      // Show hint ONLY if unlocked
-      hint: levelInfo.hintText,
+      level: team.currentLevelIndex, // Display "Level 0" if at start
+      status: "HINT_UNLOCKED",
+      hint: hint,
       collectedKeywords: team.collectedKeywords,
-    };
-
-    res.json(response);
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Server Error" });
@@ -52,70 +54,74 @@ export const scanQR = async (req, res) => {
     const { qrString } = req.body;
     await dbConnect();
     const team = await Team.findById(req.user.id);
-    const level = await Level.findOne({ levelNumber: team.currentLevel });
 
-    if (!level) return res.status(400).json({ msg: "Invalid Level Error" });
+    if (!team) return res.status(404).json({ msg: "Team not found" });
 
-    // Triangulation Check
-    const statusObj = team.levelStatus.get(String(team.currentLevel));
+    const nextIndex = team.currentLevelIndex + 1;
 
-    // 0. Idempotency Check: Already Completed?
-    if (statusObj.status === "COMPLETED") {
+    // Check if already finished
+    if (nextIndex >= team.path.length) {
       return res.status(200).json({
-        msg: "Level Already Completed",
-        keyword: level.keyword, // Return keyword again so client stays in sync
-        nextLevel: team.currentLevel + 1,
-        nextHint: "Wait for update...", // Fallback
+        msg: "Game Already Completed",
+        nextLevel: team.currentLevelIndex,
+        nextHint: "You have finished!",
       });
     }
 
-    // 1. Volunteer Verification Required - REMOVED
+    const targetLocationId = team.path[nextIndex];
+    const targetLocation = await Location.findOne({
+      locationId: targetLocationId,
+    });
 
-    // 2. Validate QR Content
-    // Strict Sequential Check: The 'level' var is fetched based on team.currentLevel
-    // So if I scan "LEVEL_6_SECRET" but I am on Level 1, level.qrSecret will be "LEVEL_1_SECRET"
-    // Comparison fails -> Invalid QR
-    if (qrString !== level.qrSecret) {
-      return res
-        .status(400)
-        .json({ msg: "Invalid QR Code. Are you at the correct location?" });
+    if (!targetLocation) {
+      return res.status(500).json({ msg: "Target Location Data Missing" });
     }
 
-    // Success!
-    statusObj.status = "COMPLETED";
-    statusObj.completedAt = new Date();
-    team.levelStatus.set(String(team.currentLevel), statusObj);
-
-    // Award Keyword
-    const rewardKeyword = level.keyword;
-    if (rewardKeyword && !team.collectedKeywords.includes(rewardKeyword)) {
-      team.collectedKeywords.push(rewardKeyword);
+    // Validate QR
+    if (qrString !== targetLocation.qrSecret) {
+      return res.status(400).json({ msg: "Invalid QR Code. Wrong Location?" });
     }
 
-    // Advance Level
-    const nextLevel = team.currentLevel + 1;
-    team.currentLevel = nextLevel;
+    // Success: Advance Level
+    const completionTime = new Date();
+    team.currentLevelIndex = nextIndex;
+    team.lastLevelCompletedAt = completionTime;
 
-    // Initialize Next Level Logic
-    if (nextLevel <= 7) {
-      // Level 7 is Finale (Bitlocker)
-      // Levels 1-6 are standard
-      team.levelStatus.set(String(nextLevel), {
-        status: "HINT_UNLOCKED", // Immediately show hint for next level
-        // verified: false, // REMOVED
-      });
+    team.levelHistory.push({
+      level: nextIndex, // The level we just finished?
+      // Wait. If I am at Index 0 (Start), nextIndex is 1. I Scan QR for Loc 1.
+      // I have now completed "Level 1" (or step 1).
+      // User naming: "Level 1" is usually the first objective.
+      // Let's store the index.
+      level: nextIndex,
+      completedAt: completionTime,
+    });
+
+    // Award Keyword from Location Data
+    const keyword = targetLocation.keyword || `Keyword-${targetLocationId}`;
+
+    if (!team.collectedKeywords.includes(keyword)) {
+      team.collectedKeywords.push(keyword);
     }
 
     await team.save();
 
-    // Fetch next level hint to return immediately
-    const nextLevelInfo = await Level.findOne({ levelNumber: nextLevel });
+    // Prepare Response (Next Hint)
+    const newNextIndex = team.currentLevelIndex + 1;
+    let nextHint = "Finale";
+
+    if (newNextIndex < team.path.length) {
+      const nextLocId = team.path[newNextIndex];
+      nextHint = await getHintForLocation(nextLocId);
+    } else {
+      nextHint = "Congratulations! You have executed the heist successfully.";
+    }
 
     res.json({
       msg: "Level Completed!",
-      keyword: rewardKeyword,
-      nextLevel: nextLevel,
-      nextHint: nextLevelInfo ? nextLevelInfo.hintText : "Finale",
+      keyword: keyword,
+      nextLevel: team.currentLevelIndex,
+      nextHint: nextHint,
     });
   } catch (err) {
     console.error(err);
@@ -123,53 +129,11 @@ export const scanQR = async (req, res) => {
   }
 };
 
+// submitAnswer - Keeping simplified/placeholder if they need text submission
+// User didn't ask for it in new flow, but safe to keep a basic version or remove.
+// I'll keep a stub.
 export const submitAnswer = async (req, res) => {
-  // Mostly used for the Finale (Bitlocker) now, as Levels 1-6 are purely QR scan driven?
-  // User Prompt: "The Login... Dashboard... Find Volunteer... Scan QR... Next Clue"
-  // It doesn't mention solving a text riddle to get the location. It says "Riddle pointing to Location 1".
-  // Implication: User reads riddle -> Goes to location. No text input needed for L1-6.
-  // ONLY Level 7 (Finale) needs text input.
-
-  try {
-    await dbConnect();
-    const { answer } = req.body;
-    const team = await Team.findById(req.user.id);
-
-    // Only allow for Level 7 (Finale)
-    if (team.currentLevel !== 7) {
-      return res.status(400).json({
-        msg: "No text submission required for this level. Find the Volunteer!",
-      });
-    }
-
-    const level = await Level.findOne({ levelNumber: 7 });
-
-    // Normalize Input: "BERLIN-HEIST..."
-    const sanitizedInput = answer.trim().toUpperCase();
-    const correct = level.acceptedAnswers.includes(sanitizedInput);
-
-    if (correct) {
-      // Game Over / Win
-      const statusObj = team.levelStatus.get("7");
-      statusObj.status = "COMPLETED";
-      statusObj.completedAt = new Date();
-      team.levelStatus.set("7", statusObj);
-
-      // Mark as finished?
-      team.currentLevel = 8; // "8" = Finished state in specific logic
-      await team.save();
-
-      return res.json({
-        msg: "ACCESS GRANTED. DECRYPTION SUCCESSFUL.",
-        status: "WIN",
-      });
-    } else {
-      return res
-        .status(400)
-        .json({ msg: "DECRYPTION FAILED. INVALID SEQUENCE." });
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
-  }
+  return res
+    .status(400)
+    .json({ msg: "No text submission required in this version." });
 };

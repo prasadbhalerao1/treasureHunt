@@ -2,70 +2,52 @@ import mongoose from "mongoose";
 
 const TeamSchema = new mongoose.Schema(
   {
-    teamId: { type: String, required: true, unique: true, index: true }, // "TM-A1B2"
+    teamId: { type: String, required: true, unique: true, index: true }, // "TM-25"
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true }, // Leader Email
     passwordHash: { type: String, required: true }, // Scrypt hash
     salt: { type: String, required: true }, // Unique salt
-    members: [{ type: String }], // Member names
+    members: [String], // Member names
 
-    // Role - Restored for Authorization checks
     role: {
       type: String,
-      enum: ["CANDIDATE", "VOLUNTEER", "ADMIN"],
+      enum: ["CANDIDATE", "ADMIN"],
       default: "CANDIDATE",
     },
 
-    // Game State
-    currentLevel: { type: Number, default: 1, index: true },
+    // Game Path State
+    // The path is a sequence of Location IDs.
+    // e.g., [0, 5, 12, 3, 8, 15, 1] means:
+    // Start at Loc 0.
+    // Index 0 (Loc 0): Completed (Start). Show Hint for Loc 5.
+    // Index 1 (Loc 5): Scan QR 5 -> Show Hint for Loc 12.
+    // ...
+    path: [Number],
 
-    // Level Status Map
-    // Key = Level Number (String), Value = Object
-    levelStatus: {
-      type: Map,
-      of: new mongoose.Schema(
-        {
-          status: {
-            type: String,
-            enum: [
-              "LOCKED",
-              "HINT_UNLOCKED",
-              "LOCATION_REVEALED",
-              "AWAITING_QR",
-              "COMPLETED",
-            ],
-            default: "HINT_UNLOCKED",
-          },
-          // verified: { type: Boolean, default: false }, // REMOVED
-          // volunteerVerifiedAt: { type: Date }, // REMOVED
-          completedAt: { type: Date },
-        },
-        { _id: false }
-      ),
-      default: {},
-    },
+    // Tracks progress along the path.
+    // If currentLevelIndex = 0, they are at Start (Loc 0) and looking for Path[1].
+    // If currentLevelIndex = 1, they found Path[1] and are looking for Path[2].
+    // Max index depends on path length (e.g., 6 levels + start = 7 locations total in path).
+    currentLevelIndex: { type: Number, default: 0 },
+
+    // Timestamp when the LAST level was completed
+    lastLevelCompletedAt: { type: Date },
+
+    // History of level completion for Timer calculations
+    levelHistory: [
+      {
+        level: { type: Number },
+        completedAt: { type: Date },
+      },
+    ],
 
     // Inventory
-    collectedKeywords: [{ type: String }],
+    collectedKeywords: [String],
 
     // Security
-    activeSessions: [{ type: String }], // Array of JTI tokens (Max 3)
+    activeSessions: [String],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
-
-// Compound Index for Volunteer Dashboard - REMOVED
-// TeamSchema.index({ currentLevel: 1, teamId: 1 });
-
-// Ensure levelStatus is initialized for Level 1
-TeamSchema.pre("save", function (next) {
-  if (this.isNew && !this.levelStatus.has("1")) {
-    this.levelStatus.set("1", {
-      status: "HINT_UNLOCKED",
-      // verified: false,
-    });
-  }
-  next();
-});
 
 export default mongoose.models.Team || mongoose.model("Team", TeamSchema);

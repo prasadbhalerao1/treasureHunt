@@ -1,11 +1,11 @@
-import Team from "../models/Team.js";
+  import Team from "../models/Team.js";
 import { hashPassword, verifyPassword } from "../utils/auth.js";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "node:crypto";
 import dbConnect from "../config/dbConnect.js";
 import { sendTeamIdEmail } from "../utils/email.js";
 
-export const register = async (req, res) => {
+export const register = async (req, res, next) => {
   try {
     await dbConnect();
     const { teamName, email, password, members } = req.body;
@@ -53,16 +53,15 @@ export const register = async (req, res) => {
       console.log("Email successfully handed off to nodemailer.");
     }
 
-    console.log("Team Created:", newTeam._id);
-
+    console.log(`[AUTH] Team Registered: ${newTeam.teamId} (${email})`);
     res.status(201).json({ msg: "Team Registered", teamId: newTeam.teamId });
   } catch (err) {
-    console.error("REGISTER ERROR:", err);
-    res.status(500).json({ msg: "Server Error", error: err.message });
+    console.error(`[AUTH_ERROR] Register Failed: ${err.message}`);
+    next(err); // Pass to global handler
   }
 };
 
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
   try {
     await dbConnect();
     const { teamId, password } = req.body;
@@ -83,12 +82,13 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { teamId: team.teamId, role: team.role, id: team._id, jti },
       process.env.JWT_SECRET,
-      { expiresIn: "12h" }
+      { expiresIn: "12h" },
     );
 
     team.activeSessions.push(jti);
     await team.save();
 
+    console.log(`[AUTH] Login Success: ${team.teamId}`);
     res.json({
       token,
       team: {
@@ -99,7 +99,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server Error" });
+    console.error(`[AUTH_ERROR] Login Failed: ${err.message}`);
+    next(err);
   }
 };

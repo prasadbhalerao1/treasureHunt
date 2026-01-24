@@ -9,11 +9,16 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { LogOut } from "lucide-react";
+import { LogOut, Users, Map, Route, BarChart2 } from "lucide-react";
+import UserManagement from "../components/admin/UserManagement";
+import LocationManagement from "../components/admin/LocationManagement";
+import FlowManagement from "../components/admin/FlowManagement";
 
 export default function Admin() {
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [stats, setStats] = useState(null);
-  const [selectedLevel, setSelectedLevel] = useState("1"); // Default to Level 1 view or Global
+  const [selectedLevel, setSelectedLevel] = useState("Global");
+  const [flowTargetTeamId, setFlowTargetTeamId] = useState(null);
 
   const fetchStats = async () => {
     try {
@@ -26,12 +31,12 @@ export default function Admin() {
   };
 
   useEffect(() => {
-    fetchStats();
-    const interval = setInterval(fetchStats, 10000);
-    return () => clearInterval(interval);
-  }, [selectedLevel]);
-
-  if (!stats) return <div className="p-8">Loading Analytics...</div>;
+    if (activeTab === "dashboard") {
+      fetchStats();
+      const interval = setInterval(fetchStats, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [selectedLevel, activeTab]);
 
   // Helper to format ms to mm:ss
   const formatTime = (ms) => {
@@ -41,42 +46,16 @@ export default function Admin() {
     return `${minutes}m ${seconds.padStart(2, "0")}s`;
   };
 
-  return (
-    <div className="min-h-screen bg-zinc-50 p-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b-4 border-black pb-8">
-        <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">
-          Mission Control
-        </h1>
-        <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-          <select
-            value={selectedLevel}
-            onChange={(e) => setSelectedLevel(e.target.value)}
-            className="p-3 border-4 border-black font-black uppercase tracking-widest w-full md:w-auto focus:bg-zinc-100 rounded-none text-lg"
-          >
-            <option value="Global">Global Overview</option>
-            {[1, 2, 3, 4, 5, 6, 7].map((l) => (
-              <option key={l} value={l}>
-                Level {l}
-              </option>
-            ))}
-          </select>
-          <Button
-            onClick={() => {
-              localStorage.removeItem("token");
-              localStorage.removeItem("user");
-              window.location.reload();
-            }}
-            className="w-14 h-14 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-            title="Logout"
-          >
-            <LogOut size={24} />
-          </Button>
-        </div>
-      </div>
+  const renderDashboard = () => {
+    if (!stats)
+      return (
+        <div className="p-8 font-bold uppercase">Loading Analytics...</div>
+      );
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 animate-in fade-in slide-in-from-bottom-4">
         {stats.distribution && (
-          <Card className="border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-none p-6">
+          <Card className="border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-none p-6 bg-white">
             <h2 className="text-2xl font-black mb-6 uppercase tracking-tighter border-b-4 border-black pb-2">
               Team Distribution
             </h2>
@@ -109,7 +88,7 @@ export default function Admin() {
         )}
 
         <Card
-          className={`border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-none p-6 ${
+          className={`border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-none p-6 bg-white ${
             stats.distribution ? "" : "col-span-2"
           }`}
         >
@@ -119,9 +98,23 @@ export default function Admin() {
                 ? "Top 10 Leaders"
                 : `Fastest Teams (Level ${selectedLevel})`}
             </span>
-            <span className="text-xs bg-black text-white px-2 py-1 tracking-widest">
-              LIVE
-            </span>
+            <div className="flex gap-2">
+              <select
+                value={selectedLevel}
+                onChange={(e) => setSelectedLevel(e.target.value)}
+                className="p-1 text-sm border-2 border-black font-bold uppercase"
+              >
+                <option value="Global">Global</option>
+                {[0, 1, 2, 3, 4, 5, 6].map((l) => (
+                  <option key={l} value={l}>
+                    Level {l}
+                  </option>
+                ))}
+              </select>
+              <span className="text-xs bg-black text-white px-2 py-1 tracking-widest flex items-center">
+                LIVE
+              </span>
+            </div>
           </h2>
           <div className="overflow-auto max-h-96">
             <table className="w-full text-left border-collapse">
@@ -131,9 +124,7 @@ export default function Admin() {
                   <th className="p-3">Team</th>
                   {selectedLevel !== "Global" && <th className="p-3">Time</th>}
                   <th className="p-3">
-                    {selectedLevel === "Global"
-                      ? "Current Lvl"
-                      : "Completed At"}
+                    {selectedLevel === "Global" ? "Lvl" : "Completed"}
                   </th>
                 </tr>
               </thead>
@@ -158,7 +149,7 @@ export default function Admin() {
                     <td className="p-3 text-zinc-600">
                       {selectedLevel === "Global" ? (
                         <span className="bg-black text-white px-3 py-1 font-black text-xs">
-                          LVL {team.currentLevel}
+                          {team.currentLevelIndex} (Loc {team.path ? "?" : "?"})
                         </span>
                       ) : (
                         new Date(team.completedAt).toLocaleTimeString([], {
@@ -183,6 +174,64 @@ export default function Admin() {
             </table>
           </div>
         </Card>
+      </div>
+    );
+  };
+
+  const handleManageFlow = (teamId) => {
+    setFlowTargetTeamId(teamId);
+    setActiveTab("flow");
+  };
+
+  return (
+    <div className="min-h-screen bg-zinc-50 p-4 md:p-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b-4 border-black pb-8">
+        <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">
+          Mission Control
+        </h1>
+        <Button
+          onClick={() => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.reload();
+          }}
+          className="w-14 h-14 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none"
+          title="Logout"
+        >
+          <LogOut size={24} />
+        </Button>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex flex-wrap gap-4 mb-8">
+        {[
+          { id: "dashboard", label: "Dashboard", icon: BarChart2 },
+          { id: "users", label: "User Management", icon: Users },
+          { id: "flow", label: "Game Flow", icon: Route },
+          { id: "locations", label: "Locations", icon: Map },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex-1 min-w-[150px] p-4 font-black uppercase border-4 border-black text-lg flex items-center justify-center gap-2 transition-all active:translate-y-1 ${activeTab === tab.id ? "bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)]" : "bg-white text-black hover:bg-zinc-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"}`}
+          >
+            <tab.icon size={20} />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="animate-in fade-in">
+        {activeTab === "dashboard" && renderDashboard()}
+        {activeTab === "users" && (
+          <UserManagement onManageFlow={handleManageFlow} />
+        )}
+        {activeTab === "flow" && (
+          <FlowManagement initialTeamId={flowTargetTeamId} />
+        )}
+        {activeTab === "locations" && <LocationManagement />}
       </div>
     </div>
   );
