@@ -81,7 +81,7 @@ stateDiagram-v2
     Level5 --> Finale : Scan QR at path[6]
     Finale --> Completed : Submit correct answer
 
-    note right of Registered : Team created via Admin<br/>Path assigned: [0, x, x, x, x, x, x]
+    note right of Registered : Team created via Admin<br/>Path assigned: (0, x, x, x, x, x, x)
     note right of Finale : BitLocker puzzle<br/>Arrange keywords alphabetically
     note right of Completed : Game Over<br/>Victory screen shown
 ```
@@ -120,7 +120,7 @@ stateDiagram-v2
     Success --> Idle : Show keyword, advance level
     Failed --> Idle : Show "Wrong Location" error
 
-    note right of Validating : Backend validates against<br/>path[currentLevelIndex + 1]
+    note right of Validating : Backend validates against<br/>path(currentLevelIndex + 1)
 ```
 
 ### QR Scan API Flow
