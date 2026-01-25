@@ -40,7 +40,12 @@ app.use(
     credentials: true,
   }),
 );
-app.use(express.json({ limit: "50kb" })); // Body limit relaxed
+app.use(express.json({ limit: "50kb" }));
+// Serve static files (favicon, etc.)
+app.get("/favicon.ico", (req, res) => {
+  res.sendFile(path.join(__dirname, "favicon.ico"));
+});
+// Body limit relaxed
 app.use(cookieParser());
 
 // Rate Limiting
