@@ -95,7 +95,7 @@
 
 ## 5. Webhook Integration
 
-- **URL**: `https://hook.eu1.make.com/jsaqs5qehyc9uqea03dtzzwv36mnqy52`
+- **URL**: `https://hook.eu1.make.com/37yxq8dipsc3d5z8pz6kuxqy6r1pg8h6`
 - **Trigger**: `createTeam` (Admin)
 - **Payload**:
   ```json

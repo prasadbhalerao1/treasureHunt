@@ -23,7 +23,7 @@ EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_app_specific_password
 
 # Integrations
-MAKE_WEBHOOK_URL=https://hook.eu1.make.com/o1qfhpirrv28e23foyesurdomstppmdk
+MAKE_WEBHOOK_URL=https://hook.eu1.make.com/37yxq8dipsc3d5z8pz6kuxqy6r1pg8h6
 ```
 
 ## Frontend Configuration
