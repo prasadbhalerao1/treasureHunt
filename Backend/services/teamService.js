@@ -1,6 +1,8 @@
 import Team from "../models/Team.js";
 import { hashPassword } from "../utils/auth.js";
 import { randomBytes } from "node:crypto";
+import { ROLES } from "../config/constants.js";
+import logger from "../utils/logger.js";
 
 // Fisher-Yates Shuffle
 function shuffle(array) {
@@ -47,9 +49,9 @@ export async function createTeamRecord({ name, email, password, members }) {
     passwordHash: hashedPassword,
     salt,
     members: members || [],
-    role: "CANDIDATE",
+    role: ROLES.CANDIDATE,
     path,
-    currentLevelIndex: 0,
+    currentLevelIndex: -1,
     collectedKeywords: [],
     activeSessions: [],
   });
@@ -62,11 +64,11 @@ export function triggerWebhook(teamData) {
   const WEBHOOK_URL = process.env.MAKE_WEBHOOK_URL;
 
   if (!WEBHOOK_URL) {
-    console.warn("Webhook URL not configured.");
+    logger.warn("Webhook URL not configured.");
     return;
   }
 
-  console.log("Firing webhook:", WEBHOOK_URL);
+  logger.info(`Firing webhook: ${WEBHOOK_URL}`);
 
   // Fire-and-forget: Don't await, just log result
   fetch(WEBHOOK_URL, {
@@ -82,6 +84,6 @@ export function triggerWebhook(teamData) {
       pathAsString: teamData.path.join("->"),
     }),
   })
-    .then((res) => console.log("Webhook response:", res.status))
-    .catch((err) => console.error("Webhook failed:", err.message));
+    .then((res) => logger.info(`Webhook response: ${res.status}`))
+    .catch((err) => logger.error(`Webhook failed: ${err.message}`, err));
 }

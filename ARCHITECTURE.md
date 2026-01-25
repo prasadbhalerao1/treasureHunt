@@ -34,7 +34,7 @@ A real-time QR-based treasure hunt game for 400+ concurrent users on Vercel Free
 | lastLevelCompletedAt | Date                     | For leaderboard sorting        |
 | levelHistory         | [{level, completedAt}]   | For time calculations          |
 | collectedKeywords    | [String]                 | Collected keywords             |
-| activeSessions       | [String]                 | JWT session IDs (max 3)        |
+| activeSessions       | [String]                 | JWT session IDs (max 4)        |
 
 ### Location
 
@@ -109,7 +109,7 @@ A real-time QR-based treasure hunt game for 400+ concurrent users on Vercel Free
 | No polling     | Frontend only refreshes on user action     |
 | Stateless API  | No in-memory state                         |
 | Webhook emails | Offload to Make.com                        |
-| Session FIFO   | Max 3 concurrent sessions per team         |
+| Session FIFO   | Max 4 concurrent sessions per team         |
 
 ---
 
@@ -117,6 +117,10 @@ A real-time QR-based treasure hunt game for 400+ concurrent users on Vercel Free
 
 ```
 Backend/
+├── config/
+│   ├── dbConnect.js          # MongoDB Singleton
+│   ├── express.js            # Middleware configuration
+│   └── constants.js          # Shared constants (ROLES, GAME_STATUS)
 ├── controllers/
 │   ├── adminController.js    # Admin CRUD operations
 │   ├── authController.js     # Login only
@@ -130,6 +134,9 @@ Backend/
 │   ├── adminRoutes.js
 │   ├── authRoutes.js
 │   └── gameRoutes.js
+├── utils/
+│   ├── auth.js               # Password hashing
+│   └── logger.js             # Logging utility
 └── middleware/
     └── authMiddleware.js
 
@@ -139,12 +146,17 @@ Frontend/
 │   ├── Dashboard.jsx         # Player interface
 │   └── Login.jsx
 ├── components/
+│   ├── Auth/
+│   │   └── ProtectedRoute.jsx  # Route guard component
 │   ├── admin/
 │   │   ├── UserManagement.jsx
 │   │   ├── FlowManagement.jsx
 │   │   └── LocationManagement.jsx
 │   ├── Scanner.jsx
 │   └── ui/                   # Reusable UI components
+├── utils/
+│   ├── api.js                # Axios client
+│   └── constants.js          # Shared constants (ROLES, GAME_STATUS)
 └── context/
     └── AuthContext.jsx
 ```
@@ -177,7 +189,7 @@ Frontend/
 
 ## Security
 
-- JWT with session tracking (max 3 concurrent)
+- JWT with session tracking (max 4 concurrent)
 - Scrypt password hashing
 - Admin routes protected by role check
 - Input validation on all endpoints

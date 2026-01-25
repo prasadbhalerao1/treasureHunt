@@ -49,13 +49,13 @@
 ```
 TreasureHunt/
 ├── Backend/
-│   ├── config/          # Database connection (Singleton)
+│   ├── config/          # Database, Express, & Constants
 │   ├── controllers/     # Business Logic (Auth, Game, Admin)
 │   ├── services/        # Logic Layer (TeamService)
 │   ├── middleware/      # Auth Guard (authMiddleware.js)
 │   ├── models/          # Mongoose Schemas (Team, Location)
 │   ├── routes/          # API Endpoints
-│   ├── utils/           # Helpers (Crypto)
+│   ├── utils/           # Helpers (Crypto, Logger)
 │   ├── index.js         # Express Entry Point
 │   └── vercel.json      # Serverless Config
 │
@@ -156,12 +156,13 @@ Both deployed on Vercel with automatic CI/CD from GitHub.
 
 ## 🎮 Game Flow
 
-1. **Admin Creates Team** → Webhook sends email with Team ID
-2. **Team Logs In** → Dashboard shows current level and hint
-3. **Team Finds Location** → Scans QR code at physical location
-4. **Level Complete** → Keyword collected, next hint unlocked
-5. **Repeat** → Until all 6 levels completed
-6. **Finale** → Submit sorted keywords to win
+1. **Admin Creates Team** → Webhook sends email with Team ID (Status: NOT STARTED)
+2. **Team Logs In** → Dashboard shows "ST" (Start Mode)
+3. **Team Scans Start** → Timer Starts! Hint for Location 1 appears.
+4. **Team Finds Location** → Scans QR code at physical location
+5. **Level Complete** → Keyword collected, next hint unlocked
+6. **Repeat** → Until all 6 levels completed
+7. **Finale** → Submit sorted keywords to win
 
 ---
 

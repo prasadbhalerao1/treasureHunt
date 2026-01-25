@@ -10,9 +10,11 @@ import {
 } from "../controllers/adminController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
+import { ROLES } from "../config/constants.js";
+
 const router = express.Router();
 
-router.use(protect, authorize("ADMIN"));
+router.use(protect, authorize(ROLES.ADMIN));
 
 router.get("/stats", getDashboardStats);
 

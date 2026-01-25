@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import logger from "../utils/logger.js";
 
 let cached = global.mongoose;
 
@@ -20,7 +21,7 @@ async function dbConnect() {
     cached.promise = mongoose
       .connect(process.env.MONGODB_URI, opts)
       .then((mongoose) => {
-        console.log("New MongoDB Connection Established");
+        logger.info("New MongoDB Connection Established");
         return mongoose;
       });
   }

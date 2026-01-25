@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import dbConnect from "../config/dbConnect.js";
 import Team from "../models/Team.js";
+import logger from "../utils/logger.js";
 
 export const protect = async (req, res, next) => {
   let token;
@@ -29,7 +30,7 @@ export const protect = async (req, res, next) => {
       req.user = decoded; // { teamId, role, id, jti }
       next();
     } catch (error) {
-      console.error(error);
+      logger.error("Token verification failed", error);
       res.status(401).json({ msg: "Not authorized, token failed" });
     }
   } else {

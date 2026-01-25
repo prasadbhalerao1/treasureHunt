@@ -2,6 +2,8 @@ import Team from "../models/Team.js";
 import Location from "../models/Location.js";
 import dbConnect from "../config/dbConnect.js";
 import { createTeamRecord, triggerWebhook } from "../services/teamService.js";
+import { ROLES, GAME_STATUS } from "../config/constants.js";
+import logger from "../utils/logger.js";
 
 // Dashboard Stats
 export const getDashboardStats = async (req, res) => {
@@ -15,7 +17,7 @@ export const getDashboardStats = async (req, res) => {
       const targetLevel = parseInt(level);
       // Show teams who have COMPLETED this level (currentLevelIndex > targetLevel)
       const teams = await Team.find({
-        role: "CANDIDATE",
+        role: ROLES.CANDIDATE,
         currentLevelIndex: { $gt: targetLevel },
       })
         .select(
@@ -32,11 +34,13 @@ export const getDashboardStats = async (req, res) => {
       leaderboardData = teams.map((t) => {
         // 1. Determine Location Name
         let locName = "Unknown";
-        if (t.currentLevelIndex < t.path.length) {
+        if (t.currentLevelIndex === -1) {
+          locName = "NOT STARTED";
+        } else if (t.currentLevelIndex < t.path.length) {
           const targetLocId = t.path[t.currentLevelIndex];
           locName = locMap[targetLocId] || `Loc ${targetLocId}`;
         } else {
-          locName = "COMPLETED";
+          locName = GAME_STATUS.COMPLETED;
         }
 
         // 2. Calculate time taken for the specific target level
@@ -72,7 +76,7 @@ export const getDashboardStats = async (req, res) => {
       });
     } else {
       // Global
-      const teams = await Team.find({ role: "CANDIDATE" })
+      const teams = await Team.find({ role: ROLES.CANDIDATE })
         .select("teamId name currentLevelIndex lastLevelCompletedAt path")
         .sort({ currentLevelIndex: -1, lastLevelCompletedAt: 1 })
         .limit(10);
@@ -84,11 +88,13 @@ export const getDashboardStats = async (req, res) => {
 
       leaderboardData = teams.map((t) => {
         let locName = "Unknown";
-        if (t.currentLevelIndex < t.path.length) {
+        if (t.currentLevelIndex === -1) {
+          locName = "NOT STARTED";
+        } else if (t.currentLevelIndex < t.path.length) {
           const targetLocId = t.path[t.currentLevelIndex];
           locName = locMap[targetLocId] || `Loc ${targetLocId}`;
         } else {
-          locName = "COMPLETED";
+          locName = GAME_STATUS.COMPLETED;
         }
 
         return {
@@ -103,7 +109,7 @@ export const getDashboardStats = async (req, res) => {
     }
 
     const teamsPerLevel = await Team.aggregate([
-      { $match: { role: "CANDIDATE" } },
+      { $match: { role: ROLES.CANDIDATE } },
       { $group: { _id: "$currentLevelIndex", count: { $sum: 1 } } },
       { $sort: { _id: 1 } },
     ]);
@@ -116,7 +122,7 @@ export const getDashboardStats = async (req, res) => {
       leaderboard: leaderboardData,
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err.message, err);
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -125,7 +131,7 @@ export const getDashboardStats = async (req, res) => {
 export const getTeams = async (req, res) => {
   try {
     await dbConnect();
-    const teams = await Team.find({ role: "CANDIDATE" }).select(
+    const teams = await Team.find({ role: ROLES.CANDIDATE }).select(
       "-passwordHash -salt -activeSessions",
     );
     res.json(teams);
@@ -158,7 +164,7 @@ export const createTeam = async (req, res) => {
 
     res.status(201).json({ msg: "Team Created", team });
   } catch (err) {
-    console.error(err);
+    logger.error(err.message, err);
     if (err.message === "Team Name or Email already taken") {
       return res.status(400).json({ msg: err.message });
     }
@@ -216,7 +222,7 @@ export const updateLocation = async (req, res) => {
     await location.save();
     res.json({ msg: "Location Updated", location });
   } catch (err) {
-    console.error(err);
+    logger.error(err.message, err);
     res.status(500).json({ msg: "Server Error" });
   }
 };

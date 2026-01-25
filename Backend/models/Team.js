@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { ROLES } from "../config/constants.js";
 
 const TeamSchema = new mongoose.Schema(
   {
@@ -11,8 +12,8 @@ const TeamSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["CANDIDATE", "ADMIN"],
-      default: "CANDIDATE",
+      enum: [ROLES.CANDIDATE, ROLES.ADMIN],
+      default: ROLES.CANDIDATE,
     },
 
     // Game Path State
@@ -25,10 +26,12 @@ const TeamSchema = new mongoose.Schema(
     path: [Number],
 
     // Tracks progress along the path.
-    // If currentLevelIndex = 0, they are at Start (Loc 0) and looking for Path[1].
-    // If currentLevelIndex = 1, they found Path[1] and are looking for Path[2].
-    // Max index depends on path length (e.g., 6 levels + start = 7 locations total in path).
-    currentLevelIndex: { type: Number, default: 0 },
+    // -1 = Registered, hasn't scanned Start QR yet.
+    // 0 = Scanned Start (Loc 0), looking for Path[1].
+    // 1 = Found Path[1], looking for Path[2].
+    // ...
+    // 7 = Completed all levels
+    currentLevelIndex: { type: Number, default: -1 },
 
     // Timestamp when the LAST level was completed
     lastLevelCompletedAt: { type: Date },

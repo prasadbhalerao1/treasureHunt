@@ -1,0 +1,27 @@
+# Build output
+dist/
+build/
+out/
+
+# Node
+node_modules/
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+
+# Coverage reports
+coverage/
+
+# Local system files
+.DS_Store
+
+# Public/static assets
+public/
+static/
+
+# Ignore compiled JS if using TS
+*.min.js

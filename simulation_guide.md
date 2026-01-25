@@ -15,7 +15,7 @@ _The hero of the story. High-stress, fast-paced, mobile-first._
 #### 2. The Login (Event Start)
 
 - **Action**: Enter `TITAN-X99` and password.
-- **Constraint**: **Max 3 Devices**. If a 4th tries, they see "Access Denied: Logout someone first."
+- **Constraint**: **Max 4 Devices**. If a 5th tries, they see "Access Denied: Logout someone first."
 
 #### 3. The Dashboard (The Compass)
 

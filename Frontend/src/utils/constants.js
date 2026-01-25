@@ -1,0 +1,10 @@
+export const ROLES = {
+  ADMIN: "ADMIN",
+  CANDIDATE: "CANDIDATE",
+};
+
+export const GAME_STATUS = {
+  COMPLETED: "COMPLETED",
+  FINALE: "FINALE",
+  HINT_UNLOCKED: "HINT_UNLOCKED",
+};

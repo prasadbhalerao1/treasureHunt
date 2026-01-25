@@ -1,4 +1,4 @@
-# ⚙️ BERLIN HEIST API (Backend)
+w# ⚙️ BERLIN HEIST API (Backend)
 
 > The core game engine handling authentication, game state, and QR verification logic.
 
@@ -9,7 +9,7 @@
 | Feature                 | Description                                                        |
 | :---------------------- | :----------------------------------------------------------------- |
 | **🔐 Scrypt Auth**      | Native Node.js crypto for password hashing (no bcrypt dependency). |
-| **🎫 JWT Sessions**     | Stateless auth with max 3 concurrent devices per team.             |
+| **🎫 JWT Sessions**     | Stateless auth with max 4 concurrent devices per team.             |
 | **📧 Webhook Dispatch** | Make.com integration for instant team emails.                      |
 | **🎯 QR Validation**    | Sequential QR scanning with location-based progression.            |
 | **📊 Admin Analytics**  | Aggregated stats: leaderboard, team distribution per level.        |
@@ -21,7 +21,9 @@
 ```
 Backend/
 ├── config/
-│   └── dbConnect.js       # MongoDB Singleton (Serverless-safe)
+│   ├── dbConnect.js       # MongoDB Singleton (Serverless-safe)
+│   ├── express.js         # Middleware configuration
+│   └── constants.js       # Shared constants (ROLES, GAME_STATUS)
 │
 ├── controllers/
 │   ├── authController.js  # Login
@@ -42,6 +44,10 @@ Backend/
 │   ├── authRoutes.js      # /api/auth/*
 │   ├── gameRoutes.js      # /api/game/*
 │   └── adminRoutes.js     # /api/admin/*
+│
+├── utils/
+│   ├── auth.js            # Password hashing (Scrypt)
+│   └── logger.js          # Logging utility
 │
 ├── index.js               # Express app entry
 └── vercel.json            # Serverless routing config

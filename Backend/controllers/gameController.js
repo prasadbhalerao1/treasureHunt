@@ -1,6 +1,8 @@
 import Team from "../models/Team.js";
 import Location from "../models/Location.js";
 import dbConnect from "../config/dbConnect.js";
+import { GAME_STATUS } from "../config/constants.js";
+import logger from "../utils/logger.js";
 
 // Helper: Get Hint for a specific location ID
 const getHintForLocation = async (locId) => {
@@ -20,7 +22,7 @@ export const getGameState = async (req, res) => {
       return res.json({
         teamId: team.teamId,
         level: team.currentLevelIndex,
-        status: "COMPLETED",
+        status: GAME_STATUS.COMPLETED,
         hint: "Congratulations! You have completed the Treasure Hunt.",
         collectedKeywords: team.collectedKeywords,
       });
@@ -32,28 +34,34 @@ export const getGameState = async (req, res) => {
       return res.json({
         teamId: team.teamId,
         level: 7, // Send 7 to trigger Dashboard "Finale Mode"
-        status: "FINALE",
+        status: GAME_STATUS.FINALE,
         hint: "The password is the sequence. Arrange in alphabetical order.",
         collectedKeywords: team.collectedKeywords,
       });
     }
 
-    // 3. Normal Gameplay (Index 0-5)
+    // 3. Normal Gameplay
     // Show hint for NEXT location
     const nextIndex = team.currentLevelIndex + 1;
-    const nextLocationId = team.path[nextIndex];
-    const hint = await getHintForLocation(nextLocationId);
+
+    // Safety: Ensure valid index
+    let hint = "Proceed to Start Location";
+    if (nextIndex < team.path.length) {
+      const nextLocationId = team.path[nextIndex];
+      hint = await getHintForLocation(nextLocationId);
+    }
 
     res.json({
       teamId: team.teamId,
       name: team.name,
-      level: team.currentLevelIndex, // e.g. 0
-      status: "HINT_UNLOCKED",
+      level: team.currentLevelIndex,
+      status: GAME_STATUS.HINT_UNLOCKED,
       hint: hint,
       collectedKeywords: team.collectedKeywords,
+      nextLevel: nextIndex, // Helper for frontend
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err.message, err);
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -110,6 +118,8 @@ export const scanQR = async (req, res) => {
 
     await team.save();
 
+    logger.info(`Team ${team.teamId} scanned location ${targetLocationId}`);
+
     // Prepare Response (Next Hint)
 
     // Check if we just entered Finale
@@ -137,7 +147,7 @@ export const scanQR = async (req, res) => {
       nextHint: nextHint,
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err.message, err);
     res.status(500).json({ msg: "Server Error" });
   }
 };
@@ -170,14 +180,19 @@ export const submitAnswer = async (req, res) => {
     // 1. Get Collected Keywords
     // 2. Sort them
     // 3. Join with '-'
+    // EXCLUDE "START" keyword if present, as per user request
     const expected = team.collectedKeywords
       .map((k) => k.trim().toUpperCase())
+      .filter((k) => k !== "START")
       .sort()
       .join("-");
 
     const submitted = (answer || "").trim().toUpperCase();
 
     if (submitted !== expected && submitted !== "OVERRIDE-VICTORY") {
+      logger.warn(
+        `Team ${team.teamId} failed final decryption. Tried: ${submitted}`,
+      );
       return res
         .status(400)
         .json({ msg: "Decryption Failed. Verify Sequence." });
@@ -194,9 +209,11 @@ export const submitAnswer = async (req, res) => {
 
     await team.save();
 
+    logger.info(`******* TEAM ${team.teamId} COMPLETED THE HUNT *******`);
+
     res.json({ msg: "DECRYPTION SUCCESSFUL. STATUS: LEGENDARY." });
   } catch (err) {
-    console.error(err);
+    logger.error(err.message, err);
     res.status(500).json({ msg: "Server Error" });
   }
 };

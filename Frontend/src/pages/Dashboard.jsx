@@ -5,6 +5,7 @@ import { Button, Input } from "../components/ui";
 import Scanner from "../components/Scanner";
 import Loader from "../components/Loader";
 import { RefreshCw, Lock, MapPin, QrCode, CheckCircle } from "lucide-react";
+import { GAME_STATUS } from "../utils/constants";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -71,7 +72,7 @@ export default function Dashboard() {
               CURRENT PROTOCOL
             </div>
             <h1 className="text-7xl font-black tracking-tighter text-black leading-none">
-              {String(level).padStart(2, "0")}
+              {level < 0 ? "ST" : String(level).padStart(2, "0")}
             </h1>
           </div>
           <div className="flex gap-2">
@@ -108,7 +109,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {status === "COMPLETED" || level > 7 ? (
+          {status === GAME_STATUS.COMPLETED || level > 7 ? (
             /* VICTORY SCREEN */
             <div className="border-4 border-black bg-white p-4 md:p-8 text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in duration-500 flex flex-col items-center justify-center min-h-[50vh]">
               <div className="mb-6">
@@ -145,14 +146,16 @@ export default function Dashboard() {
               </p>
 
               <div className="grid grid-cols-2 gap-3 mb-6">
-                {collectedKeywords.map((k, i) => (
-                  <div
-                    key={i}
-                    className="bg-black text-white p-3 text-center font-black uppercase tracking-widest border-2 border-black"
-                  >
-                    {k}
-                  </div>
-                ))}
+                {collectedKeywords
+                  .filter((k) => k.toUpperCase() !== "START")
+                  .map((k, i) => (
+                    <div
+                      key={i}
+                      className="bg-black text-white p-3 text-center font-black uppercase tracking-widest border-2 border-black"
+                    >
+                      {k}
+                    </div>
+                  ))}
               </div>
 
               <form onSubmit={submitAnswer} className="space-y-4">

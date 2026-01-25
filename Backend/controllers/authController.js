@@ -3,6 +3,7 @@ import { verifyPassword } from "../utils/auth.js";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "node:crypto";
 import dbConnect from "../config/dbConnect.js";
+import logger from "../utils/logger.js";
 
 export const login = async (req, res, next) => {
   try {
@@ -15,8 +16,8 @@ export const login = async (req, res, next) => {
     const isValid = await verifyPassword(password, team.passwordHash);
     if (!isValid) return res.status(401).json({ msg: "Invalid Credentials" });
 
-    // Concurrent Session Check (FIFO, max 3)
-    if (team.activeSessions.length >= 3) {
+    // Concurrent Session Check (FIFO, max 4)
+    if (team.activeSessions.length >= 4) {
       team.activeSessions.shift();
     }
 
@@ -30,6 +31,8 @@ export const login = async (req, res, next) => {
     team.activeSessions.push(jti);
     await team.save();
 
+    logger.info(`Team logged in: ${team.teamId} [${team.role}]`);
+
     res.json({
       token,
       team: {
@@ -40,7 +43,7 @@ export const login = async (req, res, next) => {
       },
     });
   } catch (err) {
-    console.error(`[AUTH_ERROR] Login Failed: ${err.message}`);
+    logger.error(`[AUTH_ERROR] Login Failed: ${err.message}`, err);
     next(err);
   }
 };

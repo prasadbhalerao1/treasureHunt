@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Button, Input, Card } from "../components/ui";
 import Loader from "../components/Loader";
+import { ROLES } from "../utils/constants";
 
 export default function Login() {
   const [form, setForm] = useState({ teamId: "", password: "" });
@@ -20,7 +21,7 @@ export default function Login() {
 
       // Role-Based Redirection
       const role = data.team.role;
-      if (role === "ADMIN") {
+      if (role === ROLES.ADMIN) {
         navigate("/admin");
       } else {
         navigate("/dashboard");
