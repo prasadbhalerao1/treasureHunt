@@ -63,15 +63,15 @@ export default function Dashboard() {
   const { level, status, hint, collectedKeywords } = gameState;
 
   return (
-    <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white p-6">
+    <div className="min-h-screen bg-white text-black font-sans selection:bg-black selection:text-white p-4 md:p-6">
       <div className="max-w-xl mx-auto min-h-screen flex flex-col">
         {/* Header - Level Indicator */}
-        <header className="mb-4 flex justify-between items-start border-4 border-black p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white">
+        <header className="mb-4 flex justify-between items-start border-4 border-black p-3 md:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white">
           <div>
-            <div className="text-black text-xs font-black tracking-widest uppercase mb-1">
+            <div className="text-black text-[10px] md:text-xs font-black tracking-widest uppercase mb-1">
               CURRENT PROTOCOL
             </div>
-            <h1 className="text-7xl font-black tracking-tighter text-black leading-none">
+            <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-black leading-none">
               {level < 0 ? "ST" : String(level).padStart(2, "0")}
             </h1>
           </div>
@@ -82,7 +82,7 @@ export default function Dashboard() {
                 localStorage.removeItem("user");
                 window.location.reload();
               }}
-              className="w-12 h-12 bg-red-600 text-white border-4 border-black rounded-none hover:bg-red-700 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              className="w-10 h-10 md:w-12 md:h-12 bg-red-600 text-white border-4 border-black rounded-none hover:bg-red-700 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
               title="Logout"
             >
               <div className="w-4 h-4 border-2 border-white rounded-full relative">
@@ -91,7 +91,7 @@ export default function Dashboard() {
             </Button>
             <Button
               onClick={fetchState}
-              className="w-12 h-12 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              className="w-10 h-10 md:w-12 md:h-12 bg-white text-black border-4 border-black rounded-none hover:bg-zinc-200 p-0 flex items-center justify-center transition-transform active:translate-x-1 active:translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
             >
               <RefreshCw
                 size={24}
@@ -113,17 +113,20 @@ export default function Dashboard() {
             /* VICTORY SCREEN */
             <div className="border-4 border-black bg-white p-4 md:p-8 text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in duration-500 flex flex-col items-center justify-center min-h-[50vh]">
               <div className="mb-6">
-                <div className="w-20 h-20 flex items-center justify-center animate-bounce border-4 border-black bg-green-500">
-                  <CheckCircle size={48} className="text-black" />
+                <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center animate-bounce border-4 border-black bg-green-500">
+                  <CheckCircle
+                    size={32}
+                    className="md:w-12 md:h-12 text-black"
+                  />
                 </div>
               </div>
-              <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-4 leading-none break-words w-full">
+              <h1 className="text-3xl md:text-6xl font-black uppercase tracking-tighter mb-4 leading-none break-words w-full">
                 MISSION ACCOMPLISHED
               </h1>
-              <p className="text-lg md:text-xl font-black uppercase tracking-widest text-zinc-500 mb-8">
+              <p className="text-sm md:text-xl font-black uppercase tracking-widest text-zinc-500 mb-8 break-words w-full">
                 ALL OBJECTIVES SECURED
               </p>
-              <div className="bg-black text-white p-4 font-mono text-xs md:text-sm border-2 border-green-500 w-full">
+              <div className="bg-black text-white p-4 font-mono text-xs md:text-sm border-2 border-green-500 w-full break-words">
                 <p>AGENT STATUS: LEGENDARY</p>
                 <p>FINAL SCORE: MAX</p>
                 <p className="mt-2 text-green-400 font-bold">

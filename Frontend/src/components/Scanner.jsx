@@ -14,7 +14,7 @@ const Scanner = ({ onScan, onError }) => {
       window.location.protocol !== "https:"
     ) {
       setPermError(
-        "Camera access requires HTTPS. Please access via the secure Vercel link."
+        "Camera access requires HTTPS. Please access via the secure Vercel link.",
       );
       return;
     }
@@ -48,7 +48,7 @@ const Scanner = ({ onScan, onError }) => {
           },
           (errorMessage) => {
             // Parse error, ignore to avoid spamming console
-          }
+          },
         );
       } catch (err) {
         console.error("Scanner Start Error", err);
@@ -82,12 +82,12 @@ const Scanner = ({ onScan, onError }) => {
   return (
     <div className="w-full max-w-md mx-auto relative bg-black min-h-[300px] border-4 border-black">
       {permError ? (
-        <div className="bg-red-500 text-white p-6 text-center font-bold h-full flex flex-col justify-center items-center">
-          <h3 className="text-xl mb-2 uppercase">Camera Error</h3>
-          <p>{permError}</p>
+        <div className="bg-red-500 text-white p-6 text-center font-bold h-full flex flex-col justify-center items-center overflow-auto">
+          <h3 className="text-xl mb-2 uppercase flex-shrink-0">Camera Error</h3>
+          <p className="break-words w-full max-w-xs mx-auto">{permError}</p>
           <Button
             onClick={() => window.location.reload()}
-            className="mt-4 bg-white text-red-900 border-0"
+            className="mt-4 bg-white text-red-900 border-0 flex-shrink-0"
           >
             Retry
           </Button>
