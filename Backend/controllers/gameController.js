@@ -94,8 +94,8 @@ export const scanQR = async (req, res) => {
       return res.status(500).json({ msg: "Target Location Data Missing" });
     }
 
-    // Validate QR
-    if (qrString !== targetLocation.qrSecret) {
+    // Validate QR (case-insensitive to be forgiving)
+    if (qrString.toUpperCase() !== targetLocation.qrSecret.toUpperCase()) {
       return res.status(400).json({ msg: "Invalid QR Code. Wrong Location?" });
     }
 

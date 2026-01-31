@@ -10,7 +10,10 @@ export const login = async (req, res, next) => {
     await dbConnect();
     const { teamId, password } = req.body;
 
-    const team = await Team.findOne({ teamId });
+    // Case-insensitive team lookup to be forgiving
+    const team = await Team.findOne({
+      teamId: { $regex: new RegExp(`^${teamId}$`, "i") },
+    });
     if (!team) return res.status(401).json({ msg: "Invalid Credentials" });
 
     const isValid = await verifyPassword(password, team.passwordHash);
