@@ -4,9 +4,11 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button, Input, Card } from "../components/ui";
 import Loader from "../components/Loader";
 import { ROLES } from "../utils/constants";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const [form, setForm] = useState({ teamId: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
@@ -67,14 +69,24 @@ export default function Login() {
             <label className="block font-black mb-2 uppercase text-sm tracking-widest">
               Password
             </label>
-            <Input
-              type="password"
-              placeholder="********"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              required
-              className="h-14 md:h-16 text-lg md:text-xl border-4 border-black bg-zinc-50 focus:bg-white transition-colors"
-            />
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="********"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                required
+                className="h-14 md:h-16 text-lg md:text-xl border-4 border-black bg-zinc-50 focus:bg-white transition-colors pr-14"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-700 hover:text-black transition-colors"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={24} /> : <Eye size={24} />}
+              </button>
+            </div>
           </div>
 
           <Button

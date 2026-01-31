@@ -66,13 +66,14 @@ _The strategist. God Mode._
 
 ### The Climax
 
-- **Collection**: Teams have collected 6 keywords (PROFESSOR, BERLIN, HEIST, MINT, TOKYO, PLAN).
+- **Collection**: Teams have collected 6 keywords specific to their path (e.g., ALICIA, BERLIN, RIO, etc.).
 - **The Final Hint**: "The password is the sequence. Arrange in alphabetical order."
 
 ### The Description
 
 1.  **Run**: Team runs to final location.
-2.  **Input**: Type the phrase: `BERLIN-HEIST-MINT-PLAN-PROFESSOR-TOKYO`.
+2.  **Input**: Type the phrase: `ALICIA-BERLIN-RIO-...` (Sorted Alphabetically).
+    - _Note: Since every team has a different path, every team has a different final passphrase._
 3.  **Victory**:
     - System checks hash.
     - **Confetti Animation**.
@@ -98,8 +99,9 @@ _The strategist. God Mode._
 ### Administrators
 
 - **Main**: `ADMIN-MAIN` (Password: `adminpassword123`)
-- **Backup**: `ADMIN-BACKUP` (Password: `adminpassword456`)
 
 ### Testing Teams
 
-Create teams via Admin Dashboard - no pre-seeded teams exist.
+- **Seeded Candidates**: `Team-1` to `Team-35`
+- **Password**: `123456`
+- **Role**: Ready to play (Randomized paths assigned).

@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print QR Codes</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: white;
+        }
+
+        .page {
+            width: 210mm;
+            height: 297mm;
+            padding: 20mm;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10mm;
+            page-break-after: always;
+            border: 1px dashed #ddd; /* Helper for view, remove in print if needed */
+        }
+
+        .qr-card {
+            border: 4px solid black;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .qr-img {
+            width: 250px;
+            height: 250px;
+            object-fit: contain;
+            image-rendering: pixelated; /* Crisp QRs */
+        }
+
+        .qr-label {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: 900;
+            text-transform: uppercase;
+            word-break: break-word;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .page {
+                border: none;
+                margin: 0;
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+
+        <div class="qr-card">
+            <img src="./qr_codes/Blossom_Ground.png" class="qr-img" />
+            <div class="qr-label">Blossom Ground</div>
+        </div>
+      
+        <div class="qr-card">
+            <img src="./qr_codes/Bullet_Parking.png" class="qr-img" />
+            <div class="qr-label">Bullet Parking</div>
+        </div>
+      
+        <div class="qr-card">
+            <img src="./qr_codes/Bus_Parking_Behind_Cafeteria.png" class="qr-img" />
+            <div class="qr-label">Bus Parking Behind Cafeteria</div>
+        </div>
+      
+        <div class="qr-card">
+            <img src="./qr_codes/Cafeteria.png" class="qr-img" />
+            <div class="qr-label">Cafeteria</div>
+        </div>
+          </div>
+    <div class="page">
+
+        <div class="qr-card">
+            <img src="./qr_codes/Counselling_Centre.png" class="qr-img" />
+            <div class="qr-label">Counselling Centre</div>
+        </div>
+      
+        <div class="qr-card">
+            <img src="./qr_codes/CSBS_Department.png" class="qr-img" />
+            <div class="qr-label">CSBS Department</div>
+        </div>
+      
+        <div class="qr-card">
+            <img src="./qr_codes/CS_Department.png" class="qr-img" />
+            <div class="qr-label">CS Department</div>
+        </div>
+      
+        <div class="qr-card">
+            <img src="./qr_codes/Food_Court__Dosa_Wala.png" class="qr-img" />
+            <div class="qr-label">Food Court  Dosa Wala</div>
+        </div>
+          </div>
+    <div class="page">
+
+        <div class="qr-card">
+            <img src="./qr_codes/FY_Department.png" class="qr-img" />
+            <div class="qr-label">FY Department</div>
+        </div>
+      
+        <div class="qr-card">
+            <img src="./qr_codes/Jaywant_Library.png" class="qr-img" />
+            <div class="qr-label">Jaywant Library</div>
+        </div>
+      
+        <div class="qr-card">
+            <img src="./qr_codes/Location-0_Start.png" class="qr-img" />
+            <div class="qr-label">Location-0 Start</div>
+        </div>
+      
+        <div class="qr-card">
+            <img src="./qr_codes/Mac_Lab.png" class="qr-img" />
+            <div class="qr-label">Mac Lab</div>
+        </div>
+          </div>
+    <div class="page">
+
+        <div class="qr-card">
+            <img src="./qr_codes/Parking_in_Front_of_B_Building.png" class="qr-img" />
+            <div class="qr-label">Parking in Front of B Building</div>
+        </div>
+      
+        <div class="qr-card">
+            <img src="./qr_codes/Physics_Lab.png" class="qr-img" />
+            <div class="qr-label">Physics Lab</div>
+        </div>
+      
+        <div class="qr-card">
+            <img src="./qr_codes/Stationery_Store_Food_Court.png" class="qr-img" />
+            <div class="qr-label">Stationery Store Food Court</div>
+        </div>
+      
+        <div class="qr-card">
+            <img src="./qr_codes/Student_Section.png" class="qr-img" />
+            <div class="qr-label">Student Section</div>
+        </div>
+          </div>
+    <div class="page">
+
+        <div class="qr-card">
+            <img src="./qr_codes/Xerox_Shop.png" class="qr-img" />
+            <div class="qr-label">Xerox Shop</div>
+        </div>
+          </div>
+
+</body>
+</html>

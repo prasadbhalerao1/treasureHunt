@@ -55,7 +55,7 @@ All teams have been seeded with the default password: **`123456`**
 | **Team-1**  | Team 1  | Candidate | Random 7-step path |
 | **Team-2**  | Team 2  | Candidate | Random 7-step path |
 | ...         | ...     | ...       | ...                |
-| **Team-25** | Team 25 | Candidate | Random 7-step path |
+| **Team-35** | Team 35 | Candidate | Random 7-step path |
 
 ---
 
@@ -63,7 +63,7 @@ All teams have been seeded with the default password: **`123456`**
 
 **Locations now use randomized QR Secrets for security.**
 
-| Location ID   | Keyword     | QR Code     |
-| :------------ | :---------- | :---------- |
-| **0 (Start)** | `START`     | `loc-0.png` |
-| **1-16**      | `Keyword-N` | `loc-N.png` |
+| Location ID   | Keyword                     | QR Code                                          |
+| :------------ | :-------------------------- | :----------------------------------------------- |
+| **0 (Start)** | `START`                     | `Location-0_(Start).png`                         |
+| **1-16**      | City Names (e.g., `BERLIN`) | `Location_Name.png` (e.g., `Blossom_Ground.png`) |

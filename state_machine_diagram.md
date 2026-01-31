@@ -187,8 +187,8 @@ const expected = team.collectedKeywords
   .sort() // Alphabetical order
   .join("-"); // Hyphen-separated
 
-// Example: If keywords are ["GAMMA", "ALPHA", "BETA", "START"]
-// Expected = "ALPHA-BETA-GAMMA"
+// Example: If keywords are ["RIO", "ALICIA", "BERLIN", "START"]
+// Expected = "ALICIA-BERLIN-RIO"
 ```
 
 ---
@@ -319,7 +319,7 @@ flowchart TB
 
 ### 🔍 State Transition Gaps to Review
 
-1. **No backward progression**: Once a level is completed, there's no mechanism to undo (intentional?)
+1. **No backward progression**: Once a level is completed, there's no mechanism to undo (intentional)
 2. **No timeout/penalty**: Game has no time limits or penalties for wrong scans
 3. **OVERRIDE-VICTORY**: Backdoor exists in finale validation - security concern?
 4. **Session invalidation**: Old sessions aren't explicitly invalidated on logout

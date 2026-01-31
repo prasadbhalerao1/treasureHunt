@@ -23,7 +23,7 @@
 - **collectedKeywords**: [String]
 - **lastLevelCompletedAt**: Date
 - **levelHistory**: [{level: Number, completedAt: Date}]
-- **activeSessions**: [String] (JWT session IDs, max 3)
+- **activeSessions**: [String] (JWT session IDs, max 4)
 
 ### **Location Model** (`Location.js`)
 
@@ -59,7 +59,7 @@
 ### **QR Codes**
 
 - Generated for all 17 locations.
-- Content: `LOC-{ID}-SECRET` (e.g., `LOC-5-SECRET`).
+- Content: `SHORTCODE_RANDOMNUM` (e.g., `PHYLAB_839210`).
 - Validation:
   - User scans QR.
   - System checks user's `currentLevelIndex`.
@@ -69,7 +69,7 @@
 
 ### **Keywords**
 
-- Each location (1-16) has a unique keyword: `Keyword-{ID}`.
+- Each location (1-16) has a unique **City Keyword** (e.g., `BERLIN`, `TOKYO`).
 - Upon successful QR scan, the keyword is awarded to the Team.
 
 ---
