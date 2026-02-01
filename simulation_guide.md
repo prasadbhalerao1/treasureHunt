@@ -67,15 +67,28 @@ _The strategist. God Mode._
 ### The Climax
 
 - **Collection**: Teams have collected 6 keywords specific to their path (e.g., ALICIA, BERLIN, RIO, etc.).
-- **The Final Hint**: "The password is the sequence. Arrange in alphabetical order."
+- **The Final Hint**: Each team sees a **unique sorting challenge** (randomly assigned at creation).
+
+### Challenge Types
+
+| Type            | Instruction Example                |
+| --------------- | ---------------------------------- |
+| `ALPHA_ASC`     | "Arrange alphabetically (A → Z)"   |
+| `ALPHA_DESC`    | "Arrange reverse (Z → A)"          |
+| `LENGTH_ASC`    | "Arrange by length (short → long)" |
+| `LENGTH_DESC`   | "Arrange by length (long → short)" |
+| `SECOND_LETTER` | "Arrange by 2nd letter"            |
+| `LAST_LETTER`   | "Arrange by last letter"           |
 
 ### The Description
 
 1.  **Run**: Team runs to final location.
-2.  **Input**: Type the phrase: `ALICIA-BERLIN-RIO-...` (Sorted Alphabetically).
-    - _Note: Since every team has a different path, every team has a different final passphrase._
-3.  **Victory**:
-    - System checks hash.
+2.  **Input**: Type the phrase based on their challenge (e.g., `ALICIA-BERLIN-RIO-...`).
+    - _Ties are allowed_: If two words have the same sort key, either order works.
+    - _Note: Every team has a different path AND a different challenge type!_
+3.  **Admin Override**: Submit `OVERRIDE-VICTORY` to bypass.
+4.  **Victory**:
+    - System validates.
     - **Confetti Animation**.
     - Final Time Logged.
 

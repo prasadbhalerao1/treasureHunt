@@ -29,6 +29,7 @@ A real-time QR-based treasure hunt game for 400+ concurrent users on Vercel Free
 | salt                 | String                   | Password salt                  |
 | members              | [String]                 | Member names                   |
 | role                 | Enum                     | "CANDIDATE" or "ADMIN"         |
+| finaleChallenge      | Enum                     | One of 6 challenge types       |
 | path                 | [Number]                 | Ordered Location IDs (7 items) |
 | currentLevelIndex    | Number                   | Current progress (0-7)         |
 | lastLevelCompletedAt | Date                     | For leaderboard sorting        |
@@ -95,8 +96,20 @@ A real-time QR-based treasure hunt game for 400+ concurrent users on Vercel Free
 
 ### Finale Logic
 
-- Keywords sorted alphabetically, joined with "-"
-- Override: "OVERRIDE-VICTORY" bypasses validation
+**Randomized Challenges**: Each team is assigned one of 6 sorting challenges:
+
+| Challenge       | Description            |
+| --------------- | ---------------------- |
+| `ALPHA_ASC`     | Sort A → Z             |
+| `ALPHA_DESC`    | Sort Z → A             |
+| `LENGTH_ASC`    | Shortest → Longest     |
+| `LENGTH_DESC`   | Longest → Shortest     |
+| `SECOND_LETTER` | Sort by 2nd character  |
+| `LAST_LETTER`   | Sort by last character |
+
+**Edge Cases**: If two words have the same sort key (e.g., same length), either order is accepted.
+
+**Override**: Submitting `OVERRIDE-VICTORY` bypasses validation (admin use only).
 
 ---
 

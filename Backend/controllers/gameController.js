@@ -15,7 +15,7 @@ const getHintForLocation = async (locId) => {
 };
 
 // Helper: Get the sort key for a keyword based on challenge type
-const getSortKey = (keyword, challenge) => {
+export const getSortKey = (keyword, challenge) => {
   switch (challenge) {
     case FINALE_CHALLENGES.ALPHA_ASC:
     case FINALE_CHALLENGES.ALPHA_DESC:
@@ -34,7 +34,7 @@ const getSortKey = (keyword, challenge) => {
 
 // Helper: Validate if submitted order is valid for the challenge
 // Accepts ANY valid ordering when sort keys are equal
-const isValidOrder = (submitted, keywords, challenge) => {
+export const isValidOrder = (submitted, keywords, challenge) => {
   // 1. Check same keywords (Set comparison)
   const submittedSet = new Set(submitted);
   const expectedSet = new Set(keywords);

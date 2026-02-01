@@ -11,6 +11,7 @@
 - **salt**: String
 - **members**: [String]
 - **role**: Enum ["CANDIDATE", "ADMIN"]
+- **finaleChallenge**: Enum [ALPHA_ASC, ALPHA_DESC, LENGTH_ASC, LENGTH_DESC, SECOND_LETTER, LAST_LETTER]
 - **path**: [Number] (Array of Location IDs, ordered sequence)
   - Length: 7 (Start + 6 Levels)
   - Index 0: Location 0 (Start)
@@ -124,6 +125,19 @@
 
 ### **Finale Logic**
 
-- Keywords sorted alphabetically, joined with "-"
-- Override: "OVERRIDE-VICTORY" bypasses validation
-- Success -> `currentLevelIndex = 7` (COMPLETED)
+**Randomized Challenges**: Each team is assigned one of 6 sorting challenges at creation:
+
+| Type            | Rule                   |
+| --------------- | ---------------------- |
+| `ALPHA_ASC`     | Alphabetical A → Z     |
+| `ALPHA_DESC`    | Reverse Z → A          |
+| `LENGTH_ASC`    | Shortest word first    |
+| `LENGTH_DESC`   | Longest word first     |
+| `SECOND_LETTER` | Sort by 2nd character  |
+| `LAST_LETTER`   | Sort by last character |
+
+**Ties Allowed**: If two words have the same key, either order is valid.
+
+**Admin Override**: Submit `OVERRIDE-VICTORY` to bypass validation.
+
+- Success → `currentLevelIndex = 7` (COMPLETED)
