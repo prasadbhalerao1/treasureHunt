@@ -148,8 +148,7 @@ export default function Dashboard() {
                 <Lock size={48} className="text-black" />
               </div>
               <p className="text-black font-bold uppercase tracking-widest mb-6 border-b-4 border-black pb-4">
-                FINAL DECRYPTION SEQUENCE REQUIRED. ARRANGE KEYWORDS
-                ALPHABETICALLY.
+                {hint}
               </p>
 
               <div className="grid grid-cols-2 gap-3 mb-6">

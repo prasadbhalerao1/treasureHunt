@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { ROLES } from "../config/constants.js";
+
+import { ROLES, FINALE_CHALLENGES } from "../config/constants.js";
 
 const TeamSchema = new mongoose.Schema(
   {
@@ -14,6 +15,13 @@ const TeamSchema = new mongoose.Schema(
       type: String,
       enum: [ROLES.CANDIDATE, ROLES.ADMIN],
       default: ROLES.CANDIDATE,
+    },
+
+    // Finale Challenge Type (Randomized)
+    finaleChallenge: {
+      type: String,
+      enum: Object.values(FINALE_CHALLENGES),
+      default: FINALE_CHALLENGES.ALPHA_ASC,
     },
 
     // Game Path State

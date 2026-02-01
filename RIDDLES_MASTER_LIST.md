@@ -1,21 +1,11 @@
 # Treasure Hunt - Locations & Riddles Master List
 
-This document contains the official list of all active locations, their hints (riddles), keywords, and short codes.
+> **Status**: UPDATED to match Active Deployment (12 Locations)
+> **Theme**: Money Heist Keywords
 
 ---
 
-### 10. Blossom Ground
-
-**Short Code:** `BLOSSOM` / **Keyword:** `ALICIA`
-
-> No roof above, no walls around,
-> whistles echo on open ground.
-> Where teams run hard and matches play,
-> start your hunt where sports hold sway.
-
----
-
-### 2. Bus Parking (Behind Cafeteria)
+### 1. Bus Parking (Behind Cafeteria)
 
 **Short Code:** `BUSPARK` / **Keyword:** `BERLIN`
 
@@ -24,7 +14,7 @@ This document contains the official list of all active locations, their hints (r
 
 ---
 
-### 3. Food Court – Dosa Wala
+### 2. Food Court – Dosa Wala
 
 **Short Code:** `DOSA` / **Keyword:** `BOGOTA`
 
@@ -35,7 +25,7 @@ This document contains the official list of all active locations, their hints (r
 
 ---
 
-### 4. Cafeteria
+### 3. Cafeteria
 
 **Short Code:** `CAFE` / **Keyword:** `DENVER`
 
@@ -46,7 +36,7 @@ This document contains the official list of all active locations, their hints (r
 
 ---
 
-### 5. Jaywant Library
+### 4. Jaywant Library
 
 **Short Code:** `LIBRARY` / **Keyword:** `HELSINKI`
 
@@ -57,7 +47,7 @@ This document contains the official list of all active locations, their hints (r
 
 ---
 
-### 6. CSBS Department
+### 5. CSBS Department
 
 **Short Code:** `CSBS` / **Keyword:** `LISBON`
 
@@ -65,18 +55,7 @@ This document contains the official list of all active locations, their hints (r
 
 ---
 
-### 7. CS Department
-
-**Short Code:** `CS` / **Keyword:** `MANILA`
-
-> Where code meets management next door,
-> this side codes pure, nothing more.
-> Neighbor to systems turning smart—
-> classic programmers claim this heart
-
----
-
-### 8. FY Department
+### 6. FY Department
 
 **Short Code:** `FY` / **Keyword:** `MARSEILLE`
 
@@ -87,7 +66,7 @@ This document contains the official list of all active locations, their hints (r
 
 ---
 
-### 9. Physics Lab
+### 7. Physics Lab
 
 **Short Code:** `PHYLAB` / **Keyword:** `MOSCOW`
 
@@ -98,7 +77,7 @@ This document contains the official list of all active locations, their hints (r
 
 ---
 
-### 10. Stationery Store (Food Court)
+### 8. Stationery Store (Food Court)
 
 **Short Code:** `STATIONERY` / **Keyword:** `NAIROBI`
 
@@ -109,29 +88,7 @@ This document contains the official list of all active locations, their hints (r
 
 ---
 
-### 11. Bullet Parking
-
-**Short Code:** `BULLET` / **Keyword:** `OSLO`
-
-> Beside silence and guarded gates,
-> two wheels rest while knowledge waits.
-> Not inside, yet always near—
-> parked where readers disappear.
-
----
-
-### 12. Parking in Front of B Building
-
-**Short Code:** `B_BUILDING` / **Keyword:** `PALERMO`
-
-> Vehicles wait through lecture hours,
-> silent guards of growing powers.
-> Engines rest while futures dwell—
-> metal witnesses who never tell.
-
----
-
-### 13. Xerox Shop
+### 9. Xerox Shop
 
 **Short Code:** `XEROX` / **Keyword:** `PROFESSOR`
 
@@ -142,7 +99,7 @@ This document contains the official list of all active locations, their hints (r
 
 ---
 
-### 14. Mac Lab
+### 10. Mac Lab
 
 **Short Code:** `MACLAB` / **Keyword:** `RIO`
 
@@ -154,7 +111,7 @@ This document contains the official list of all active locations, their hints (r
 
 ---
 
-### 15. Counselling Centre
+### 11. Counselling Centre
 
 **Short Code:** `COUNSEL` / **Keyword:** `STOCKHOLM`
 
@@ -165,7 +122,7 @@ This document contains the official list of all active locations, their hints (r
 
 ---
 
-### 16. Student Section
+### 12. Student Section
 
 **Short Code:** `STUDENT` / **Keyword:** `TOKYO`
 

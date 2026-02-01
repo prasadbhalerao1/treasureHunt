@@ -1,7 +1,7 @@
 import Team from "../models/Team.js";
 import { hashPassword } from "../utils/auth.js";
 import { randomBytes } from "node:crypto";
-import { ROLES } from "../config/constants.js";
+import { ROLES, FINALE_CHALLENGES } from "../config/constants.js";
 import logger from "../utils/logger.js";
 
 // Fisher-Yates Shuffle
@@ -86,6 +86,10 @@ export async function createTeamRecord({ name, email, password, members }) {
     role: ROLES.CANDIDATE,
     path,
     currentLevelIndex: -1,
+    finaleChallenge:
+      Object.values(FINALE_CHALLENGES)[
+        Math.floor(Math.random() * Object.values(FINALE_CHALLENGES).length)
+      ],
     collectedKeywords: [],
     activeSessions: [],
   });

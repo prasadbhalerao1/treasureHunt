@@ -1,7 +1,11 @@
 import Team from "../models/Team.js";
 import Location from "../models/Location.js";
 import dbConnect from "../config/dbConnect.js";
-import { GAME_STATUS } from "../config/constants.js";
+import {
+  GAME_STATUS,
+  FINALE_CHALLENGES,
+  FINALE_DESCRIPTIONS,
+} from "../config/constants.js";
 import logger from "../utils/logger.js";
 
 // Helper: Get Hint for a specific location ID
@@ -10,14 +14,74 @@ const getHintForLocation = async (locId) => {
   return loc ? loc.hint : "Hint not found.";
 };
 
+// Helper: Get the sort key for a keyword based on challenge type
+const getSortKey = (keyword, challenge) => {
+  switch (challenge) {
+    case FINALE_CHALLENGES.ALPHA_ASC:
+    case FINALE_CHALLENGES.ALPHA_DESC:
+      return keyword;
+    case FINALE_CHALLENGES.LENGTH_ASC:
+    case FINALE_CHALLENGES.LENGTH_DESC:
+      return keyword.length;
+    case FINALE_CHALLENGES.SECOND_LETTER:
+      return keyword.charAt(1) || "";
+    case FINALE_CHALLENGES.LAST_LETTER:
+      return keyword.charAt(keyword.length - 1) || "";
+    default:
+      return keyword;
+  }
+};
+
+// Helper: Validate if submitted order is valid for the challenge
+// Accepts ANY valid ordering when sort keys are equal
+const isValidOrder = (submitted, keywords, challenge) => {
+  // 1. Check same keywords (Set comparison)
+  const submittedSet = new Set(submitted);
+  const expectedSet = new Set(keywords);
+  if (submittedSet.size !== expectedSet.size) return false;
+  for (const k of submitted) {
+    if (!expectedSet.has(k)) return false;
+  }
+
+  // 2. For each adjacent pair, check ordering is valid
+  const isAscending = [
+    FINALE_CHALLENGES.ALPHA_ASC,
+    FINALE_CHALLENGES.LENGTH_ASC,
+    FINALE_CHALLENGES.SECOND_LETTER,
+    FINALE_CHALLENGES.LAST_LETTER,
+  ].includes(challenge);
+
+  for (let i = 0; i < submitted.length - 1; i++) {
+    const keyA = getSortKey(submitted[i], challenge);
+    const keyB = getSortKey(submitted[i + 1], challenge);
+
+    if (isAscending) {
+      // keyA should be <= keyB
+      if (typeof keyA === "number") {
+        if (keyA > keyB) return false;
+      } else {
+        if (keyA.localeCompare(keyB) > 0) return false;
+      }
+    } else {
+      // Descending: keyA should be >= keyB
+      if (typeof keyA === "number") {
+        if (keyA < keyB) return false;
+      } else {
+        if (keyA.localeCompare(keyB) < 0) return false;
+      }
+    }
+  }
+
+  return true;
+};
+
 export const getGameState = async (req, res) => {
   try {
     await dbConnect();
     const team = await Team.findById(req.user.id);
     if (!team) return res.status(404).json({ msg: "Team not found" });
 
-    // 1. Check for COMPLETED (Index 7+)
-    // Note: path.length is 7 (Indices 0-6)
+    // 1. Check for COMPLETED
     if (team.currentLevelIndex >= team.path.length) {
       return res.json({
         teamId: team.teamId,
@@ -28,23 +92,20 @@ export const getGameState = async (req, res) => {
       });
     }
 
-    // 2. Check for FINALE (Index 6)
-    // Team has scanned scanning all 6 QRs, now needs to solve Bitlocker
+    // 2. Check for FINALE (last index)
     if (team.currentLevelIndex === team.path.length - 1) {
       return res.json({
         teamId: team.teamId,
-        level: 7, // Send 7 to trigger Dashboard "Finale Mode"
+        level: 7,
         status: GAME_STATUS.FINALE,
-        hint: "The password is the sequence. Arrange in alphabetical order.",
+        hint:
+          FINALE_DESCRIPTIONS[team.finaleChallenge] || "Decrypt the Password.",
         collectedKeywords: team.collectedKeywords,
       });
     }
 
-    // 3. Normal Gameplay
-    // Show hint for NEXT location
+    // 3. Normal Gameplay - Show hint for NEXT location
     const nextIndex = team.currentLevelIndex + 1;
-
-    // Safety: Ensure valid index
     let hint = "Proceed to Start Location";
     if (nextIndex < team.path.length) {
       const nextLocationId = team.path[nextIndex];
@@ -58,7 +119,7 @@ export const getGameState = async (req, res) => {
       status: GAME_STATUS.HINT_UNLOCKED,
       hint: hint,
       collectedKeywords: team.collectedKeywords,
-      nextLevel: nextIndex, // Helper for frontend
+      nextLevel: nextIndex,
     });
   } catch (err) {
     logger.error(err.message, err);
@@ -94,7 +155,7 @@ export const scanQR = async (req, res) => {
       return res.status(500).json({ msg: "Target Location Data Missing" });
     }
 
-    // Validate QR (case-insensitive to be forgiving)
+    // Validate QR (case-insensitive)
     if (qrString.toUpperCase() !== targetLocation.qrSecret.toUpperCase()) {
       return res.status(400).json({ msg: "Invalid QR Code. Wrong Location?" });
     }
@@ -109,25 +170,21 @@ export const scanQR = async (req, res) => {
       completedAt: completionTime,
     });
 
-    // Award Keyword from Location Data
+    // Award Keyword
     const keyword = targetLocation.keyword || `Keyword-${targetLocationId}`;
-
     if (!team.collectedKeywords.includes(keyword)) {
       team.collectedKeywords.push(keyword);
     }
 
     await team.save();
-
     logger.info(`Team ${team.teamId} scanned location ${targetLocationId}`);
-
-    // Prepare Response (Next Hint)
 
     // Check if we just entered Finale
     if (team.currentLevelIndex === team.path.length - 1) {
       return res.json({
         msg: "Level Completed!",
         keyword: keyword,
-        nextLevel: 7, // Visual override for Finale
+        nextLevel: 7,
         nextHint: "Finale Decryption Required",
       });
     }
@@ -152,7 +209,7 @@ export const scanQR = async (req, res) => {
   }
 };
 
-// submitAnswer - Handles the Finale (BitLocker) decryption
+// submitAnswer - Handle Finale with EDGE CASE TOLERANT validation
 export const submitAnswer = async (req, res) => {
   try {
     const { answer } = req.body;
@@ -161,7 +218,7 @@ export const submitAnswer = async (req, res) => {
 
     if (!team) return res.status(404).json({ msg: "Team not found" });
 
-    // Ensure they are at the finale (Index 6)
+    // Ensure at finale
     const finaleIndex = team.path.length - 1;
 
     if (team.currentLevelIndex < finaleIndex) {
@@ -174,41 +231,49 @@ export const submitAnswer = async (req, res) => {
       return res.json({ msg: "Already Completed" });
     }
 
-    // Validation Logic: "ARRANGE KEYWORDS ALPHABETICALLY"
-    // Expectation: ALPHA-BETA-GAMMA... (Hyphenated, Case Insensitive)
+    // Parse submitted answer
+    const submitted = (answer || "")
+      .trim()
+      .toUpperCase()
+      .split("-")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
 
-    // 1. Get Collected Keywords
-    // 2. Sort them
-    // 3. Join with '-'
-    // EXCLUDE "START" keyword if present, as per user request
-    const expected = team.collectedKeywords
+    // Admin Override
+    if (submitted.join("-") === "OVERRIDE-VICTORY") {
+      team.currentLevelIndex = team.path.length + 1;
+      team.lastLevelCompletedAt = new Date();
+      await team.save();
+      logger.info(`Team ${team.teamId} used OVERRIDE-VICTORY`);
+      return res.json({ msg: "OVERRIDE ACCEPTED. STATUS: LEGENDARY." });
+    }
+
+    // Get expected keywords (exclude START)
+    const keywords = team.collectedKeywords
       .map((k) => k.trim().toUpperCase())
-      .filter((k) => k !== "START")
-      .sort()
-      .join("-");
+      .filter((k) => k !== "START");
 
-    const submitted = (answer || "").trim().toUpperCase();
+    // Validate using edge-case tolerant function
+    const valid = isValidOrder(submitted, keywords, team.finaleChallenge);
 
-    if (submitted !== expected && submitted !== "OVERRIDE-VICTORY") {
+    if (!valid) {
       logger.warn(
-        `Team ${team.teamId} failed final decryption. Tried: ${submitted}`,
+        `Team ${team.teamId} failed finale (${team.finaleChallenge}). Tried: ${submitted.join("-")}`,
       );
       return res
         .status(400)
-        .json({ msg: "Decryption Failed. Verify Sequence." });
+        .json({ msg: "Decryption Failed. Check your Sorting Logic!" });
     }
 
-    // Success: Mark as Completed (Level 7+)
-
+    // Success: Mark as Completed
     team.currentLevelIndex = team.path.length + 1;
     team.lastLevelCompletedAt = new Date();
     team.levelHistory.push({
-      level: team.path.length, // Level 7 completed
+      level: team.path.length,
       completedAt: new Date(),
     });
 
     await team.save();
-
     logger.info(`******* TEAM ${team.teamId} COMPLETED THE HUNT *******`);
 
     res.json({ msg: "DECRYPTION SUCCESSFUL. STATUS: LEGENDARY." });
