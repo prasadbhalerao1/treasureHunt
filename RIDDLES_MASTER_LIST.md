@@ -18,10 +18,10 @@
 
 **Short Code:** `DOSA` / **Keyword:** `BOGOTA`
 
-> Golden circles meet their fate,
-> spinning crispy on a plate.
-> In the court, seek Karnataka’s son—
-> where fermented batter meets the sun.
+> A common ground for every branch,
+> where hunger makes alliances.
+> From there, track fermentation’s reward,
+> served flat, folded, and warm.
 
 ---
 
@@ -126,7 +126,7 @@
 
 **Short Code:** `STUDENT` / **Keyword:** `TOKYO`
 
-> The signature farm, bureaucracy’s shrine,
-> where forms multiply and students align.
-> Paper decides what effort can’t—
-> a fortress built of stamp and grant.
+> Where dreams queue up in paper form,
+> and patience beats the brightest norm.
+> No classes here, just forms to sign—
+> where student requests wait in line.
