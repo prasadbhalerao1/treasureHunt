@@ -83,7 +83,7 @@ A real-time QR-based treasure hunt game for 400+ concurrent users on Vercel Free
 ### Path Structure
 
 - `path[0]` = Starting location (always 0)
-- `path[1-6]` = 6 random locations from 1-16
+- `path[1-6]` = 6 random locations from 1-12
 - Total: 7 locations per team (Start + 6 Levels)
 
 ### Progression
@@ -181,7 +181,7 @@ Frontend/
 
 ### Location Management
 
-1. View all 17 locations
+1. View all 13 locations
 2. Edit hint or QR secret
 3. Changes reflect immediately for players
 

@@ -66,4 +66,4 @@ All teams have been seeded with the default password: **`123456`**
 | Location ID   | Keyword                     | QR Code                                          |
 | :------------ | :-------------------------- | :----------------------------------------------- |
 | **0 (Start)** | `START`                     | `Location-0_(Start).png`                         |
-| **1-16**      | City Names (e.g., `BERLIN`) | `Location_Name.png` (e.g., `Blossom_Ground.png`) |
+| **1-12**      | City Names (e.g., `BERLIN`) | `Location_Name.png` (e.g., `Blossom_Ground.png`) |

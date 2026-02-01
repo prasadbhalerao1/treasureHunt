@@ -14,7 +14,7 @@
 - **path**: [Number] (Array of Location IDs, ordered sequence)
   - Length: 7 (Start + 6 Levels)
   - Index 0: Location 0 (Start)
-  - Indices 1-6: Randomized Locations (1-16)
+  - Indices 1-6: Randomized Locations (1-12)
 - **currentLevelIndex**: Number (Tracks progress in `path`)
   - 0 = At Start
   - 1 = Completed Start, looking for Path[1]
@@ -40,9 +40,9 @@
 ### **Levels & Progression**
 
 - **Total Levels**: 6 (excluding Start)
-- **Total Locations**: 16 (plus Start = 17)
+- **Total Locations**: 12 (plus Start = 13)
 - **Start**: All teams start at **Location-0** (Level 0).
-- **Randomization**: Levels 1 to 6 are assigned unique, random locations from 1-16.
+- **Randomization**: Levels 1 to 6 are assigned unique, random locations from 1-12.
 - **Hint Rule**: When on Level `N`, the user sees the hint for Level `N+1`.
   - e.g., At Start (Level 0), user sees hint for `path[1]`.
   - Upon scanning QR for `path[1]`, user advances to Level 1 and sees hint for `path[2]`.
@@ -58,7 +58,7 @@
 
 ### **QR Codes**
 
-- Generated for all 17 locations.
+- Generated for all 13 locations.
 - Content: `SHORTCODE_RANDOMNUM` (e.g., `PHYLAB_839210`).
 - Validation:
   - User scans QR.
@@ -87,7 +87,7 @@
 
 ### **Location Management**
 
-- List all 17 locations.
+- List all 13 locations.
 - Edit `Hint` and `QRSecret`.
 - Updates reflect immediately for all players targeting that location.
 

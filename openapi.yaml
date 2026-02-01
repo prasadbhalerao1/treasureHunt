@@ -402,7 +402,7 @@ paths:
                   minItems: 7
                   maxItems: 7
                   example: [0, 5, 12, 3, 8, 15, 1]
-                  description: Must start with 0, followed by 6 unique locations (1-16)
+                  description: Must start with 0, followed by 6 unique locations (1-12)
       responses:
         "200":
           description: Path updated
@@ -428,7 +428,7 @@ paths:
       tags:
         - Admin
       summary: List all locations
-      description: Get all 17 locations (0-16)
+      description: Get all 13 locations (0-12)
       security:
         - bearerAuth: []
       responses:
