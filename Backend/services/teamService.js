@@ -23,9 +23,9 @@ export function generateTeamId(name) {
   return `${prefix}-${suffix}`;
 }
 
-// Generate randomized game path: Start (0) + 6 random from 1-16
+// Generate randomized game path: Start (0) + 6 random from 1-12
 export function generatePath() {
-  const locationIds = Array.from({ length: 16 }, (_, i) => i + 1);
+  const locationIds = Array.from({ length: 12 }, (_, i) => i + 1);
   const shuffledLocs = shuffle([...locationIds]);
   return [0, ...shuffledLocs.slice(0, 6)];
 }
@@ -82,6 +82,8 @@ export function triggerWebhook(teamData) {
       members: teamData.members,
       password: teamData.password,
       pathAsString: teamData.path.join("->"),
+      mapLink:
+        "https://drive.google.com/drive/folders/1YOoQNBWHZZ7qhSHM2yL-OhIu8UO-XgUT?usp=sharing",
     }),
   })
     .then((res) => logger.info(`Webhook response: ${res.status}`))
