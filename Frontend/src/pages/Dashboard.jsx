@@ -72,7 +72,11 @@ export default function Dashboard() {
               CURRENT PROTOCOL
             </div>
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-black leading-none">
-              {level < 0 ? "ST" : String(level).padStart(2, "0")}
+              {level < 0
+                ? "00"
+                : level >= 7
+                  ? "07"
+                  : String(level + 1).padStart(2, "0")}
             </h1>
           </div>
           <div className="flex gap-2">
