@@ -24,10 +24,44 @@ export function generateTeamId(name) {
 }
 
 // Generate randomized game path: Start (0) + 6 random from 1-12
-export function generatePath() {
+// Generate balanced game path: Start (0) + 6 least used random locations
+// queries DB to find current load on each location
+export async function generateBalancedPath() {
+  const allTeams = await Team.find({ role: "CANDIDATE" }).select("path");
+  const locationUsage = {};
+
+  // Initialize counts for 1-12
+  for (let i = 1; i <= 12; i++) {
+    locationUsage[i] = 0;
+  }
+
+  // Count existing usage
+  allTeams.forEach((t) => {
+    // path is [0, loc1, loc2, ..., loc6]
+    // we only care about indices 1-6
+    t.path.slice(1).forEach((locId) => {
+      if (locationUsage[locId] !== undefined) {
+        locationUsage[locId]++;
+      }
+    });
+  });
+
+  // Sort locations by usage (least used first)
   const locationIds = Array.from({ length: 12 }, (_, i) => i + 1);
-  const shuffledLocs = shuffle([...locationIds]);
-  return [0, ...shuffledLocs.slice(0, 6)];
+  const sortedLocs = locationIds.sort((a, b) => {
+    const diff = locationUsage[a] - locationUsage[b];
+    // Break ties randomly to avoid predictable patterns
+    if (diff !== 0) return diff;
+    return Math.random() - 0.5;
+  });
+
+  // Pick top 6 least used
+  const selected = sortedLocs.slice(0, 6);
+
+  // Shuffle them for random order in the path
+  const shuffledSelection = shuffle(selected);
+
+  return [0, ...shuffledSelection];
 }
 
 // Core Team Creation Logic
@@ -40,7 +74,7 @@ export async function createTeamRecord({ name, email, password, members }) {
   const teamId = generateTeamId(name);
   const hashedPassword = await hashPassword(password);
   const [salt] = hashedPassword.split(":");
-  const path = generatePath();
+  const path = await generateBalancedPath();
 
   const newTeam = await Team.create({
     teamId,
