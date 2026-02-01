@@ -82,8 +82,6 @@ export function triggerWebhook(teamData) {
       members: teamData.members,
       password: teamData.password,
       pathAsString: teamData.path.join("->"),
-      mapLink:
-        "https://drive.google.com/drive/folders/1YOoQNBWHZZ7qhSHM2yL-OhIu8UO-XgUT?usp=sharing",
     }),
   })
     .then((res) => logger.info(`Webhook response: ${res.status}`))
