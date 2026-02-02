@@ -95,7 +95,7 @@ export default function Admin() {
           <h2 className="text-2xl font-black mb-6 uppercase tracking-tighter border-b-4 border-black pb-2 flex justify-between items-center">
             <span>
               {selectedLevel === "Global"
-                ? "Top 10 Leaders"
+                ? "Top 20 Leaders"
                 : `Fastest Teams (Level ${selectedLevel})`}
             </span>
             <div className="flex gap-2">

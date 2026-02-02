@@ -24,7 +24,7 @@ export const getDashboardStats = async (req, res) => {
           "teamId name currentLevelIndex lastLevelCompletedAt path levelHistory",
         )
         .sort({ lastLevelCompletedAt: 1 })
-        .limit(10);
+        .limit(20);
 
       // Pre-fetch all locations to map ID -> Name
       const allLocations = await Location.find({});
@@ -79,7 +79,7 @@ export const getDashboardStats = async (req, res) => {
       const teams = await Team.find({ role: ROLES.CANDIDATE })
         .select("teamId name currentLevelIndex lastLevelCompletedAt path")
         .sort({ currentLevelIndex: -1, lastLevelCompletedAt: 1 })
-        .limit(10);
+        .limit(20);
 
       // Pre-fetch all locations to map ID -> Name
       const allLocations = await Location.find({});
