@@ -5,7 +5,7 @@ import { createTeamRecord, triggerWebhook } from "../services/teamService.js";
 import { ROLES, GAME_STATUS } from "../config/constants.js";
 import logger from "../utils/logger.js";
 
-// Dashboard Stats
+// Dashboard Stats - Duration-based Ranking
 export const getDashboardStats = async (req, res) => {
   try {
     await dbConnect();
@@ -13,75 +13,163 @@ export const getDashboardStats = async (req, res) => {
 
     let leaderboardData = [];
 
+    // Aggregation: Extract start time from levelHistory (Level 0) or fallback to createdAt
+    const durationProjection = {
+      $addFields: {
+        startTime: {
+          $let: {
+            vars: {
+              startLog: {
+                $arrayElemAt: [
+                  {
+                    $filter: {
+                      input: "$levelHistory",
+                      as: "h",
+                      cond: { $eq: ["$$h.level", 0] },
+                    },
+                  },
+                  0,
+                ],
+              },
+            },
+            in: { $ifNull: ["$$startLog.completedAt", "$createdAt"] },
+          },
+        },
+      },
+    };
+
+    const durationCalculation = {
+      $addFields: {
+        computedDuration: {
+          $subtract: ["$lastLevelCompletedAt", "$startTime"],
+        },
+      },
+    };
+
     if (level && level !== "Global") {
       const targetLevel = parseInt(level);
-      // Show teams who have COMPLETED this level (currentLevelIndex > targetLevel)
-      const teams = await Team.find({
-        role: ROLES.CANDIDATE,
-        currentLevelIndex: { $gt: targetLevel },
-      })
-        .select(
-          "teamId name currentLevelIndex lastLevelCompletedAt path levelHistory",
-        )
-        .sort({ lastLevelCompletedAt: 1 })
-        .limit(20);
 
-      // Pre-fetch all locations to map ID -> Name
-      const allLocations = await Location.find({});
-      const locMap = {};
-      allLocations.forEach((l) => (locMap[l.locationId] = l.name));
-
-      leaderboardData = teams.map((t) => {
-        // 1. Determine Location Name
-        let locName = "Unknown";
-        if (t.currentLevelIndex === -1) {
-          locName = "NOT STARTED";
-        } else if (t.currentLevelIndex < t.path.length) {
-          const targetLocId = t.path[t.currentLevelIndex];
-          locName = locMap[targetLocId] || `Loc ${targetLocId}`;
-        } else {
-          locName = GAME_STATUS.COMPLETED;
-        }
-
-        // 2. Calculate time taken for the specific target level
-        const completionEntry = t.levelHistory?.find(
-          (h) => h.level === targetLevel,
-        );
-        const completionTime = completionEntry
-          ? new Date(completionEntry.completedAt)
-          : null;
-
-        let startTime = new Date(t.createdAt);
-        if (targetLevel > 0) {
-          const prevEntry = t.levelHistory?.find(
-            (h) => h.level === targetLevel - 1,
-          );
-          if (prevEntry) startTime = new Date(prevEntry.completedAt);
-        }
-
-        let duration = 0;
-        if (completionTime) {
-          const diff = completionTime - startTime;
-          duration = diff > 0 ? diff : 0;
-        }
-
-        return {
-          teamId: t.teamId,
-          name: t.name,
-          currentLevelIndex: t.currentLevelIndex,
-          locationName: locName,
-          completedAt: completionTime || new Date(),
-          timeTaken: duration,
-        };
-      });
+      leaderboardData = await Team.aggregate([
+        {
+          $match: {
+            role: ROLES.CANDIDATE,
+            currentLevelIndex: { $gt: targetLevel },
+          },
+        },
+        {
+          $addFields: {
+            levelLog: {
+              $arrayElemAt: [
+                {
+                  $filter: {
+                    input: "$levelHistory",
+                    as: "h",
+                    cond: { $eq: ["$$h.level", targetLevel] },
+                  },
+                },
+                0,
+              ],
+            },
+          },
+        },
+        durationProjection,
+        {
+          $addFields: {
+            levelCompletionTime: "$levelLog.completedAt",
+            prevLevelTime: {
+              $let: {
+                vars: {
+                  pLog: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: "$levelHistory",
+                          as: "h",
+                          cond: {
+                            $eq: ["$$h.level", { $subtract: [targetLevel, 1] }],
+                          },
+                        },
+                      },
+                      0,
+                    ],
+                  },
+                },
+                in: {
+                  $cond: {
+                    if: { $gt: [targetLevel, 0] },
+                    then: "$$pLog.completedAt",
+                    else: "$createdAt",
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          $addFields: {
+            specificLevelDuration: {
+              $subtract: ["$levelCompletionTime", "$prevLevelTime"],
+            },
+          },
+        },
+        { $sort: { specificLevelDuration: 1 } },
+        { $limit: 20 },
+        {
+          $project: {
+            teamId: 1,
+            name: 1,
+            currentLevelIndex: 1,
+            locationName: "Completed",
+            completedAt: "$levelCompletionTime",
+            timeTaken: "$specificLevelDuration",
+          },
+        },
+      ]);
     } else {
-      // Global
-      const teams = await Team.find({ role: ROLES.CANDIDATE })
-        .select("teamId name currentLevelIndex lastLevelCompletedAt path")
-        .sort({ currentLevelIndex: -1, lastLevelCompletedAt: 1 })
-        .limit(20);
+      // Global Leaderboard: Sorted by total game duration
+      const pipeline = [
+        { $match: { role: ROLES.CANDIDATE } },
+        durationProjection,
+        durationCalculation,
+        {
+          $addFields: {
+            isCompleted: {
+              $cond: [
+                { $gte: ["$currentLevelIndex", { $size: "$path" }] },
+                1,
+                0,
+              ],
+            },
+            sortKey: {
+              $cond: {
+                if: { $gte: ["$currentLevelIndex", { $size: "$path" }] },
+                then: "$computedDuration",
+                else: {
+                  $subtract: [
+                    10000000000000,
+                    { $multiply: ["$currentLevelIndex", 1000000000] },
+                  ],
+                },
+              },
+            },
+          },
+        },
+        { $sort: { sortKey: 1 } },
+        { $limit: 20 },
+        {
+          $project: {
+            teamId: 1,
+            name: 1,
+            currentLevelIndex: 1,
+            lastLevelCompletedAt: 1,
+            path: 1,
+            duration: "$computedDuration",
+          },
+        },
+      ];
 
-      // Pre-fetch all locations to map ID -> Name
+      const teams = await Team.aggregate(pipeline);
+
       const allLocations = await Location.find({});
       const locMap = {};
       allLocations.forEach((l) => (locMap[l.locationId] = l.name));
@@ -91,8 +179,9 @@ export const getDashboardStats = async (req, res) => {
         if (t.currentLevelIndex === -1) {
           locName = "NOT STARTED";
         } else if (t.currentLevelIndex < t.path.length) {
-          const targetLocId = t.path[t.currentLevelIndex];
-          locName = locMap[targetLocId] || `Loc ${targetLocId}`;
+          locName =
+            locMap[t.path[t.currentLevelIndex]] ||
+            `Loc ${t.path[t.currentLevelIndex]}`;
         } else {
           locName = GAME_STATUS.COMPLETED;
         }
@@ -103,7 +192,7 @@ export const getDashboardStats = async (req, res) => {
           currentLevelIndex: t.currentLevelIndex,
           locationName: locName,
           completedAt: t.lastLevelCompletedAt,
-          timeTaken: 0,
+          timeTaken: t.duration || 0,
         };
       });
     }

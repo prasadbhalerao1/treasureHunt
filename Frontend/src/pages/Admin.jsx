@@ -122,9 +122,9 @@ export default function Admin() {
                 <tr className="border-b-4 border-black text-black font-black uppercase text-sm tracking-widest">
                   <th className="p-3">Rank</th>
                   <th className="p-3">Team</th>
-                  {selectedLevel !== "Global" && <th className="p-3">Time</th>}
+                  <th className="p-3">Time</th>
                   <th className="p-3">
-                    {selectedLevel === "Global" ? "Lvl" : "Completed"}
+                    {selectedLevel === "Global" ? "Status" : "Completed"}
                   </th>
                 </tr>
               </thead>
@@ -141,15 +141,15 @@ export default function Admin() {
                         {team.teamId}
                       </div>
                     </td>
-                    {selectedLevel !== "Global" && (
-                      <td className="p-3 font-mono text-blue-600 font-bold">
-                        {formatTime(team.timeTaken)}
-                      </td>
-                    )}
+                    <td className="p-3 font-mono text-blue-600 font-bold">
+                      {formatTime(team.timeTaken)}
+                    </td>
                     <td className="p-3 text-zinc-600">
                       {selectedLevel === "Global" ? (
                         <span className="bg-black text-white px-3 py-1 font-black text-xs">
-                          {team.currentLevelIndex} ({team.locationName})
+                          {team.currentLevelIndex >= 7
+                            ? "COMPLETED"
+                            : `Level ${team.currentLevelIndex}`}
                         </span>
                       ) : (
                         new Date(team.completedAt).toLocaleTimeString([], {
