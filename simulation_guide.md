@@ -6,6 +6,44 @@
 
 ## 📋 Pre-Event Setup
 
+### 0. Environment Configuration
+
+Before running the setup scripts, configure your environment variables.
+
+#### **Backend Configuration**
+
+1. Navigate to `Backend/` folder
+2. Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+3. Open `Backend/.env` and fill in the following:
+
+| Variable           | Where to Get It                                                                                                   | Example                                               |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `MONGODB_URI`      | Go to [MongoDB Atlas](https://cloud.mongodb.com) → Create Free Cluster → Click "Connect" → Copy connection string | `mongodb+srv://user:pass@cluster0.xxxxx.mongodb.net/` |
+| `JWT_SECRET`       | Generate random string (or keep default for testing)                                                              | `your_super_secret_key`                               |
+| `MAKE_WEBHOOK_URL` | _(Optional)_ Go to [Make.com](https://make.com) → Create Scenario → Add Webhook → Copy URL                        | `https://hook.eu1.make.com/xxxxx`                     |
+
+> 💡 **Tip**: Leave `MAKE_WEBHOOK_URL` blank if you don't want automated emails. Teams can still be created manually.
+
+#### **Frontend Configuration**
+
+1. Navigate to `Frontend/` folder
+2. Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+3. Open `Frontend/.env` and set:
+
+| Variable       | Value                       | Note                  |
+| -------------- | --------------------------- | --------------------- |
+| `VITE_API_URL` | `http://localhost:5000/api` | For local development |
+
+> 📱 **Mobile Testing**: Replace `localhost` with your PC's IP (e.g., `http://192.168.1.5:5000/api`) to test on phones connected to the same Wi-Fi.
+
+---
+
 ### 1. Database Setup
 
 ```bash
