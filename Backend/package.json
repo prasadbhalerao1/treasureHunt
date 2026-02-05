@@ -1,21 +1,37 @@
 {
-  "name": "backend",
+  "name": "berlin-heist-backend",
   "version": "1.0.0",
-  "description": "Campus Heist Backend",
+  "description": "BERLIN HEIST - QR-based treasure hunt game API",
   "main": "index.js",
+  "author": {
+    "name": "Prasad Bhalerao",
+    "url": "https://www.linkedin.com/in/prasadbhalerao"
+  },
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "seed:users": "node scripts/seedUsers.js",
+    "setup:all": "npm run seed:locations && npm run seed:admin && npm run seed:teams && npm run generate:qr && npm run generate:printable",
+    "setup:quick": "npm run seed:locations && npm run seed:admin",
+    "seed:locations": "node scripts/seedLocations.js",
+    "seed:admin": "node scripts/seedAdmin.js",
+    "seed:teams": "node scripts/seedTeams.js",
+    "generate:qr": "node scripts/generateQRs.js",
+    "generate:printable": "node scripts/generatePrintable.js",
+    "db:wipe": "node scripts/wipeDb.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "treasure-hunt",
+    "qr-code",
+    "game",
+    "express",
+    "mongodb"
+  ],
   "devDependencies": {
     "eslint": "^8.57.0",
     "prettier": "^3.2.5"
   },
-  "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "cookie-parser": "^1.4.6",

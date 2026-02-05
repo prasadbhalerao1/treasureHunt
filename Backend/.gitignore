@@ -35,6 +35,6 @@ Thumbs.db
 *.suo
 *.user
 
-scripts/
+# scripts/
 
-local_backup_1770047627314.json
+local_backup_*.json

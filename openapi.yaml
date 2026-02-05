@@ -2,7 +2,8 @@ openapi: 3.0.3
 info:
   title: BERLIN HEIST API
   description: |
-    Real-time QR-based treasure hunt game API for 400+ concurrent players.
+    Real-time QR-based treasure hunt game
+    Originally created for JSPM's Abhyudaya 3.0 - CSBS Department.
 
     ## Authentication
     All protected endpoints require a JWT token in the Authorization header:
@@ -14,10 +15,12 @@ info:
     - 300,000 requests per 15 minutes per IP
     - Designed for campus Wi-Fi shared NAT environments
 
+    ---
+    **Author**: [Prasad Bhalerao](https://linkedin.com/in/prasadbhalerao)
+
   version: 1.0.0
   contact:
     name: API Support
-    email: support@berlinheist.com
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -398,7 +401,7 @@ paths:
                   items:
                     type: integer
                     minimum: 0
-                    maximum: 16
+                    maximum: 12
                   minItems: 7
                   maxItems: 7
                   example: [0, 5, 12, 3, 8, 15, 1]
@@ -461,7 +464,7 @@ paths:
           schema:
             type: integer
             minimum: 0
-            maximum: 16
+            maximum: 12
       requestBody:
         required: true
         content:

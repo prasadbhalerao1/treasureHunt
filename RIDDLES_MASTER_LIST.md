@@ -1,7 +1,8 @@
-# Treasure Hunt - Locations & Riddles Master List
+# 🏴‍☠️ BERLIN HEIST - Locations & Riddles
 
-> **Status**: UPDATED to match Active Deployment (12 Locations)
-> **Theme**: Money Heist Keywords
+> **Status**: Active deployment configuration (12 locations)
+> **Theme**: Money Heist
+> **Event**: JSPM Abhyudaya 3.0 - CSBS Department
 
 ---
 

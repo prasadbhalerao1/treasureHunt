@@ -115,7 +115,7 @@ export default function Dashboard() {
 
           {status === GAME_STATUS.COMPLETED || level > 7 ? (
             /* VICTORY SCREEN */
-            <div className="border-4 border-black bg-white p-4 md:p-8 text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in duration-500 flex flex-col items-center justify-center min-h-[50vh]">
+            <div className="border-4 border-black bg-white p-4 md:p-8 text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in duration-500 flex flex-col items-center justify-center">
               <div className="mb-6">
                 <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center animate-bounce border-4 border-black bg-green-500">
                   <CheckCircle
@@ -137,6 +137,16 @@ export default function Dashboard() {
                   RETURN TO BASE FOR DEBRIEF.
                 </p>
               </div>
+              {/* Subtle credit - only visible on mission complete */}
+              <a
+                href="https://www.linkedin.com/in/prasadbhalerao"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 text-[10px] text-zinc-300 hover:text-zinc-600 transition-colors"
+                title="Created by Prasad Bhalerao"
+              >
+                ⚡ Credits
+              </a>
             </div>
           ) : level === 7 ? (
             /* FINALE MODE */
@@ -247,8 +257,20 @@ export default function Dashboard() {
               {gameState?.teamId || user?.teamId || "LETS GOO!"}
             </span>
             <span className="flex items-center gap-2">
-              <span className="text-black flex items-center gap-1 font-black bg-green-400 px-2 py-1 border-2 border-black">
-                ACTIVE
+              <span
+                className={`text-black flex items-center gap-1 font-black px-2 py-1 border-2 border-black ${
+                  status === GAME_STATUS.COMPLETED
+                    ? "bg-yellow-400"
+                    : status === GAME_STATUS.FINALE
+                      ? "bg-purple-400"
+                      : "bg-green-400"
+                }`}
+              >
+                {status === GAME_STATUS.COMPLETED
+                  ? "LEGENDARY"
+                  : status === GAME_STATUS.FINALE
+                    ? "FINALE"
+                    : "ACTIVE"}
               </span>
             </span>
           </div>

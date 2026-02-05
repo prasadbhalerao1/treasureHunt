@@ -1,4 +1,6 @@
-# System Documentation
+# 🏴‍☠️ BERLIN HEIST - System Documentation
+
+> Complete technical documentation for the treasure hunt platform.
 
 ## 1. Database Structure
 
@@ -28,7 +30,7 @@
 
 ### **Location Model** (`Location.js`)
 
-- **locationId**: Number (0-16)
+- **locationId**: Number (0-12)
 - **name**: String ("Location-0", "Location-1"...)
 - **hint**: String (Text hint to find this location)
 - **qrSecret**: String (Content of QR code)
@@ -70,7 +72,7 @@
 
 ### **Keywords**
 
-- Each location (1-16) has a unique **City Keyword** (e.g., `BERLIN`, `TOKYO`).
+- Each location (1-12) has a unique **City Keyword** (e.g., `BERLIN`, `TOKYO`).
 - Upon successful QR scan, the keyword is awarded to the Team.
 
 ---
@@ -92,26 +94,37 @@
 - Edit `Hint` and `QRSecret`.
 - Updates reflect immediately for all players targeting that location.
 
----
+## 5. Webhook Integration (Optional)
 
-## 5. Webhook Integration
+The system supports Make.com webhooks for sending team activation emails.
 
-- **URL**: `https://hook.eu1.make.com/37yxq8dipsc3d5z8pz6kuxqy6r1pg8h6`
-- **Trigger**: `createTeam` (Admin)
-- **Payload**:
-  ```json
-  {
-    "teamId": "TITAN-X99",
-    "name": "Titans",
-    "email": "leader@titans.com",
-    "to": "leader@titans.com",
-    "members": ["A", "B"],
-    "password": "...",
-    "pathAsString": "0->5->12..."
-  }
-  ```
+### Setup Guide
 
----
+1. Create a [Make.com](https://make.com) account
+2. Create a new scenario with "Webhooks" → "Custom webhook" as trigger
+3. Add an "Email" action module to send team credentials
+4. Copy the webhook URL to your `.env` file:
+   ```ini
+   MAKE_WEBHOOK_URL=https://hook.eu1.make.com/YOUR_WEBHOOK_ID
+   ```
+
+### Webhook Payload
+
+When a team is created, the following payload is sent:
+
+```json
+{
+  "teamId": "TITAN-X99",
+  "name": "Titans",
+  "email": "leader@titans.com",
+  "to": "leader@titans.com",
+  "members": ["A", "B"],
+  "password": "...",
+  "pathAsString": "0->5->12..."
+}
+```
+
+> **Note**: If `MAKE_WEBHOOK_URL` is not set, teams can still be created—emails just won't be sent automatically. Use the seeding scripts to create teams without webhooks.
 
 ## 6. Game Progression
 

@@ -1,4 +1,50 @@
-# 🏴‍☠️ TreasureHunt: The Final Simulation Guide
+# 🏴‍☠️ BERLIN HEIST: Simulation Guide
+
+> Complete guide to running a treasure hunt event with this platform.
+
+---
+
+## 📋 Pre-Event Setup
+
+### 1. Database Setup
+
+```bash
+cd Backend
+npm install
+npm run setup:all
+```
+
+This command will:
+
+- ✅ Seed 13 locations with JSPM campus riddles
+- ✅ Create admin account (credentials shown in console)
+- ✅ Create 20 test teams (Team-1 to Team-20)
+- ✅ Generate QR code images
+- ✅ Generate printable HTML for QR codes
+
+> 💡 **Save the admin password** shown in the console!
+
+### 2. Print QR Codes
+
+Open `Frontend/public/print_qrs.html` in your browser and print the QR codes. Place them at the corresponding physical locations on campus.
+
+### 3. Start the Servers
+
+**Terminal 1 (Backend):**
+
+```bash
+cd Backend
+npm run dev
+```
+
+**Terminal 2 (Frontend):**
+
+```bash
+cd Frontend
+npm run dev
+```
+
+---
 
 ## 🎭 The Player Experience
 
@@ -8,33 +54,33 @@ _The hero of the story. High-stress, fast-paced, mobile-first._
 
 #### 1. The Hook (Pre-Game)
 
-- **Trigger**: **Admin creates team** via Dashboard.
-- **Notification**: **EMAIL RECEIVED** from "TreasureHunt HQ" (via Webhook).
-- **Content**: "MISSION BRIEFING - Status: ACTIVATED. Your Team ID is **TITAN-X99**."
+- **Trigger**: Admin creates team via Dashboard (or uses seeded teams)
+- **Notification**: If webhook configured, email is sent with Team ID
+- **Alternative**: Admin shares Team ID directly with players
 
 #### 2. The Login (Event Start)
 
-- **Action**: Enter `TITAN-X99` and password.
-- **Constraint**: **Max 4 Devices**. If a 5th tries, they see "Access Denied: Logout someone first."
+- **Action**: Enter Team ID (e.g., `Team-1`) and password (`123456`)
+- **Constraint**: **Max 4 Devices** per team. If a 5th tries, oldest session is kicked.
 
 #### 3. The Dashboard (The Compass)
 
-- **Visual**: Giant "01" (Current Level).
-- **Clue**: Cryptic riddle pointing to **Location 1**.
-- **Action**: "SCAN QR" button ready.
+- **Visual**: Giant level number (Current Protocol)
+- **Clue**: Cryptic riddle pointing to next location
+- **Action**: "INITIATE SCAN" button ready
 
 #### 4. The Hunt (At Location)
 
-- **Action**: Run to the location described in the hint.
-- **Find**: Locate the QR code posted at the physical location.
-- **Scan**: Click "SCAN QR" → Scan the code.
+- **Action**: Run to the location described in the hint
+- **Find**: Locate the QR code posted at the physical location
+- **Scan**: Click "INITIATE SCAN" → Point camera at QR code
 
 #### 5. Scan & Reward
 
 - **Success**:
-  - **Keyword Found**: "PROFESSOR" (Saved to inventory).
-  - **Next Level**: Screen wipes → "02".
-  - **Next Clue**: New riddle appears.
+  - **Keyword Found**: City name added to inventory (e.g., "BERLIN")
+  - **Next Level**: Screen updates → Next protocol number
+  - **Next Clue**: New riddle appears
 
 ---
 
@@ -44,11 +90,13 @@ _The strategist. God Mode._
 
 #### 1. Command Center
 
+Login with `ADMIN-MAIN` and the password from setup.
+
 - **Views**:
-  - **Live Leaderboard**: Sorted by completed levels.
-  - **Level Drill-Down**: See who is stuck on Level 4.
-  - **Team Management**: Add/Delete teams, manage paths.
-  - **Location Management**: Edit hints and QR secrets.
+  - **Live Leaderboard**: Sorted by completed levels and time
+  - **Level Drill-Down**: Filter by specific level to see who's stuck
+  - **Team Management**: Add/Delete teams, view paths
+  - **Location Management**: Edit hints and QR secrets
 
 ---
 
@@ -56,9 +104,9 @@ _The strategist. God Mode._
 
 ### Security Protocols
 
-1.  **Sequential Locking**: Cannot scan QR #4 until QR #3 is scanned.
-2.  **Location Validation**: QR must match the team's current target location.
-3.  **Unique Paths**: Each team has a randomized sequence of 6 locations.
+1. **Sequential Locking**: Cannot scan QR #4 until QR #3 is scanned
+2. **Location Validation**: QR must match the team's current target location
+3. **Unique Paths**: Each team has a randomized sequence of 6 locations from pool of 12
 
 ---
 
@@ -66,8 +114,8 @@ _The strategist. God Mode._
 
 ### The Climax
 
-- **Collection**: Teams have collected 6 keywords specific to their path (e.g., ALICIA, BERLIN, RIO, etc.).
-- **The Final Hint**: Each team sees a **unique sorting challenge** (randomly assigned at creation).
+- **Collection**: Teams have collected 6 unique city keywords
+- **The Final Hint**: Each team sees a **unique sorting challenge** (randomly assigned at creation)
 
 ### Challenge Types
 
@@ -80,41 +128,85 @@ _The strategist. God Mode._
 | `SECOND_LETTER` | "Arrange by 2nd letter"            |
 | `LAST_LETTER`   | "Arrange by last letter"           |
 
-### The Description
+### The Final Steps
 
-1.  **Run**: Team runs to final location.
-2.  **Input**: Type the phrase based on their challenge (e.g., `ALICIA-BERLIN-RIO-...`).
-    - _Ties are allowed_: If two words have the same sort key, either order works.
-    - _Note: Every team has a different path AND a different challenge type!_
-3.  **Admin Override**: Submit `OVERRIDE-VICTORY` to bypass.
-4.  **Victory**:
-    - System validates.
-    - **Confetti Animation**.
-    - Final Time Logged.
+1. **Gather**: Team collects all their keywords
+2. **Sort**: Arrange keywords based on their assigned challenge
+3. **Input**: Type the sorted keywords joined with hyphens (e.g., `BERLIN-MOSCOW-RIO-...`)
+   - _Ties allowed_: If two words have the same sort key, either order works
+4. **Admin Override**: Submit `OVERRIDE-VICTORY` to bypass (for testing)
+5. **Victory**: System validates → Mission Complete screen
 
 ---
 
-## 🚀 Running the Simulation
+## 🚀 Running a Simulation
 
-1.  **Create a Team**: Login as **Admin** (`ADMIN-MAIN`) → Click **"Add Team"**.
-    - _No public registration!_ All teams are created by Admin.
-    - _Check Email_: Get the Team ID from your inbox (via Webhook) or look at the Admin Table.
-2.  **Login**: Use the generated Team ID.
-3.  **Play Level 1**:
-    - As **Candidate**: See the hint, find the location, scan the QR code.
-4.  **Repeat**: Until Level 6.
-5.  **Win**: Enter the final sequence.
+### Quick Test Flow
+
+1. **Start servers** (Backend + Frontend)
+2. **Login as Admin**: `ADMIN-MAIN` with your saved password
+3. **Note a Team ID**: e.g., `Team-1`
+4. **Open new browser/incognito**: Login as `Team-1` / `123456`
+5. **Play through**:
+   - See hint → Find location on campus → Scan QR
+   - Repeat for all 6 levels
+   - Complete finale challenge
+
+### Creating Custom Teams
+
+Via Admin Dashboard:
+
+1. Login as admin
+2. Go to Team Management
+3. Click "Add Team"
+4. Fill in: Team Name, Email, Members, Password
+5. Team can login immediately
 
 ---
 
-## 🔑 Ready-to-Use Test Accounts
+## 🔑 Default Test Accounts
 
-### Administrators
+### Administrator
 
-- **Main**: `ADMIN-MAIN` (Password: `adminpassword123`)
+| Team ID      | Password               |
+| ------------ | ---------------------- |
+| `ADMIN-MAIN` | _(shown during setup)_ |
 
-### Testing Teams
+### Seeded Teams
 
-- **Seeded Candidates**: `Team-1` to `Team-35`
-- **Password**: `123456`
-- **Role**: Ready to play (Randomized paths assigned).
+| Team IDs              | Password | Status        |
+| --------------------- | -------- | ------------- |
+| `Team-1` to `Team-20` | `123456` | Ready to play |
+
+> 💡 All seeded teams have randomized paths and finale challenges.
+
+---
+
+## 📍 Location Reference
+
+See [RIDDLES_MASTER_LIST.md](./RIDDLES_MASTER_LIST.md) for all 12 campus locations with their riddles and keywords.
+
+---
+
+## 🛠️ Troubleshooting
+
+| Issue               | Solution                                          |
+| ------------------- | ------------------------------------------------- |
+| "Invalid QR Code"   | Team is at wrong location for their current level |
+| Can't login         | Check Team ID spelling (case-sensitive)           |
+| 5th device blocked  | One team member needs to logout                   |
+| Finale wrong answer | Check the sorting challenge type carefully        |
+
+---
+
+## 📚 Related Docs
+
+- [Architecture](./ARCHITECTURE.md) - System design
+- [API Documentation](./openapi.yaml) - API specification
+- [Riddles List](./RIDDLES_MASTER_LIST.md) - All location hints
+
+---
+
+<p align="center">
+  <sub>Created by <a href="https://www.linkedin.com/in/prasadbhalerao">Prasad Bhalerao</a></sub>
+</p>

@@ -1,4 +1,4 @@
-w# ⚙️ BERLIN HEIST API (Backend)
+# ⚙️ BERLIN HEIST API (Backend)
 
 > The core game engine handling authentication, game state, and QR verification logic.
 
@@ -83,13 +83,29 @@ Backend/
 | `GET`    | `/locations`      | ✅ Admin | List all locations.                 |
 | `PUT`    | `/locations/:id`  | ✅ Admin | Update location hint/QR secret.     |
 
----
-
 ## 🛠️ Scripts
 
-| Script         | Command       | Description                           |
-| :------------- | :------------ | :------------------------------------ |
-| **Dev Server** | `npm run dev` | Starts with `--watch` for hot reload. |
+| Script             | Command                      | Description                          |
+| :----------------- | :--------------------------- | :----------------------------------- |
+| **Full Setup**     | `npm run setup:all`          | Seeds everything + generates QRs     |
+| **Quick Setup**    | `npm run setup:quick`        | Only locations + admin               |
+| **Seed Locations** | `npm run seed:locations`     | 13 locations with riddles            |
+| **Seed Admin**     | `npm run seed:admin`         | Creates admin account                |
+| **Seed Teams**     | `npm run seed:teams`         | Creates 20 test teams                |
+| **Generate QRs**   | `npm run generate:qr`        | Creates QR code images               |
+| **Generate Print** | `npm run generate:printable` | Creates printable HTML               |
+| **Wipe DB**        | `npm run db:wipe`            | Clears teams (keeps admin)           |
+| **Dev Server**     | `npm run dev`                | Starts with `--watch` for hot reload |
+
+### Utility Scripts
+
+Run these directly with `node scripts/<script>.js`:
+
+| Script                  | Command                             | Description                          |
+| :---------------------- | :---------------------------------- | :----------------------------------- |
+| **List All Teams**      | `node scripts/listAll.js`           | Lists all teams in console           |
+| **List Admins**         | `node scripts/listAdmins.js`        | Lists admin accounts                 |
+| **Generate Team Flows** | `node scripts/generateTeamFlows.js` | Generates markdown doc of team paths |
 
 ---
 
@@ -98,3 +114,9 @@ Backend/
 - Set `MONGODB_URI` whitelist to `0.0.0.0/0` (Vercel uses dynamic IPs).
 - Connection pooling is set to `maxPoolSize: 1` to prevent storms.
 - Webhook is fire-and-forget (non-blocking) for instant responses.
+
+---
+
+<p align="center">
+  <sub>Created by <a href="https://www.linkedin.com/in/prasadbhalerao">Prasad Bhalerao</a></sub>
+</p>

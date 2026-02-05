@@ -1,8 +1,10 @@
-# TreasureHunt Architecture
+# 🏴‍☠️ BERLIN HEIST - Architecture
 
 ## System Overview
 
-A real-time QR-based treasure hunt game for 400+ concurrent users on Vercel Free Tier.
+A real-time QR-based treasure hunt game platform.
+
+> **Event**: JSPM Abhyudaya 3.0 - CSBS Department
 
 ## Technology Stack
 
@@ -41,7 +43,7 @@ A real-time QR-based treasure hunt game for 400+ concurrent users on Vercel Free
 
 | Field      | Type                  | Description             |
 | ---------- | --------------------- | ----------------------- |
-| locationId | Number (0-16, unique) | Location identifier     |
+| locationId | Number (0-12, unique) | Location identifier     |
 | name       | String                | Display name            |
 | hint       | String                | Riddle shown to players |
 | qrSecret   | String                | QR validation string    |

@@ -1,4 +1,4 @@
-# TreasureHunt State Machine Diagram
+# BERLIN HEIST - State Machine Diagram
 
 > System-level view of all state transitions across Frontend and Backend
 
@@ -6,11 +6,12 @@
 
 ## 1. System Overview
 
-The TreasureHunt application is a multiplayer QR-code-based treasure hunt game with:
+The BERLIN HEIST application is a multiplayer QR-code-based treasure hunt game with:
 
 - **2 User Roles**: `CANDIDATE` (players) and `ADMIN` (game masters)
-- **7 Game Levels**: Path of 7 locations (Start + 6 random locations)
-- **Finale**: BitLocker decryption puzzle using collected keywords
+- **7 Game Levels**: Path of 7 locations (Start + 6 random from pool of 12)
+- **12 Campus Locations**: JSPM campus-specific locations
+- **Finale**: BitLocker decryption puzzle with randomized sorting challenges
 
 ---
 
@@ -82,23 +83,23 @@ stateDiagram-v2
     Finale --> Completed : Submit correct answer
 
     note right of Registered : Team created via Admin<br/>Path assigned: (0, x, x, x, x, x, x)
-    note right of Finale : BitLocker puzzle<br/>Arrange keywords alphabetically
+    note right of Finale : BitLocker puzzle<br/>6 different challenge types<br/>(alphabetical, length, etc.)
     note right of Completed : Game Over<br/>Victory screen shown
 ```
 
 ### Level Progression Details
 
-| Level Index | Status        | What Team Sees              | Required Action                       |
-| ----------- | ------------- | --------------------------- | ------------------------------------- |
-| `-1`        | REGISTERED    | Hint for Location 0 (Start) | Scan Start QR                         |
-| `0`         | HINT_UNLOCKED | Hint for `path[1]`          | Scan QR at `path[1]`                  |
-| `1`         | HINT_UNLOCKED | Hint for `path[2]`          | Scan QR at `path[2]`                  |
-| `2`         | HINT_UNLOCKED | Hint for `path[3]`          | Scan QR at `path[3]`                  |
-| `3`         | HINT_UNLOCKED | Hint for `path[4]`          | Scan QR at `path[4]`                  |
-| `4`         | HINT_UNLOCKED | Hint for `path[5]`          | Scan QR at `path[5]`                  |
-| `5`         | HINT_UNLOCKED | Hint for `path[6]`          | Scan QR at `path[6]`                  |
-| `6`         | FINALE        | BitLocker UI + Keywords     | Submit alphabetically sorted keywords |
-| `≥7`        | COMPLETED     | Victory Screen              | None (Game Over)                      |
+| Level Index | Status        | What Team Sees              | Required Action                                         |
+| ----------- | ------------- | --------------------------- | ------------------------------------------------------- |
+| `-1`        | REGISTERED    | Hint for Location 0 (Start) | Scan Start QR                                           |
+| `0`         | HINT_UNLOCKED | Hint for `path[1]`          | Scan QR at `path[1]`                                    |
+| `1`         | HINT_UNLOCKED | Hint for `path[2]`          | Scan QR at `path[2]`                                    |
+| `2`         | HINT_UNLOCKED | Hint for `path[3]`          | Scan QR at `path[3]`                                    |
+| `3`         | HINT_UNLOCKED | Hint for `path[4]`          | Scan QR at `path[4]`                                    |
+| `4`         | HINT_UNLOCKED | Hint for `path[5]`          | Scan QR at `path[5]`                                    |
+| `5`         | HINT_UNLOCKED | Hint for `path[6]`          | Scan QR at `path[6]`                                    |
+| `6`         | FINALE        | BitLocker UI + Keywords     | Submit sorted keywords (based on team's challenge type) |
+| `≥7`        | COMPLETED     | Victory Screen              | None (Game Over)                                        |
 
 ---
 
@@ -179,15 +180,28 @@ stateDiagram-v2
 
 ### Answer Validation Logic
 
-```javascript
-// Expected answer computation (Backend)
-const expected = team.collectedKeywords
-  .map((k) => k.trim().toUpperCase())
-  .filter((k) => k !== "START") // Exclude START keyword
-  .sort() // Alphabetical order
-  .join("-"); // Hyphen-separated
+Each team has a different `finaleChallenge` type assigned at creation:
 
-// Example: If keywords are ["RIO", "ALICIA", "BERLIN", "START"]
+```javascript
+// Challenge types (randomly assigned per team)
+const FINALE_CHALLENGES = {
+  ALPHA_ASC: "Sort A → Z",
+  ALPHA_DESC: "Sort Z → A",
+  LENGTH_ASC: "Sort by length (short → long)",
+  LENGTH_DESC: "Sort by length (long → short)",
+  SECOND_LETTER: "Sort by 2nd character",
+  LAST_LETTER: "Sort by last character",
+};
+
+// Backend validation pseudocode
+const keywords = team.collectedKeywords
+  .filter((k) => k !== "START")
+  .map((k) => k.trim().toUpperCase());
+
+const sorted = sortByChallenge(keywords, team.finaleChallenge);
+const expected = sorted.join("-");
+
+// Example: Team with ALPHA_ASC and keywords ["RIO", "ALICIA", "BERLIN"]
 // Expected = "ALICIA-BERLIN-RIO"
 ```
 
