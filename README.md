@@ -94,15 +94,48 @@ Access at `http://localhost:5173`
 
 ---
 
-## 🎮 Game Flow
+## 🕹️ Deep Dive: Game Logic & Features
 
-1. **Admin Creates Team** → Webhook sends email with Team ID (if configured)
-2. **Team Logs In** → Dashboard shows current level
-3. **Team Scans Start QR** → Timer Starts! Hint for Location 1 appears.
-4. **Team Finds Location** → Scans QR code at physical location
-5. **Level Complete** → Keyword collected, next hint unlocked
-6. **Repeat** → Until all 6 levels completed
-7. **Finale (BitLocker)** → Submit sorted keywords to win
+### 1. The "Phygital" Gameplay Loop
+
+The system bridges the physical and digital worlds using a strict State Machine:
+
+1.  **Level 0 (Start)**:
+    - **Action**: Team scans the "Start QR" at the base.
+    - **Result**: Timer Starts. Level 1 Hint is revealed.
+2.  **Levels 1-6 (The Hunt)**:
+    - **Dynamic Pathing**: Each team follows a unique, consistent sequence of 6 randomized locations (out of 12) to prevent overcrowding.
+    - **Riddle System**: Players only see the riddle for their _next_ specific location.
+    - **Validation**: Scanning a QR checks `CurrentLocation == TargetLocation`.
+      - _Success_: Awards a unique "City Keyword" (e.g., "TOKYO") and unlocks next level.
+      - _Failure_: "Wrong Location" error prevents skipping.
+
+3.  **Level 7 (The Finale)**:
+    - **Condition**: All 6 keywords collected.
+    - **Challenge**: A randomized sorting puzzle (e.g., "Sort keywords by Length" or "Alphabetical").
+    - **Victory**: Submitting correct order verifies the win and stops the clock.
+
+### 2. Admin & Organization Flow
+
+#### ⚡ Team Onboarding (The "AI" Email Workflow)
+
+1.  **Admin Input**: Admin uses the dashboard to add Team Name & Leader Email.
+2.  **System Generation**: Backend creates a unique `TeamID` (e.g., `TITAN-X99`) and strong password.
+3.  **Webhook Trigger**: System fires a payload to **Make.com**.
+4.  **Instant Delivery**: An automated email acts as the "Mission Brief" containing credentials, sent instantly to the team leader.
+
+#### 📊 Admin Dashboard
+
+- **Live Leaderboard**: Ranked by **Chip Time** (Duration), not just finish order.
+  - _Fairness_: A team starting 30 mins late can still win if they complete the course faster.
+- **Distribution Charts**: Real-time bar charts showing how many teams are stuck at each level/location.
+- **Intervention**: Admins can force-complete levels for teams if a physical QR goes missing.
+
+### 3. Security & Fairness Architecture
+
+- **Session Locking**: Max **4 concurrent devices** per team to prevent account sharing across campus.
+- **Anti-Bruteforce**: API rate-limiting prevents teams from guessing QR codes.
+- **Offline Resilience**: Game state is persistent in MongoDB; if a phone dies, progress is safe.
 
 ---
 
@@ -143,17 +176,19 @@ Access at `http://localhost:5173`
 | `jsonwebtoken`       | JWT Authentication |
 | `helmet`             | Security Headers   |
 | `express-rate-limit` | API Throttling     |
+| `qrcode`             | QR Code Generation |
 
 ### Frontend
 
-| Package          | Purpose                |
-| :--------------- | :--------------------- |
-| `react` + `vite` | UI Framework & Bundler |
-| `tailwindcss`    | Utility-First CSS      |
-| `axios`          | HTTP Client            |
-| `html5-qrcode`   | In-Browser QR Scanner  |
-| `lucide-react`   | Icon Library           |
-| `recharts`       | Admin Dashboard Charts |
+| Package            | Purpose                |
+| :----------------- | :--------------------- |
+| `react` + `vite`   | UI Framework & Bundler |
+| `tailwindcss`      | Utility-First CSS      |
+| `react-router-dom` | Client-side Routing    |
+| `axios`            | HTTP Client            |
+| `html5-qrcode`     | In-Browser QR Scanner  |
+| `lucide-react`     | Icon Library           |
+| `recharts`         | Admin Dashboard Charts |
 
 ---
 
