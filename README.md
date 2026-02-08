@@ -213,9 +213,14 @@ TreasureHunt/
 │   │   └── utils/       # API Client
 │   └── public/          # Static Assets & QR Codes
 │
-├── ARCHITECTURE.md      # System Design
-├── DOCUMENTATION.md     # Detailed Documentation
-├── openapi.yaml         # API Specification
+├── docs/                # Documentation
+│   ├── ARCHITECTURE.md      # System Design
+│   ├── DOCUMENTATION.md     # Game Logic & Webhooks
+│   ├── RIDDLES_MASTER_LIST.md # Location Hints Reference
+│   ├── state_machine_diagram.md # Game State Diagrams
+│   └── openapi.yaml         # API Specification
+│
+├── simulation_guide.md  # Step-by-step Mock Event Guide
 └── LICENSE              # MIT License
 ```
 
@@ -223,17 +228,12 @@ TreasureHunt/
 
 ## 📚 Documentation
 
-- **[Architecture](./ARCHITECTURE.md)**: System Design & Scalability
-- **[Documentation](./DOCUMENTATION.md)**: Game Logic & Webhook Setup
+- **[Architecture](./docs/ARCHITECTURE.md)**: System Design & Scalability
+- **[Documentation](./docs/DOCUMENTATION.md)**: Game Logic & Webhook Setup
 - **[Simulation Guide](./simulation_guide.md)**: Step-by-step mock event
-- **[API Specification](./openapi.yaml)**: OpenAPI/Swagger spec
-- **[Riddles](./RIDDLES_MASTER_LIST.md)**: Location hints reference
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+- **[API Specification](./docs/openapi.yaml)**: OpenAPI/Swagger spec
+- **[Riddles](./docs/RIDDLES_MASTER_LIST.md)**: Location hints reference
+- **[State Machine](./docs/state_machine_diagram.md)**: Game state diagrams
 
 ---
 

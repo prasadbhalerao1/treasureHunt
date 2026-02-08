@@ -222,7 +222,7 @@ Via Admin Dashboard:
 
 ## 📍 Location Reference
 
-See [RIDDLES_MASTER_LIST.md](./RIDDLES_MASTER_LIST.md) for all 12 campus locations with their riddles and keywords.
+See [RIDDLES_MASTER_LIST.md](./docs/RIDDLES_MASTER_LIST.md) for all 12 campus locations with their riddles and keywords.
 
 ---
 
@@ -239,9 +239,9 @@ See [RIDDLES_MASTER_LIST.md](./RIDDLES_MASTER_LIST.md) for all 12 campus locatio
 
 ## 📚 Related Docs
 
-- [Architecture](./ARCHITECTURE.md) - System design
-- [API Documentation](./openapi.yaml) - API specification
-- [Riddles List](./RIDDLES_MASTER_LIST.md) - All location hints
+- [Architecture](./docs/ARCHITECTURE.md) - System design
+- [API Documentation](./docs/openapi.yaml) - API specification
+- [Riddles List](./docs/RIDDLES_MASTER_LIST.md) - All location hints
 
 ---
 
