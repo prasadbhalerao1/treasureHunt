@@ -7,3 +7,4 @@ dist
 # QR secrets must never be served publicly
 public/qr_codes
 public/print_qrs.html
+public/start_qr.html

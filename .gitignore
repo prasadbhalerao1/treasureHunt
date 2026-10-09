@@ -35,3 +35,5 @@ Backend/scripts/seedMyAdmin.js
 
 # QR codes are secrets: never commit the printable PDF
 TraceRoute_QR_Codes.pdf
+TraceRoute_Start_QR.pdf
+TraceRoute_Start_QR.png

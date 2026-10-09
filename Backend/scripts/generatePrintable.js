@@ -1,6 +1,8 @@
 /**
  * TraceRoute - Printable QR sheet
  * Builds Frontend/public/print_qrs.html: A4 pages with 4 QR codes each (2x2).
+ * The Start QR is NOT on this sheet: it has its own 16:9 slide for the
+ * smartboard (`npm run generate:start`).
  * Run `npm run generate:qr` first. Open the HTML in Chrome and "Save as PDF"
  * (paper A4, margins none, background graphics on), or use `npm run generate:pdf`.
  *
@@ -31,7 +33,9 @@ const generatePrintable = () => {
     .filter((f) => f.endsWith(".png"))
     .sort();
 
-  const cards = files.map((filename) => {
+  const cards = files
+    .filter((f) => !f.startsWith("00_"))
+    .map((filename) => {
     const base = filename.replace(/\.png$/, "");
     const [id, ...rest] = base.split("_");
     const label = rest
@@ -39,7 +43,7 @@ const generatePrintable = () => {
       .replace(/^Location-0 /, "")
       .replace(/\s+/g, " ")
       .trim();
-    return { filename, id, label: id === "00" ? "START" : label };
+    return { filename, id, label };
   });
 
   let html = `<!DOCTYPE html>
@@ -111,10 +115,6 @@ const generatePrintable = () => {
       line-height: 1.15;
       word-break: break-word;
     }
-    .qr-card.start { background: #000000; color: #ffffff; }
-    .qr-card.start .qr-img { background: #ffffff; padding: 2mm; }
-    .qr-card.start .qr-id { color: #a1a1aa; }
-    .qr-card.start .brand { color: #4ade80; }
   </style>
 </head>
 <body>
@@ -128,7 +128,7 @@ const generatePrintable = () => {
         html += '    <div class="qr-card empty"></div>\n';
         continue;
       }
-      html += `    <div class="qr-card${c.id === "00" ? " start" : ""}">
+      html += `    <div class="qr-card">
       <div class="brand">TraceRoute</div>
       <img class="qr-img" src="./qr_codes/${encodeURIComponent(c.filename)}" alt="QR ${escapeHtml(c.label)}" />
       <div class="qr-id">LOCATION ${escapeHtml(c.id)}</div>

@@ -10,3 +10,5 @@ Frontend/public/qr_codes
 Frontend/public/print_qrs.html
 TraceRoute_QR_Codes.pdf
 branding
+Frontend/public/start_qr.html
+TraceRoute_Start_QR.*

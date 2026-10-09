@@ -23,7 +23,8 @@
     "lint:fix": "eslint . --fix",
     "test": "node --test",
     "seed:settings": "node scripts/seedSettings.js",
-    "seed:questions": "node scripts/seedQuestions.js"
+    "seed:questions": "node scripts/seedQuestions.js",
+    "generate:start": "node scripts/generateStartSlide.js"
   },
   "keywords": [
     "traceroute",

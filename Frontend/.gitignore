@@ -38,3 +38,4 @@ Thumbs.db
 # Printed QR codes contain the location secrets: never commit them
 public/qr_codes/
 public/print_qrs.html
+public/start_qr.html
