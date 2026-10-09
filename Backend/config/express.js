@@ -6,6 +6,33 @@ import mongoSanitize from "mongo-sanitize";
 import cookieParser from "cookie-parser";
 import logger from "../utils/logger.js";
 
+// CORS_ORIGINS is a comma-separated list. Trailing slashes are ignored and a
+// "*" matches one hostname label, e.g.
+//   https://traceroute-*-myteam.vercel.app  (any deployment of the frontend)
+const toMatcher = (entry) => {
+  const clean = entry.trim().replace(/\/+$/, "");
+  if (!clean.includes("*")) return (o) => o === clean;
+  const pattern = clean
+    .split("*")
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("[a-z0-9-]+");
+  const re = new RegExp(`^${pattern}$`);
+  return (o) => re.test(o);
+};
+
+export const buildOriginMatchers = (list) =>
+  [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    ...String(list || "")
+      .split(",")
+      .map((o) => o.trim())
+      .filter(Boolean),
+  ].map(toMatcher);
+
+const isAllowedOrigin = (origin) =>
+  buildOriginMatchers(process.env.CORS_ORIGINS).some((match) => match(origin));
+
 const configureExpress = (app) => {
   // Trust Proxy
   app.set("trust proxy", 1);
@@ -17,20 +44,15 @@ const configureExpress = (app) => {
   app.use(
     cors({
       origin: (origin, callback) => {
-        const allowedOrigins = [
-          "http://localhost:5173",
-          "http://localhost:3000",
-          ...(process.env.CORS_ORIGINS || "")
-            .split(",")
-            .map((o) => o.trim())
-            .filter(Boolean),
-        ];
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          callback(new Error("Not allowed by CORS"));
-        }
+        // No Origin header = same-origin, curl or server-to-server: allow.
+        // A disallowed origin gets no CORS headers (the browser blocks it)
+        // instead of throwing a 500.
+        callback(null, !origin || isAllowedOrigin(origin));
       },
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+      exposedHeaders: ["Retry-After"],
+      maxAge: 86400, // cache preflights for a day
       credentials: true,
     }),
   );
