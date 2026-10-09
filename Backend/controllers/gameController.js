@@ -14,6 +14,7 @@ import { getSettings } from "../services/settingsService.js";
 import {
   buildChallenges,
   pickReplacement,
+  buildFinaleQuestions,
 } from "../services/questionService.js";
 
 /*
@@ -97,12 +98,31 @@ async function buildState(team) {
     };
   }
 
-  // All MCQs solved and the last QR scanned: the final challenge
+  // All MCQs solved and the last QR scanned: the rapid-fire final round
   if (cur === team.path.length) {
-    return {
+    const set = team.finaleQuestions || [];
+    const solved = set.filter((q) => q.solved).length;
+    const next = set.find((q) => !q.solved);
+    const out = {
       ...base,
       status: GAME_STATUS.FINALE,
-      hint: "Final challenge unlocked. Press the button to finish.",
+      hint: "Rapid fire! Answer every question to finish.",
+      finaleTotal: set.length,
+      finaleSolved: solved,
+      finaleAttempts: team.finaleAttempts || 0,
+    };
+    if (!next) return out;
+
+    const question = await Question.findOne({
+      questionId: next.questionId,
+    }).lean();
+    if (!question) return out;
+    return {
+      ...out,
+      finaleQuestion: {
+        ...sanitizeChallenge(question, { ...next, level: next.index }),
+        index: next.index,
+      },
     };
   }
 
@@ -231,14 +251,22 @@ export const scanQR = async (req, res) => {
       logger.info(`Team ${team.teamId} started`);
     }
 
-    // Scanning the LAST location unlocks the final challenge
+    // Scanning the LAST location unlocks the rapid-fire final round.
+    // The questions are drawn only now, so they cannot leak beforehand.
     if (scanIndex === team.path.length - 1 && team.currentLevelIndex > 0) {
+      const settings = await getSettings();
+      const finaleQuestions = await buildFinaleQuestions(
+        settings.finaleQuestionCount,
+        team,
+      );
       const done = await Team.findOneAndUpdate(
         { _id: team._id, currentLevelIndex: team.path.length - 1 },
         {
           $set: {
             currentLevelIndex: team.path.length,
             lastLevelCompletedAt: now,
+            finaleQuestions,
+            finaleStartedAt: now,
           },
           $addToSet: {
             collectedKeywords: targetLocation.keyword || `HOP-${scanIndex}`,
@@ -470,9 +498,13 @@ export const answerChallenge = async (req, res) => {
   }
 };
 
-// Final challenge: a single button for now. The real puzzle lands here later.
+// Final round: rapid fire. Answer the current question; a wrong answer just
+// lets them try again (no penalty, no cooldown). Finishing the last one stops
+// the clock.
 export const submitAnswer = async (req, res) => {
   try {
+    const optionKey = String(req.body?.optionKey ?? "").trim();
+
     await dbConnect();
     const settings = await eventGate(req, res);
     if (!settings) return;
@@ -482,7 +514,7 @@ export const submitAnswer = async (req, res) => {
 
     if (team.currentLevelIndex < team.path.length) {
       return res.status(400).json({
-        msg: "Final challenge is still locked. Finish every question first.",
+        msg: "Final round is still locked. Scan the last location first.",
         state: await buildState(team),
       });
     }
@@ -493,27 +525,107 @@ export const submitAnswer = async (req, res) => {
       });
     }
 
+    const set = team.finaleQuestions || [];
+    const current = set.find((q) => !q.solved);
+
+    // No set (or an empty bank): nothing to answer, so just finish.
+    if (!current) {
+      return finishTeam(team, res);
+    }
+
+    if (!optionKey || optionKey.length > 4) {
+      return res.status(400).json({ msg: "Pick an option" });
+    }
+
+    const question = await Question.findOne({
+      questionId: current.questionId,
+    }).lean();
+    if (!question) return res.status(500).json({ msg: "Question data missing" });
+    if (!question.options.some((o) => o.key === optionKey)) {
+      return res.status(400).json({ msg: "Invalid option" });
+    }
+
     const now = new Date();
-    const done = await Team.findOneAndUpdate(
-      { _id: team._id, currentLevelIndex: team.path.length },
+
+    // ---- Wrong: retry the same question, no penalty ----
+    if (optionKey !== question.correctKey) {
+      const after = await Team.findOneAndUpdate(
+        {
+          _id: team._id,
+          finaleQuestions: { $elemMatch: { index: current.index, solved: false } },
+        },
+        {
+          $inc: { "finaleQuestions.$.attempts": 1, finaleAttempts: 1 },
+        },
+        { new: true },
+      );
+      return res.status(400).json({
+        correct: false,
+        msg: "Wrong answer. Try again!",
+        state: await buildState(after || team),
+      });
+    }
+
+    // ---- Correct: mark solved, move to the next ----
+    const after = await Team.findOneAndUpdate(
+      {
+        _id: team._id,
+        finaleQuestions: { $elemMatch: { index: current.index, solved: false } },
+      },
       {
         $set: {
-          currentLevelIndex: team.path.length + 1,
-          lastLevelCompletedAt: now,
+          "finaleQuestions.$.solved": true,
+          "finaleQuestions.$.solvedAt": now,
         },
-        $push: { levelHistory: { level: team.path.length, completedAt: now } },
       },
       { new: true },
     );
-    logger.info(`******* TEAM ${team.teamId} FINISHED *******`);
 
-    res.json({
-      correct: true,
-      msg: "Destination reached!",
-      state: await buildState(done || team),
-    });
+    if (!after) {
+      const fresh = await Team.findById(team._id);
+      return res.status(409).json({
+        msg: "Already answered.",
+        state: await buildState(fresh),
+      });
+    }
+
+    const remaining = after.finaleQuestions.filter((q) => !q.solved).length;
+    if (remaining > 0) {
+      return res.json({
+        correct: true,
+        msg: "Correct!",
+        explanation: question.explanation,
+        state: await buildState(after),
+      });
+    }
+
+    // Last one solved: finish
+    return finishTeam(after, res, question.explanation);
   } catch (err) {
     logger.error(err.message, err);
     res.status(500).json({ msg: "Server Error" });
   }
 };
+
+// Stop the clock for a team that has cleared the final round
+async function finishTeam(team, res, explanation) {
+  const now = new Date();
+  const done = await Team.findOneAndUpdate(
+    { _id: team._id, currentLevelIndex: team.path.length },
+    {
+      $set: {
+        currentLevelIndex: team.path.length + 1,
+        lastLevelCompletedAt: now,
+      },
+      $push: { levelHistory: { level: team.path.length, completedAt: now } },
+    },
+    { new: true },
+  );
+  logger.info(`******* TEAM ${team.teamId} FINISHED *******`);
+  return res.json({
+    correct: true,
+    msg: "Destination reached!",
+    explanation,
+    state: await buildState(done || team),
+  });
+}

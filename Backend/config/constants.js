@@ -37,6 +37,7 @@ export const DEFAULT_SETTINGS = {
   eventName: "TraceRoute",
   tagline: "Follow the hops. Reach the destination.",
   totalLevels: 5,
+  finaleQuestionCount: 5,
   maxAttemptsPerQuestion: 3,
   wrongAnswerCooldownSeconds: 20,
   wrongAnswerTimePenaltySeconds: 30,

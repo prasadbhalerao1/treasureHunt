@@ -50,6 +50,36 @@ export async function pickReplacement(team, level) {
   return freshChallenge(level, picked);
 }
 
+// Draw the rapid-fire final set: questions this team has NOT already seen.
+// Called only when the last location QR is scanned, so nothing leaks early.
+export async function buildFinaleQuestions(count, team) {
+  const seen = new Set([
+    ...(team.challenges || []).map((c) => c.questionId),
+    ...(team.finaleQuestions || []).map((c) => c.questionId),
+  ]);
+  const pool = await Question.find({ active: true })
+    .select("questionId difficulty options")
+    .lean();
+  let free = pool.filter((q) => !seen.has(q.questionId));
+  // If the bank is too small, fall back to the full pool rather than fail.
+  if (free.length < count) free = pool;
+  if (!free.length) return [];
+
+  const usage = await usageMap();
+  const picked = shuffle(free)
+    .sort((a, b) => (usage[a.questionId] || 0) - (usage[b.questionId] || 0))
+    .slice(0, Math.min(count, free.length));
+
+  return picked.map((q, i) => ({
+    index: i + 1,
+    questionId: q.questionId,
+    optionOrder: shuffle(q.options.map((o) => o.key)),
+    attempts: 0,
+    solved: false,
+    solvedAt: null,
+  }));
+}
+
 export async function nextQuestionId() {
   const last = await Question.findOne()
     .sort({ questionId: -1 })

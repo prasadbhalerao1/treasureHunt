@@ -62,12 +62,26 @@ const TeamSchema = new mongoose.Schema(
       },
     ],
 
+    // Final challenge: a rapid-fire set answered one after another.
+    // Drawn when the last location QR is scanned, so nothing leaks early.
+    finaleQuestions: [
+      {
+        _id: false,
+        index: { type: Number, required: true }, // 1..N
+        questionId: { type: Number, required: true },
+        optionOrder: [String],
+        attempts: { type: Number, default: 0 },
+        solved: { type: Boolean, default: false },
+        solvedAt: { type: Date, default: null },
+      },
+    ],
+    finaleStartedAt: { type: Date, default: null },
+
     // Total seconds of penalty added to the team's final time
     penaltySeconds: { type: Number, default: 0 },
 
-    // Mega Puzzle attempts
+    // Total wrong answers in the final round (no penalty, kept for stats)
     finaleAttempts: { type: Number, default: 0 },
-    finaleLockedUntil: { type: Date, default: null },
 
     // Inventory (hop codes, in visit order)
     collectedKeywords: [String],

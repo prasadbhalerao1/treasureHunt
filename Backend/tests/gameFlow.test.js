@@ -255,9 +255,47 @@ test("full game: scan opens a question, the answer reveals the next riddle", asy
   assert.equal(res.status, 200);
   assert.equal(res.body.state.status, "FINALE");
 
-  // Final challenge is a single button
-  res = await request(app).post("/api/game/submit").set(auth(token)).send({});
-  assert.equal(res.status, 200, JSON.stringify(res.body));
+  // Rapid-fire round: a set is drawn only now, excluding questions already seen
+  const seen = new Set(team.challenges.map((c) => c.questionId));
+  const withFinale = await models.Team.findById(teams.Alpha._id).lean();
+  assert.equal(withFinale.finaleQuestions.length, 5);
+  for (const fq of withFinale.finaleQuestions) {
+    assert.ok(!seen.has(fq.questionId), "finale must not reuse a seen question");
+  }
+
+  for (let i = 0; i < withFinale.finaleQuestions.length; i++) {
+    const st = await request(app).get("/api/game/state").set(auth(token));
+    assert.equal(st.body.finaleSolved, i);
+    assert.equal(st.body.finaleTotal, 5);
+    const fq = st.body.finaleQuestion;
+    assert.ok(fq && fq.prompt, `finale question ${i + 1}`);
+    assert.ok(!("correctKey" in fq));
+    const q = await models.Question.findOne({
+      questionId: withFinale.finaleQuestions[i].questionId,
+    });
+
+    if (i === 0) {
+      // Wrong answer: no penalty, same question stays open
+      const before = st.body.penaltySeconds;
+      const wrong = q.options.find((o) => o.key !== q.correctKey).key;
+      res = await request(app)
+        .post("/api/game/submit")
+        .set(auth(token))
+        .send({ optionKey: wrong });
+      assert.equal(res.status, 400);
+      assert.equal(res.body.correct, false);
+      assert.equal(res.body.state.penaltySeconds, before, "no finale penalty");
+      assert.equal(res.body.state.finaleQuestion.prompt, q.prompt);
+    }
+
+    res = await request(app)
+      .post("/api/game/submit")
+      .set(auth(token))
+      .send({ optionKey: q.correctKey });
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    assert.equal(res.body.correct, true);
+  }
+
   assert.equal(res.body.state.status, "COMPLETED");
 
   res = await request(app).get("/api/admin/stats").set(auth(admin));

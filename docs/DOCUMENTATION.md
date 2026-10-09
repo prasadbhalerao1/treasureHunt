@@ -15,7 +15,7 @@ scan START QR -> question 1 -> riddle for location 1
 scan L1 QR    -> question 2 -> riddle for location 2
 ...
 scan L4 QR    -> question 5 -> riddle for location 5
-scan L5 QR    -> final challenge (a single button for now)
+scan L5 QR    -> rapid-fire round: 5 fresh questions -> finish
 ```
 
 | Step | Player action | Server effect |
@@ -24,7 +24,7 @@ scan L5 QR    -> final challenge (a single button for now)
 | Question *k* | Pick an option | Correct: reveals the riddle for location *k*. Wrong: penalty plus cooldown |
 | Walking | Go to the place the riddle describes, scan its QR | Opens question *k+1* |
 | Last location | Scan its QR | Unlocks the final challenge |
-| Final | Press the button | Stops the clock (the real puzzle lands here later) |
+| Final | Answer 5 rapid-fire questions | Stops the clock when the last one is right |
 
 Scanning a QR out of order is rejected: only the QR for the team's *current* location does anything.
 
@@ -39,9 +39,13 @@ Controlled by Settings:
 | `wrongAnswerTimePenaltySeconds` | 30 | Added to the final time on every wrong answer |
 | `outOfAttemptsAction` | `SWAP_QUESTION` | Give a new question plus an **extra** penalty, or `LOCK_UNTIL_ADMIN` |
 
-### Final challenge
+### Final round: rapid fire
 
-For now it is a single button that stops the clock. The real puzzle will be built later; it lives in `submitAnswer` (`controllers/gameController.js`) and `FinalePanel.jsx`.
+Scanning the last location draws **5 fresh questions** (configurable: `finaleQuestionCount`) and serves them one at a time. They are picked only at that moment, so nothing leaks beforehand, and they exclude every question that team already answered.
+
+- A **wrong answer** simply re-asks the same question: **no penalty, no cooldown**. Every team can finish; the only cost is seconds.
+- Clearing the last question stops the clock.
+- The winner is the fastest total time, so the finale is a pure race.
 
 ## 3. Level and state values
 

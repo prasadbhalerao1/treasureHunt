@@ -27,7 +27,7 @@ scan START QR -> question 1 -> riddle for location 1
 scan L1 QR    -> question 2 -> riddle for location 2
 ...
 scan L4 QR    -> question 5 -> riddle for location 5
-scan L5 QR    -> final challenge (one button for now)
+scan L5 QR    -> rapid-fire round (5 fresh questions) -> finish
 ```
 
 Five questions, five locations after the Start. Each team gets its own order of locations and its own five questions.

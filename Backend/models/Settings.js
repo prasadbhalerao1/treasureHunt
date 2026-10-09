@@ -12,6 +12,10 @@ const SettingsSchema = new mongoose.Schema(
     eventName: { type: String, default: DEFAULT_SETTINGS.eventName },
     tagline: { type: String, default: DEFAULT_SETTINGS.tagline },
     totalLevels: { type: Number, default: DEFAULT_SETTINGS.totalLevels },
+    finaleQuestionCount: {
+      type: Number,
+      default: DEFAULT_SETTINGS.finaleQuestionCount,
+    },
     maxAttemptsPerQuestion: {
       type: Number,
       default: DEFAULT_SETTINGS.maxAttemptsPerQuestion,

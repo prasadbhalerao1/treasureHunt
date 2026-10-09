@@ -129,11 +129,11 @@ export default function Dashboard() {
     }
   };
 
-  const handleFinale = async () => {
+  const handleFinale = async (optionKey) => {
     if (busy) return;
     setBusy(true);
     try {
-      const { data } = await api.post("/game/submit", {});
+      const { data } = await api.post("/game/submit", { optionKey });
       applyState(data.state);
       setMsg({ text: data.msg, type: "ok" });
     } catch (err) {
@@ -311,8 +311,11 @@ export default function Dashboard() {
           {status === GAME_STATUS.FINALE && (
             <FinalePanel
               hint={hint}
+              question={gameState.finaleQuestion}
+              solved={gameState.finaleSolved || 0}
+              total={gameState.finaleTotal || 0}
               submitting={busy}
-              onSubmit={handleFinale}
+              onAnswer={handleFinale}
             />
           )}
 

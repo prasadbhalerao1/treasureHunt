@@ -30,6 +30,7 @@ export function publicSettings(s) {
 
 const NUMERIC_BOUNDS = {
   totalLevels: [1, 12],
+  finaleQuestionCount: [1, 20],
   maxAttemptsPerQuestion: [1, 20],
   wrongAnswerCooldownSeconds: [0, 3600],
   wrongAnswerTimePenaltySeconds: [0, 3600],

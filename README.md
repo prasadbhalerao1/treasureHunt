@@ -2,7 +2,7 @@
 
 # TraceRoute
 
-> A **MERN** real-world QR hunt where every checkpoint is a **challenge**. Scan the QR at a location, solve a networking MCQ, and the next location unlocks. After the fifth location comes the final challenge. The fastest team wins.
+> A **MERN** real-world QR hunt where every checkpoint is a **challenge**. Scan the QR at a location, solve a networking MCQ, and the next location unlocks. After the fifth location comes a rapid-fire round of 5 fresh questions. The fastest team wins.
 
 Everything about the event (name, tagline, number of levels, attempts, cooldowns, penalties, question bank, locations and QR codes) is editable from the admin dashboard.
 

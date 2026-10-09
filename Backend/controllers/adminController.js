@@ -715,7 +715,8 @@ export const resetTeam = async (req, res) => {
     team.lastLevelCompletedAt = undefined;
     team.penaltySeconds = 0;
     team.finaleAttempts = 0;
-    team.finaleLockedUntil = null;
+    team.finaleQuestions = [];
+    team.finaleStartedAt = null;
     await team.save();
     logger.warn(`ADMIN reset team ${team.teamId}`);
     res.json({ msg: "Team reset", team });

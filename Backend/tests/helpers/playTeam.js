@@ -7,7 +7,7 @@ const auth = (t) => ({ Authorization: `Bearer ${t}` });
  * Plays one team through the whole event over HTTP and asserts every step.
  *
  * Flow: scan Start -> MCQ 1 -> riddle L1 -> scan L1 -> MCQ 2 -> ... ->
- *       solve MCQ N -> riddle LN -> scan LN -> final challenge -> finish.
+ *       solve MCQ N -> riddle LN -> scan LN -> rapid-fire round -> finish.
  *
  * qrFor(locationId)  -> the text a phone would read from that location's QR
  * locations          -> Map(locationId -> { hint, name, keyword })
@@ -110,16 +110,53 @@ export async function playTeam({
     report.hints.push(team.path[level]);
   }
 
-  // ---- Scanning the last location unlocks the final challenge
+  report.penaltyBeforeFinale = (await get("/api/game/state")).body.penaltySeconds;
+
+  // ---- Scanning the last location unlocks the rapid-fire round
   const lastId = team.path[N];
   res = await post("/api/game/scan", { qrString: qrFor(lastId) });
   assert.equal(res.status, 200, JSON.stringify(res.body));
   report.qrsScanned.push(lastId);
   assert.equal(res.body.state.status, "FINALE");
+  assert.ok(res.body.state.finaleTotal > 0, "a finale set was drawn");
+  assert.ok(res.body.state.finaleQuestion, "the first finale question is served");
 
-  // ---- Final challenge: one button
-  res = await post("/api/game/submit", {});
-  assert.equal(res.status, 200, JSON.stringify(res.body));
+  // Questions must NOT repeat what the team already answered
+  const seen = new Set(team.challenges.map((c) => c.questionId));
+  const after = await getRecord();
+  for (const fq of after.finaleQuestions) {
+    assert.ok(!seen.has(fq.questionId), "finale reuses a question the team saw");
+  }
+  report.finaleTotal = after.finaleQuestions.length;
+
+  // ---- Answer every finale question; miss the first one once
+  for (let i = 0; i < after.finaleQuestions.length; i++) {
+    const state = (await get("/api/game/state")).body;
+    assert.equal(state.status, "FINALE");
+    const fq = state.finaleQuestion;
+    assert.ok(fq, `finale question ${i + 1} is served`);
+    assert.equal(state.finaleSolved, i);
+    const q = await getQuestion(after.finaleQuestions[i].questionId);
+    assert.equal(fq.prompt, q.prompt);
+    assert.ok(!JSON.stringify(state).includes(q.explanation), "explanation leaked");
+
+    if (i === 0) {
+      const wrong = q.options.find((o) => o.key !== q.correctKey).key;
+      res = await post("/api/game/submit", { optionKey: wrong });
+      assert.equal(res.status, 400);
+      assert.equal(res.body.correct, false);
+      // no penalty, and the same question is still open
+      assert.equal(res.body.state.penaltySeconds, report.penaltyBeforeFinale ?? res.body.state.penaltySeconds);
+      assert.equal(res.body.state.finaleQuestion.prompt, q.prompt);
+      assert.equal(res.body.state.finaleSolved, 0);
+      report.wrong++;
+    }
+
+    res = await post("/api/game/submit", { optionKey: q.correctKey });
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    assert.equal(res.body.correct, true);
+  }
+
   assert.equal(res.body.state.status, "COMPLETED");
   assert.ok(res.body.state.finishedAt);
 
