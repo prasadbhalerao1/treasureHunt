@@ -1,24 +1,23 @@
+/**
+ * TraceRoute - Printable QR sheet
+ * Builds Frontend/public/print_qrs.html: A4 pages with 4 QR codes each (2x2).
+ * Run `npm run generate:qr` first. Open the HTML in Chrome and "Save as PDF"
+ * (paper A4, margins none, background graphics on), or use `npm run generate:pdf`.
+ *
+ * NOTE: the sheet is excluded from the Vercel deploy (Frontend/.vercelignore)
+ * because the QR codes are secrets.
+ */
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const qrDir = path.join(
-  __dirname,
-  "..",
-  "..",
-  "Frontend",
-  "public",
-  "qr_codes",
-);
-const outputHtmlPath = path.join(
-  __dirname,
-  "..",
-  "..",
-  "Frontend",
-  "public",
-  "print_qrs.html",
-);
+const publicDir = path.join(__dirname, "..", "..", "Frontend", "public");
+const qrDir = path.join(publicDir, "qr_codes");
+const outputHtmlPath = path.join(publicDir, "print_qrs.html");
+
+const escapeHtml = (s) =>
+  s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
 const generatePrintable = () => {
   if (!fs.existsSync(qrDir)) {
@@ -26,104 +25,125 @@ const generatePrintable = () => {
     process.exit(1);
   }
 
-  const files = fs.readdirSync(qrDir).filter((f) => f.endsWith(".png"));
+  // "00_Location-0_Start.png" -> { id: "00", label: "Start" }
+  const files = fs
+    .readdirSync(qrDir)
+    .filter((f) => f.endsWith(".png"))
+    .sort();
 
-  let htmlContent = `
-<!DOCTYPE html>
+  const cards = files.map((filename) => {
+    const base = filename.replace(/\.png$/, "");
+    const [id, ...rest] = base.split("_");
+    const label = rest
+      .join(" ")
+      .replace(/^Location-0 /, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    return { filename, id, label: id === "00" ? "START" : label };
+  });
+
+  let html = `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Print QR Codes</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background: white;
-        }
-
-        .page {
-            width: 210mm;
-            height: 297mm;
-            padding: 20mm;
-            box-sizing: border-box;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            gap: 10mm;
-            page-break-after: always;
-            border: 1px dashed #ddd; /* Helper for view, remove in print if needed */
-        }
-
-        .qr-card {
-            border: 4px solid black;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .qr-img {
-            width: 250px;
-            height: 250px;
-            object-fit: contain;
-            image-rendering: pixelated; /* Crisp QRs */
-        }
-
-        .qr-label {
-            margin-top: 20px;
-            font-size: 24px;
-            font-weight: 900;
-            text-transform: uppercase;
-            word-break: break-word;
-        }
-
-        @media print {
-            body {
-                background: white;
-            }
-            .page {
-                border: none;
-                margin: 0;
-                page-break-after: always;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TraceRoute QR Codes</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+      margin: 0;
+      background: #ffffff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .page {
+      width: 210mm;
+      height: 297mm;
+      padding: 14mm;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 8mm;
+      page-break-after: always;
+      break-after: page;
+      overflow: hidden;
+    }
+    .page:last-child { page-break-after: auto; break-after: auto; }
+    .qr-card {
+      border: 1.2mm solid #000000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6mm;
+      text-align: center;
+      min-height: 0;
+    }
+    .qr-card.empty { border: 0; }
+    .brand {
+      font-size: 9pt;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: #2563eb;
+      margin-bottom: 4mm;
+    }
+    .qr-img {
+      width: 74mm;
+      height: 74mm;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+    .qr-id {
+      margin-top: 4mm;
+      font-size: 11pt;
+      font-weight: 800;
+      color: #71717a;
+      letter-spacing: 0.15em;
+    }
+    .qr-label {
+      margin-top: 1mm;
+      font-size: 17pt;
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 1.15;
+      word-break: break-word;
+    }
+    .qr-card.start { background: #000000; color: #ffffff; }
+    .qr-card.start .qr-img { background: #ffffff; padding: 2mm; }
+    .qr-card.start .qr-id { color: #a1a1aa; }
+    .qr-card.start .brand { color: #4ade80; }
+  </style>
 </head>
 <body>
 `;
 
-  // Chunk files into groups of 4
-  for (let i = 0; i < files.length; i += 4) {
-    const chunk = files.slice(i, i + 4);
-
-    htmlContent += '    <div class="page">\n';
-
-    chunk.forEach((filename) => {
-      const name = filename.replace(".png", "").replace(/_/g, " ");
-      htmlContent += `
-        <div class="qr-card">
-            <img src="./qr_codes/${filename}" class="qr-img" />
-            <div class="qr-label">${name}</div>
-        </div>
-      `;
-    });
-
-    htmlContent += "    </div>\n";
+  for (let i = 0; i < cards.length; i += 4) {
+    html += '  <div class="page">\n';
+    for (let j = 0; j < 4; j++) {
+      const c = cards[i + j];
+      if (!c) {
+        html += '    <div class="qr-card empty"></div>\n';
+        continue;
+      }
+      html += `    <div class="qr-card${c.id === "00" ? " start" : ""}">
+      <div class="brand">TraceRoute</div>
+      <img class="qr-img" src="./qr_codes/${encodeURIComponent(c.filename)}" alt="QR ${escapeHtml(c.label)}" />
+      <div class="qr-id">LOCATION ${escapeHtml(c.id)}</div>
+      <div class="qr-label">${escapeHtml(c.label)}</div>
+    </div>
+`;
+    }
+    html += "  </div>\n";
   }
 
-  htmlContent += `
-</body>
-</html>
-`;
-
-  fs.writeFileSync(outputHtmlPath, htmlContent);
-  console.log(`✅ Printable HTML generated at: ${outputHtmlPath}`);
+  html += "</body>\n</html>\n";
+  fs.writeFileSync(outputHtmlPath, html);
+  console.log(
+    `✅ Printable HTML generated at: ${outputHtmlPath} (${cards.length} QR codes, ${Math.ceil(cards.length / 4)} pages)`,
+  );
 };
 
 generatePrintable();

@@ -1,12 +1,12 @@
 /**
- * BERLIN HEIST - Admin Seeding Script
+ * TraceRoute - Admin Seeding Script
  * Creates a single admin account for the game
  *
  * Usage: npm run seed:admin
  *
  * Environment Variables:
  *   ADMIN_PASSWORD - Admin password (default: random generated)
- *   ADMIN_EMAIL    - Admin email (default: admin@berlinheist.local)
+ *   ADMIN_EMAIL    - Admin email (default: admin@traceroute.local)
  *
  * @author Prasad Bhalerao (https://linkedin.com/in/prasadbhalerao)
  */
@@ -46,7 +46,7 @@ const seedAdmin = async () => {
     // Generate or use provided password
     const adminPassword =
       process.env.ADMIN_PASSWORD || randomBytes(8).toString("hex");
-    const adminEmail = process.env.ADMIN_EMAIL || "admin@berlinheist.local";
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@traceroute.local";
 
     const hashedPassword = await hashPassword(adminPassword);
     const [salt] = hashedPassword.split(":");
@@ -58,7 +58,6 @@ const seedAdmin = async () => {
       role: "ADMIN",
       passwordHash: hashedPassword,
       salt: salt,
-      members: ["Admin"],
       path: [],
       currentLevelIndex: 0,
     });

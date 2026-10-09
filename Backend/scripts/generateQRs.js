@@ -38,7 +38,7 @@ const generateQRs = async () => {
 
   try {
     await mongoose.connect(process.env.MONGODB_URI);
-    const locations = await Location.find({});
+    const locations = await Location.find({}).sort({ locationId: 1 });
 
     for (const loc of locations) {
       // Sanitize the location name:
@@ -50,8 +50,13 @@ const generateQRs = async () => {
         .replace(/\s+/g, "_")
         .replace(/[^a-zA-Z0-9_\-]/g, "");
 
-      const fileName = `${sanitized}.png`;
-      await QRCode.toFile(path.join(outputDir, fileName), loc.qrSecret);
+      // "00_Location-0_Start.png", "01_Bus_Parking....png": sorted by location ID
+      const fileName = `${String(loc.locationId).padStart(2, "0")}_${sanitized}.png`;
+      await QRCode.toFile(path.join(outputDir, fileName), loc.qrSecret, {
+        width: 600,
+        margin: 4, // quiet zone keeps it scannable when printed small
+        errorCorrectionLevel: "M",
+      });
       console.log(`Generated ${fileName} (Secret: ${loc.qrSecret})`);
     }
 

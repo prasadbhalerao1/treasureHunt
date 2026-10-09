@@ -1,7 +1,7 @@
 {
-  "name": "berlin-heist-backend",
+  "name": "traceroute-backend",
   "version": "1.0.0",
-  "description": "BERLIN HEIST - QR-based treasure hunt game API",
+  "description": "TraceRoute - QR + challenge based campus hunt API",
   "main": "index.js",
   "author": {
     "name": "Prasad Bhalerao",
@@ -10,26 +10,37 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "setup:all": "npm run seed:locations && npm run seed:admin && npm run seed:teams && npm run generate:qr && npm run generate:printable",
-    "setup:quick": "npm run seed:locations && npm run seed:admin",
+    "setup:all": "npm run seed:locations && npm run seed:settings && npm run seed:questions && npm run seed:teams && npm run seed:admin && npm run generate:qr && npm run generate:printable",
+    "setup:quick": "npm run seed:locations && npm run seed:settings && npm run seed:questions && npm run seed:admin",
     "seed:locations": "node scripts/seedLocations.js",
     "seed:admin": "node scripts/seedAdmin.js",
     "seed:teams": "node scripts/seedTeams.js",
+    "seed:event": "node scripts/seedEventAccounts.js",
     "generate:qr": "node scripts/generateQRs.js",
     "generate:printable": "node scripts/generatePrintable.js",
     "db:wipe": "node scripts/wipeDb.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "node --test",
+    "seed:settings": "node scripts/seedSettings.js",
+    "seed:questions": "node scripts/seedQuestions.js"
   },
   "keywords": [
-    "treasure-hunt",
+    "traceroute",
     "qr-code",
     "game",
     "express",
     "mongodb"
   ],
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "prettier": "^3.2.5"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^9.39.2",
+    "globals": "^17.3.0",
+    "jsqr": "^1.4.0",
+    "mongodb-memory-server": "^11.3.0",
+    "pngjs": "^7.0.0",
+    "prettier": "^3.2.5",
+    "supertest": "^7.3.1"
   },
   "license": "MIT",
   "type": "module",
@@ -43,7 +54,6 @@
     "jsonwebtoken": "^9.0.0",
     "mongo-sanitize": "^1.1.0",
     "mongoose": "^8.0.0",
-    "nodemailer": "^7.0.12",
     "qrcode": "^1.5.4"
   }
 }
