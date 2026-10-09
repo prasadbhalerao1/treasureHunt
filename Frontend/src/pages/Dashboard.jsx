@@ -129,11 +129,11 @@ export default function Dashboard() {
     }
   };
 
-  const handleFinale = async (answer) => {
+  const handleFinale = async () => {
     if (busy) return;
     setBusy(true);
     try {
-      const { data } = await api.post("/game/submit", { answer });
+      const { data } = await api.post("/game/submit", {});
       applyState(data.state);
       setMsg({ text: data.msg, type: "ok" });
     } catch (err) {
@@ -311,9 +311,7 @@ export default function Dashboard() {
           {status === GAME_STATUS.FINALE && (
             <FinalePanel
               hint={hint}
-              hopCodes={gameState.hopCodes || []}
               submitting={busy}
-              cooldownEndsAt={cooldownEndsAt}
               onSubmit={handleFinale}
             />
           )}

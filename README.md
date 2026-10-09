@@ -2,7 +2,7 @@
 
 # TraceRoute
 
-> A **MERN** real-world QR hunt where every checkpoint is a **challenge**. Scan the QR at a location, solve a networking MCQ, and the next location unlocks. Seven hops later comes the **Mega Puzzle**. The fastest team wins.
+> A **MERN** real-world QR hunt where every checkpoint is a **challenge**. Scan the QR at a location, solve a networking MCQ, and the next location unlocks. After the sixth location comes the final challenge. The fastest team wins.
 
 Everything about the event (name, tagline, number of levels, attempts, cooldowns, penalties, question bank, locations and QR codes) is editable from the admin dashboard.
 
@@ -12,7 +12,7 @@ Everything about the event (name, tagline, number of levels, attempts, cooldowns
 
 1. A team logs in with its Team ID and password.
 2. **Start:** the team scans the Start QR. The clock starts and the first location hint appears.
-3. **Each hop (7 by default):** the team walks to the hinted location and scans its QR. A random MCQ opens. A correct answer unlocks the next hint. A wrong answer costs a time penalty and a short cooldown.
+3. **Each level (6 by default):** solving the question reveals the riddle for the next location. The team walks there, scans that QR, and the next question opens. A wrong answer costs a time penalty and a short cooldown.
 4. **Mega Puzzle:** after the last hop the team gets the hop codes it collected and must put them in the order its personal rule asks for.
 5. **Winner:** least total time (elapsed time plus penalties).
 

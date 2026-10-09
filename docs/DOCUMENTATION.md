@@ -3,21 +3,30 @@
 ## 1. Rules in one page
 
 - **Teams** log in with a Team ID and password.
-- The event has **N levels** (default **7**) and a **Mega Puzzle**. N is `totalLevels` in Settings.
+- The event has **N question levels** (default **6**) and a final challenge. N is `totalLevels` in Settings.
 - A team's route is the **Start** plus N locations drawn from the location list, in a team-specific order, balanced so locations are used evenly.
 - Each team has **N assigned questions**, one per level, drawn from the question bank (distinct within a team, difficulty ramping from easy to hard, least-used first). Option order is shuffled per team.
 - **Winner:** least `elapsed time + penalty seconds`. Tie-break: fewer total attempts, then earlier finish.
 
 ## 2. Flow per team
 
+```
+scan START QR -> question 1 -> riddle for location 1
+scan L1 QR    -> question 2 -> riddle for location 2
+...
+scan L5 QR    -> question 6 -> riddle for location 6
+scan L6 QR    -> final challenge (a single button for now)
+```
+
 | Step | Player action | Server effect |
 | :-- | :-- | :-- |
-| Not started | Scan the **Start** QR | Starts the clock (level 0), reveals the hint for hop 1 |
-| Hop *k* (1…N) | Go to the hinted location, scan its QR | Opens challenge *k* (first view timestamp is stored once; re-scan is harmless) |
-| | Pick an option, **Send packet** | Correct: level *k* is done, hint for hop *k+1* is revealed (or the Mega Puzzle opens after hop N). Wrong: penalty plus cooldown |
-| Mega Puzzle | Tap the collected hop codes in the required order | Correct: the clock stops. Wrong: penalty, and a 30 s lock after every third miss |
+| Not started | Scan the **Start** QR | Starts the clock and opens question 1 |
+| Question *k* | Pick an option | Correct: reveals the riddle for location *k*. Wrong: penalty plus cooldown |
+| Walking | Go to the place the riddle describes, scan its QR | Opens question *k+1* |
+| Last location | Scan its QR | Unlocks the final challenge |
+| Final | Press the button | Stops the clock (the real puzzle lands here later) |
 
-Scanning a QR out of order is rejected. Only the QR for the team's *next* location opens anything.
+Scanning a QR out of order is rejected: only the QR for the team's *current* location does anything.
 
 ### Wrong answers
 
@@ -30,11 +39,9 @@ Controlled by Settings:
 | `wrongAnswerTimePenaltySeconds` | 30 | Added to the final time on every wrong answer |
 | `outOfAttemptsAction` | `SWAP_QUESTION` | Give a new question plus an **extra** penalty, or `LOCK_UNTIL_ADMIN` |
 
-### Mega Puzzle
+### Final challenge
 
-Each location has a **hop code** (ROUTER, GATEWAY, SWITCH…). Solving a hop awards its code. In the finale the team sees its codes and a personal rule, one of: alphabetical (A→Z or Z→A), by length (short→long or long→short), by second letter, by last letter. Ties are accepted in any order. The team taps the codes into the right sequence.
-
-To use a different finale, change `utils/finale.js` (rules) and `FinalePanel.jsx` (UI). `isValidOrder` is unit-tested.
+For now it is a single button that stops the clock. The real puzzle will be built later; it lives in `submitAnswer` (`controllers/gameController.js`) and `FinalePanel.jsx`.
 
 ## 3. Level and state values
 
@@ -43,10 +50,10 @@ To use a different finale, change `utils/finale.js` (rules) and `FinalePanel.jsx
 | Value | Meaning |
 | :-- | :-- |
 | `-1` | Registered, Start QR not scanned |
-| `0` | Start scanned, looking for hop 1 |
-| `k` | Hop *k* solved |
-| `N` (= `path.length - 1`) | All hops solved, **Mega Puzzle open** |
-| `path.length + 1` | Mega Puzzle solved, finished |
+| `0` | Start QR scanned, question 1 open |
+| `k` | Question *k* solved; walking to location *k* |
+| `path.length` | All questions solved and the last QR scanned: **final challenge** |
+| `path.length + 1` | Finished |
 
 API status values: `NOT_STARTED`, `HINT_UNLOCKED`, `CHALLENGE_OPEN`, `FINALE`, `COMPLETED`.
 
