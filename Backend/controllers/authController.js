@@ -8,11 +8,16 @@ import logger from "../utils/logger.js";
 export const login = async (req, res, next) => {
   try {
     await dbConnect();
-    const { teamId, password } = req.body;
+    const teamId = String(req.body?.teamId ?? "").trim();
+    const password = String(req.body?.password ?? "");
+    if (!teamId || !password || teamId.length > 64) {
+      return res.status(401).json({ msg: "Invalid Credentials" });
+    }
 
-    // Case-insensitive team lookup to be forgiving
+    // Case-insensitive team lookup to be forgiving (input is regex-escaped)
+    const escaped = teamId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const team = await Team.findOne({
-      teamId: { $regex: new RegExp(`^${teamId}$`, "i") },
+      teamId: { $regex: new RegExp(`^${escaped}$`, "i") },
     });
     if (!team) return res.status(401).json({ msg: "Invalid Credentials" });
 

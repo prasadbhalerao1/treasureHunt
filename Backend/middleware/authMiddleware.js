@@ -3,38 +3,34 @@ import dbConnect from "../config/dbConnect.js";
 import Team from "../models/Team.js";
 import logger from "../utils/logger.js";
 
+// Verifies the JWT and that its session id (jti) is still in the team's
+// activeSessions list. Logging in on a 5th device ejects the oldest session.
 export const protect = async (req, res, next) => {
-  let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    try {
-      token = req.headers.authorization.split(" ")[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith("Bearer")) {
+    return res.status(401).json({ msg: "Not authorized, no token" });
+  }
 
-      // Verify Session Logic?
-      // If we strictly enforce session token presence in DB:
-      // But that requires DB hit every request.
-      // PRD says: "store Role in JWT to avoid DB lookups".
-      // But concurrent session limiting requires DB check or Redis.
-      // PRD 1.2: "activeSessions" in DB.
-      // If we want to really eject the 4th user, we must check if `jti` is in `activeSessions`.
-      // Validation Triangulation implies strictness.
-      // However, hitting DB every request invalidates the "avoid DB lookups" benefit.
-      // But the User Schema has `activeSessions`.
-      // Compromise: We will trust the token for most things, but critical actions (Scan/Verify) might check DB.
-      // OR: We check DB here. Since `activeSessions` is on the User document, detailed session management usually implies checking it.
-      // Given 1000 users, finding by ID is fast.
+  try {
+    const token = header.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      req.user = decoded; // { teamId, role, id, jti }
-      next();
-    } catch (error) {
-      logger.error("Token verification failed", error);
-      res.status(401).json({ msg: "Not authorized, token failed" });
+    await dbConnect();
+    const live = await Team.exists({
+      _id: decoded.id,
+      activeSessions: decoded.jti,
+    });
+    if (!live) {
+      return res
+        .status(401)
+        .json({ msg: "Session expired. Please log in again." });
     }
-  } else {
-    res.status(401).json({ msg: "Not authorized, no token" });
+
+    req.user = decoded; // { teamId, role, id, jti }
+    next();
+  } catch (error) {
+    logger.error("Token verification failed", error);
+    res.status(401).json({ msg: "Not authorized, token failed" });
   }
 };
 

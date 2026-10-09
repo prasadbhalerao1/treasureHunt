@@ -20,7 +20,10 @@ const configureExpress = (app) => {
         const allowedOrigins = [
           "http://localhost:5173",
           "http://localhost:3000",
-          "https://treasurehunt-gotham-ai.vercel.app",
+          ...(process.env.CORS_ORIGINS || "")
+            .split(",")
+            .map((o) => o.trim())
+            .filter(Boolean),
         ];
         if (!origin || allowedOrigins.includes(origin)) {
           callback(null, true);
@@ -36,19 +39,34 @@ const configureExpress = (app) => {
   app.use(express.json({ limit: "50kb" }));
   app.use(cookieParser());
 
-  // Rate Limiting
+  // Rate Limiting (event Wi-Fi is often NAT'd, so key by token where possible)
+  const keyByToken = (req) => req.headers.authorization || req.ip;
   const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 300000,
+    windowMs: 60 * 1000,
+    max: 120,
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => {
-      if (req.headers.authorization) return req.headers.authorization;
-      if (req.body && req.body.teamId) return req.body.teamId;
-      return req.ip;
-    },
+    keyGenerator: keyByToken,
+  });
+  const loginLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { msg: "Too many login attempts. Wait a minute." },
+  });
+  const answerLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: keyByToken,
+    message: { msg: "Too many answers. Slow down." },
   });
   app.use("/api", limiter);
+  app.use("/api/auth/login", loginLimiter);
+  app.use("/api/game/answer", answerLimiter);
+  app.use("/api/game/submit", answerLimiter);
 
   // Sanitization
   app.use((req, res, next) => {

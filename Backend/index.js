@@ -8,6 +8,7 @@ import logger from "./utils/logger.js";
 import authRoutes from "./routes/authRoutes.js";
 import gameRoutes from "./routes/gameRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import settingsRoutes from "./routes/settingsRoutes.js";
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ configureExpress(app);
 app.use("/api/auth", authRoutes);
 app.use("/api/game", gameRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/settings", settingsRoutes);
 
 // GLOBAL ERROR HANDLER
 app.use((err, req, res, next) => {
@@ -34,7 +36,11 @@ app.use((err, req, res, next) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("BERLIN HEIST API Active");
+  res.send("TraceRoute API Active");
+});
+
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true, time: new Date() });
 });
 
 // Helper to start server if running directly
