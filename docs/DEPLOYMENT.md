@@ -4,10 +4,10 @@ TraceRoute runs as **two Vercel projects**: the API (`Backend/`) and the web app
 
 | Part | Vercel project | URL |
 | :-- | :-- | :-- |
-| Web app | `traceroute` | https://traceroute-cn.vercel.app (also `traceroute-ivory.vercel.app`) |
+| Web app | `traceroute` | https://traceroute-cn.vercel.app |
 | API | `traceroute-api` | https://traceroute-api.vercel.app |
 
-`traceroute.vercel.app` belongs to another Vercel account, which is why the web app uses `traceroute-cn`.
+`traceroute.vercel.app` belongs to another Vercel account, which is why the web app uses `traceroute-cn`. Each project has exactly one public address; Vercel's automatic team and branch preview URLs also exist but sit behind Vercel login.
 
 ## Environment variables
 
@@ -17,7 +17,7 @@ TraceRoute runs as **two Vercel projects**: the API (`Backend/`) and the web app
 | :-- | :-- |
 | `MONGODB_URI` | Atlas connection string **with a database name** (`.../traceroute?...`) |
 | `JWT_SECRET` | Long random string |
-| `CORS_ORIGINS` | Comma-separated frontend URLs: `https://traceroute-cn.vercel.app,https://traceroute-ivory.vercel.app,https://traceroute-prasads-projects-b60fa4b6.vercel.app,https://traceroute-*-prasads-projects-b60fa4b6.vercel.app`. A `*` matches one hostname label (any deployment URL of the frontend); trailing slashes are ignored |
+| `CORS_ORIGINS` | `https://traceroute-cn.vercel.app` (comma-separate more; a `*` matches one hostname label, trailing slashes are ignored) |
 | `FRONTEND_URL` | `https://traceroute-cn.vercel.app` (login link in the email) |
 | `MAKE_WEBHOOK_URL` | Your Make.com webhook |
 | `MONGOMS_DISABLE_POSTINSTALL` | `1` (stops the test-only in-memory MongoDB from downloading ~780 MB during the build) |
