@@ -1,0 +1,12 @@
+# Safety net for deploys started from the repo root: never upload secrets
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules
+Backend/local_backup_*.json
+Frontend/public/qr_codes
+Frontend/public/print_qrs.html
+TraceRoute_QR_Codes.pdf
+branding

@@ -30,18 +30,17 @@ TraceRoute runs as **two Vercel projects**: the API (`Backend/`) and the web app
 
 ## Deploy
 
-```bash
-# API
-cd Backend
-vercel link --project traceroute-api
-vercel env add MONGODB_URI production      # repeat for each variable above
-vercel deploy --prod
+Both projects are connected to the GitHub repo `prasadbhalerao1/treasureHunt` with **Root Directory** `Frontend` (web app) and `Backend` (API). Production branch: `main`.
 
-# Web app
-cd ../Frontend
-vercel link --project traceroute
-vercel env add VITE_API_URL production
-vercel deploy --prod
+- **Normal flow:** push a branch and Vercel builds a preview of both. Merge to `main` and Vercel deploys production.
+- **Why the Root Directory matters:** with it left at `.` the Git build runs at the repo root, where there is no app, and fails with `Cannot read properties of undefined (reading 'fsPath')`. Set it under Project → Settings → General → Root Directory.
+- **Previews:** only the **Production** environment has the API variables, so a preview build succeeds but its API calls will not work. Add the variables to *Preview* too if you need working previews.
+- **CLI deploys:** with a Root Directory set, do not run `vercel deploy` inside `Backend/` or `Frontend/` (the path doubles). Prefer Git. If you must use the CLI, run it from the repo root with `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` set; the root `.vercelignore` keeps the QR files out.
+
+First-time setup of the environment variables:
+
+```bash
+vercel env add MONGODB_URI production      # repeat for each variable above
 ```
 
 ## Things that matter
