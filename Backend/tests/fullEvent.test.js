@@ -132,7 +132,7 @@ after(async () => {
 });
 
 test("every location QR image decodes back to its own secret", async () => {
-  assert.equal(locations.size, 10);
+  assert.equal(locations.size, LOCATION_DATA.length + 1);
   for (const [id, loc] of locations) {
     const buf = await QRCode.toBuffer(loc.qrSecret, {
       width: 600,
@@ -145,7 +145,11 @@ test("every location QR image decodes back to its own secret", async () => {
     assert.equal(res.data, loc.qrSecret, `QR mismatch for ${loc.name}`);
     qrText.set(id, res.data);
   }
-  assert.equal(new Set(qrText.values()).size, 10, "QR secrets must be unique");
+  assert.equal(
+    new Set(qrText.values()).size,
+    LOCATION_DATA.length + 1,
+    "QR secrets must be unique",
+  );
 });
 
 test("every location has a usable hint, hop code and unique secret", () => {
@@ -157,7 +161,7 @@ test("every location has a usable hint, hop code and unique secret", () => {
     assert.match(loc.keyword, /^[A-Z]+$/);
     codes.add(loc.keyword);
   }
-  assert.equal(codes.size, 9, "hop codes must be unique");
+  assert.equal(codes.size, LOCATION_DATA.length, "hop codes must be unique");
 });
 
 test("admin validation: bad team payloads are rejected", async () => {
@@ -229,9 +233,9 @@ test("each new team got a unique route and its own 5 questions", async () => {
     assert.equal(new Set(d.challenges.map((c) => c.questionId)).size, 5);
     d.path.slice(1).forEach((id) => (usage[id] = (usage[id] || 0) + 1));
   }
-  // 50 visits over 9 locations: balanced to within one
+  // 50 visits over the whole pool: balanced to within one
   const counts = Object.values(usage);
-  assert.equal(counts.length, 9, "every location is used");
+  assert.equal(counts.length, LOCATION_DATA.length, "every location is used");
   assert.ok(Math.max(...counts) - Math.min(...counts) <= 1, JSON.stringify(usage));
 });
 

@@ -9,6 +9,7 @@ const NUMBER_FIELDS = [
   ["maxAttemptsPerQuestion", "Attempts per question", "Before the out-of-attempts rule applies"],
   ["wrongAnswerCooldownSeconds", "Wrong-answer cooldown (s)", "Wait before the next try"],
   ["wrongAnswerTimePenaltySeconds", "Wrong-answer penalty (s)", "Added to the team's final time"],
+  ["finaleQuestionCount", "Rapid-fire questions", "1-20. Drawn when the last QR is scanned."],
 ];
 
 const STATUS_STYLE = {

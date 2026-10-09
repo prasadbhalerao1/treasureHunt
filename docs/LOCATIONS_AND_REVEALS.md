@@ -4,7 +4,7 @@ These are the **original riddles from the previous event**, restored byte-for-by
 
 A riddle is shown to a team **after it answers the question correctly**, and points to the location whose QR they must scan next. Location `0` is the Start; its QR is projected on the smartboard. QR secrets are random and are not listed here.
 
-**9 locations are in play. Each team visits 5 of them**, in its own order, so all 9 QR codes must be up at the venue.
+**8 locations are in play. Each team visits 5 of them**, in its own order, so all 8 QR codes must be up at the venue.
 
 | ID | Location | Riddle |
 | :-: | :-- | :-- |
@@ -15,10 +15,9 @@ A riddle is shown to a team **after it answers the question correctly**, and poi
 | 5 | Stationery Store (Food Court) | Among the edible, find what’s not— ink and paper, bound and bought. Where mistakes retreat with grace, and answers get a cleaner face. |
 | 6 | Xerox Shop | Where singularity becomes a crowd, faded notes grow crisp and loud. One idea enters, multiplied— clarity printed side by side. |
 | 7 | Mac Lab | 🍎 ➡️ 💻 ➡️ 🚪 Silver screens in silent rows, where designs and deadlines go. Mouse and keys work side by side, your next answer waits inside. |
-| 8 | Counselling Centre | A strong mind wins every heist. When fear rises, climb the steps. Behind the door where hearts heal, your next secret waits. |
-| 9 | Student Section | Where dreams queue up in paper form, and patience beats the brightest norm. No classes here, just forms to sign— where student requests wait in line. |
+| 8 | Student Section | Where dreams queue up in paper form, and patience beats the brightest norm. No classes here, just forms to sign— where student requests wait in line. |
 
-Removed before this event: Cafeteria, Bus Parking (Behind Cafeteria), Physics Lab.
+Removed before this event: Cafeteria, Bus Parking (Behind Cafeteria), Physics Lab, Counselling Centre.
 
 ## Flow
 

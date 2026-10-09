@@ -48,12 +48,6 @@ export const LOCATION_DATA = [
     hint: "🍎 ➡️ 💻 ➡️ 🚪\nSilver screens in silent rows,\nwhere designs and deadlines go.\nMouse and keys work side by side,\nyour next answer waits inside.",
   },
   {
-    name: "Counselling Centre",
-    shortCode: "COUNSEL",
-    keyword: "REPEATER",
-    hint: "A strong mind wins every heist. When fear rises, climb the steps. Behind the door where hearts heal, your next secret waits.",
-  },
-  {
     name: "Student Section",
     shortCode: "STUDENT",
     keyword: "HUB",
