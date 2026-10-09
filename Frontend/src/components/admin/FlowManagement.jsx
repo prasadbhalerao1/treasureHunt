@@ -1,13 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "../../utils/api";
 import { Button, Card } from "../ui";
-import { Edit, Save, X } from "lucide-react";
+import { Edit, Save, X, Shuffle, Unlock, FastForward, RotateCcw } from "lucide-react";
 
 export default function FlowManagement({ initialTeamId }) {
   const [teams, setTeams] = useState([]);
   const [locations, setLocations] = useState([]);
   const [selectedTeamId, setSelectedTeamId] = useState(initialTeamId);
   const [editingPath, setEditingPath] = useState(null); // Array of Location IDs
+  const [challenges, setChallenges] = useState([]);
+  const [note, setNote] = useState(null);
+
+  const fetchChallenges = useCallback(async (id) => {
+    if (!id) return setChallenges([]);
+    try {
+      const { data } = await api.get(`/admin/teams/${id}/challenges`);
+      setChallenges(data);
+    } catch {
+      setChallenges([]);
+    }
+  }, []);
+
+  const teamAction = async (action, confirmText) => {
+    if (confirmText && !confirm(confirmText)) return;
+    try {
+      const { data } = await api.post(`/admin/teams/${selectedTeamId}/${action}`);
+      setNote({ ok: true, text: data.msg });
+      await fetchData();
+      fetchChallenges(selectedTeamId);
+    } catch (e) {
+      setNote({ ok: false, text: e.response?.data?.msg || "Action failed" });
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -28,6 +52,10 @@ export default function FlowManagement({ initialTeamId }) {
   }, []);
 
   const selectedTeam = teams.find((t) => t._id === selectedTeamId);
+
+  useEffect(() => {
+    fetchChallenges(selectedTeamId);
+  }, [selectedTeamId, fetchChallenges]);
 
   const startEdit = () => {
     setEditingPath([...selectedTeam.path]);
@@ -137,6 +165,99 @@ export default function FlowManagement({ initialTeamId }) {
               </div>
             ))}
           </div>
+        </Card>
+      )}
+
+      {selectedTeam && (
+        <Card className="border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white rounded-none space-y-4">
+          <h3 className="text-xl font-black uppercase">
+            Challenges &amp; actions · {selectedTeam.name}
+          </h3>
+          <div className="text-sm font-bold">
+            Level {selectedTeam.currentLevelIndex} · penalty{" "}
+            {selectedTeam.penaltySeconds || 0}s
+          </div>
+
+          {note && (
+            <div
+              className={`p-2 border-2 border-black font-black uppercase text-xs ${note.ok ? "bg-green-200" : "bg-red-200"}`}
+            >
+              {note.text}
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={() => teamAction("unlock")}
+              className="rounded-none border-2 text-xs font-black uppercase flex items-center gap-1 bg-white text-black"
+            >
+              <Unlock size={14} /> Unlock level
+            </Button>
+            <Button
+              onClick={() =>
+                teamAction("force-complete", "Mark the team's current level as solved?")
+              }
+              className="rounded-none border-2 text-xs font-black uppercase flex items-center gap-1 bg-white text-black"
+            >
+              <FastForward size={14} /> Force-complete level
+            </Button>
+            <Button
+              onClick={() =>
+                teamAction("reshuffle", "Draw a new random question set for this team?")
+              }
+              className="rounded-none border-2 text-xs font-black uppercase flex items-center gap-1 bg-white text-black"
+            >
+              <Shuffle size={14} /> Reshuffle questions
+            </Button>
+            <Button
+              onClick={() =>
+                teamAction("reset", "RESET this team to the start (new path and questions)?")
+              }
+              className="rounded-none border-2 text-xs font-black uppercase flex items-center gap-1 bg-red-600 text-white"
+            >
+              <RotateCcw size={14} /> Reset team
+            </Button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b-4 border-black font-black uppercase text-xs">
+                  <th className="p-2">Lvl</th>
+                  <th className="p-2">Question</th>
+                  <th className="p-2">Answer</th>
+                  <th className="p-2">Tries</th>
+                  <th className="p-2">State</th>
+                </tr>
+              </thead>
+              <tbody className="font-semibold">
+                {challenges.map((c) => (
+                  <tr key={c.level} className="border-b border-zinc-200 align-top">
+                    <td className="p-2 font-black">{c.level}</td>
+                    <td className="p-2 max-w-xs">
+                      <span className="text-zinc-500">#{c.questionId}</span> {c.prompt}
+                    </td>
+                    <td className="p-2 font-black">{c.correctKey}</td>
+                    <td className="p-2">{c.attempts}</td>
+                    <td className="p-2">
+                      {c.solved ? (
+                        <span className="bg-green-300 px-2 py-1 text-xs font-black">SOLVED</span>
+                      ) : c.locked ? (
+                        <span className="bg-red-300 px-2 py-1 text-xs font-black">LOCKED</span>
+                      ) : c.firstShownAt ? (
+                        <span className="bg-yellow-300 px-2 py-1 text-xs font-black">OPEN</span>
+                      ) : (
+                        <span className="text-zinc-400">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-zinc-500">
+            The answer column is organiser-only. Players never receive it.
+          </p>
         </Card>
       )}
     </div>

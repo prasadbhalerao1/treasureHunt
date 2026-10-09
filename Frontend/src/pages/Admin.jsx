@@ -9,12 +9,17 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { LogOut, Users, Map, Route, BarChart2 } from "lucide-react";
+import { LogOut, Users, Map, Route, BarChart2, Settings, HelpCircle, Download } from "lucide-react";
 import UserManagement from "../components/admin/UserManagement";
 import LocationManagement from "../components/admin/LocationManagement";
 import FlowManagement from "../components/admin/FlowManagement";
+import SettingsManagement from "../components/admin/SettingsManagement";
+import QuestionBank from "../components/admin/QuestionBank";
+import { useSettings } from "../context/SettingsContext";
+import { formatDuration } from "../utils/constants";
 
 export default function Admin() {
+  const { settings } = useSettings();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [stats, setStats] = useState(null);
   const [selectedLevel, setSelectedLevel] = useState("Global");
@@ -38,12 +43,13 @@ export default function Admin() {
     }
   }, [selectedLevel, activeTab]);
 
-  // Helper to format ms to mm:ss
-  const formatTime = (ms) => {
-    if (!ms) return "-";
-    const minutes = Math.floor(ms / 60000);
-    const seconds = ((ms % 60000) / 1000).toFixed(0);
-    return `${minutes}m ${seconds.padStart(2, "0")}s`;
+  const downloadResults = async () => {
+    const { data } = await api.get("/admin/results.csv", { responseType: "blob" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(data);
+    a.download = "results.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
   };
 
   const renderDashboard = () => {
@@ -95,7 +101,7 @@ export default function Admin() {
           <h2 className="text-2xl font-black mb-6 uppercase tracking-tighter border-b-4 border-black pb-2 flex justify-between items-center">
             <span>
               {selectedLevel === "Global"
-                ? "Top 20 Leaders"
+                ? "Leaderboard"
                 : `Fastest Teams (Level ${selectedLevel})`}
             </span>
             <div className="flex gap-2">
@@ -105,14 +111,24 @@ export default function Admin() {
                 className="p-1 text-sm border-2 border-black font-bold uppercase"
               >
                 <option value="Global">Global</option>
-                {[0, 1, 2, 3, 4, 5, 6].map((l) => (
+                {Array.from(
+                  { length: stats.totalLevels || settings.totalLevels },
+                  (_, i) => i + 1,
+                ).map((l) => (
                   <option key={l} value={l}>
                     Level {l}
                   </option>
                 ))}
               </select>
+              <button
+                onClick={downloadResults}
+                className="text-xs bg-white border-2 border-black px-2 py-1 font-bold uppercase flex items-center gap-1"
+                title="Download final standings as CSV"
+              >
+                <Download size={12} /> CSV
+              </button>
               <span className="text-xs bg-black text-white px-2 py-1 tracking-widest flex items-center">
-                LIVE
+                {settings.eventStatus}
               </span>
             </div>
           </h2>
@@ -123,6 +139,7 @@ export default function Admin() {
                   <th className="p-3">Rank</th>
                   <th className="p-3">Team</th>
                   <th className="p-3">Time</th>
+                  {selectedLevel === "Global" && <th className="p-3">Pen.</th>}
                   <th className="p-3">
                     {selectedLevel === "Global" ? "Status" : "Completed"}
                   </th>
@@ -142,14 +159,21 @@ export default function Admin() {
                       </div>
                     </td>
                     <td className="p-3 font-mono text-blue-600 font-bold">
-                      {formatTime(team.timeTaken)}
+                      {formatDuration(team.timeTaken)}
                     </td>
+                    {selectedLevel === "Global" && (
+                      <td className="p-3 font-mono text-red-600 text-xs">
+                        {team.penaltySeconds ? `+${team.penaltySeconds}s` : "-"}
+                      </td>
+                    )}
                     <td className="p-3 text-zinc-600">
                       {selectedLevel === "Global" ? (
                         <span className="bg-black text-white px-3 py-1 font-black text-xs">
-                          {team.currentLevelIndex >= 7
+                          {team.finished
                             ? "COMPLETED"
-                            : `Level ${team.currentLevelIndex}`}
+                            : team.currentLevelIndex < 0
+                              ? "NOT STARTED"
+                              : `Level ${team.currentLevelIndex}`}
                         </span>
                       ) : (
                         new Date(team.completedAt).toLocaleTimeString([], {
@@ -163,7 +187,7 @@ export default function Admin() {
                 {(!stats.leaderboard || stats.leaderboard.length === 0) && (
                   <tr>
                     <td
-                      colSpan="4"
+                      colSpan="5"
                       className="p-8 text-center text-zinc-400 font-black italic"
                     >
                       NO DATA AVAILABLE
@@ -187,9 +211,18 @@ export default function Admin() {
     <div className="min-h-screen bg-zinc-50 p-4 md:p-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b-4 border-black pb-8">
-        <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">
-          Mission Control
-        </h1>
+        <div className="flex items-center gap-4 min-w-0">
+          <img
+            src="/logo.png"
+            alt={`${settings.eventName} logo`}
+            width="64"
+            height="64"
+            className="w-14 h-14 md:w-16 md:h-16 object-contain shrink-0"
+          />
+          <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">
+            {settings.eventName} Control
+          </h1>
+        </div>
         <Button
           onClick={() => {
             localStorage.removeItem("token");
@@ -210,11 +243,13 @@ export default function Admin() {
           { id: "users", label: "User Management", icon: Users },
           { id: "flow", label: "Game Flow", icon: Route },
           { id: "locations", label: "Locations", icon: Map },
+          { id: "questions", label: "Question Bank", icon: HelpCircle },
+          { id: "settings", label: "Settings", icon: Settings },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 min-w-[150px] p-4 font-black uppercase border-4 border-black text-lg flex items-center justify-center gap-2 transition-all active:translate-y-1 ${activeTab === tab.id ? "bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)]" : "bg-white text-black hover:bg-zinc-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"}`}
+            className={`flex-1 min-w-[140px] p-4 font-black uppercase border-4 border-black text-lg flex items-center justify-center gap-2 transition-all active:translate-y-1 ${activeTab === tab.id ? "bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)]" : "bg-white text-black hover:bg-zinc-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"}`}
           >
             <tab.icon size={20} />
             {tab.label}
@@ -232,6 +267,8 @@ export default function Admin() {
           <FlowManagement initialTeamId={flowTargetTeamId} />
         )}
         {activeTab === "locations" && <LocationManagement />}
+        {activeTab === "questions" && <QuestionBank />}
+        {activeTab === "settings" && <SettingsManagement />}
       </div>
     </div>
   );

@@ -12,7 +12,6 @@ export default function UserManagement({ onManageFlow }) {
     name: "",
     email: "",
     password: "",
-    members: "",
   });
 
   const fetchTeams = async () => {
@@ -45,11 +44,10 @@ export default function UserManagement({ onManageFlow }) {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      const membersArray = form.members.split(",").map((m) => m.trim());
-      await api.post("/admin/teams", { ...form, members: membersArray });
-      alert("Team Created Successfully!");
+      const { data } = await api.post("/admin/teams", form);
+      alert(data.msg);
       setShowAddForm(false);
-      setForm({ name: "", email: "", password: "", members: "" });
+      setForm({ name: "", email: "", password: "" });
       fetchTeams();
     } catch (e) {
       alert(e.response?.data?.msg || "Failed to create team");
@@ -64,14 +62,14 @@ export default function UserManagement({ onManageFlow }) {
         </h2>
         <form onSubmit={handleCreate} className="space-y-4">
           <Input
-            placeholder="Team Name"
+            placeholder="Team lead name / team name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             required
             className="border-4 border-black p-3 rounded-none font-bold placeholder:uppercase"
           />
           <Input
-            placeholder="Leader Email"
+            placeholder="Team lead email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             required
@@ -84,12 +82,6 @@ export default function UserManagement({ onManageFlow }) {
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             required
             type="text"
-            className="border-4 border-black p-3 rounded-none font-bold placeholder:uppercase"
-          />
-          <Input
-            placeholder="Members (comma separated)"
-            value={form.members}
-            onChange={(e) => setForm({ ...form, members: e.target.value })}
             className="border-4 border-black p-3 rounded-none font-bold placeholder:uppercase"
           />
 
@@ -175,7 +167,7 @@ export default function UserManagement({ onManageFlow }) {
                         LVL {team.currentLevelIndex}
                       </span>
                       <span className="text-xs opacity-50">
-                        step {team.currentLevelIndex}/6
+                        step {team.currentLevelIndex}/{Math.max(team.path.length - 1, 0)}
                       </span>
                     </div>
                   </td>
