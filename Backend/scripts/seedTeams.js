@@ -13,15 +13,12 @@ import dotenv from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { FINALE_CHALLENGES } from "../config/constants.js";
 import { getSettings } from "../services/settingsService.js";
 import { generateBalancedPath } from "../services/teamService.js";
 import { buildChallenges } from "../services/questionService.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, "../.env") });
-
-const CHALLENGE_TYPES = Object.values(FINALE_CHALLENGES);
 
 const countArg = process.argv.find((a) => a.startsWith("--count="));
 const TEAM_COUNT = countArg ? Number(countArg.split("=")[1]) : 20;
@@ -60,8 +57,6 @@ const seedTeams = async () => {
         path: teamPath,
         challenges,
         currentLevelIndex: -1,
-        finaleChallenge:
-          CHALLENGE_TYPES[Math.floor(Math.random() * CHALLENGE_TYPES.length)],
         collectedKeywords: [],
         activeSessions: [],
       });

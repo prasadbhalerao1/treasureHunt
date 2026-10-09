@@ -1,77 +1,80 @@
 // Venue checkpoints: the Start (id 0) is created by the seed script itself.
-// Edit these to match your venue. keyword = the "hop code" a team collects.
+// Names and riddles are EXACTLY the ones from the previous event
+// (Backend/local_backup_1770292572869.json). Do not reword them.
+// "keyword" is an internal code (not shown to players).
+export const START_HINT = "Go to the Starting Point.";
+
 export const LOCATION_DATA = [
   {
     name: "Bus Parking (Behind Cafeteria)",
     shortCode: "BUSPARK",
     keyword: "ROUTER",
-    hint: "TTL almost expired.\nBig yellow gateways sit idle behind the place where meals are served.\nFind the checkpoint where drivers exchange messages.",
+    hint: "Not a classroom, not a hall Big yellow giants stand tall. Meals are near, engines sleep, Find your clue where drivers meet.",
   },
   {
     name: "Food Court – Dosa Wala",
     shortCode: "DOSA",
     keyword: "GATEWAY",
-    hint: "A shared broadcast domain for every branch:\nall hungry, all connected.\nNext hop: the stall that serves a flat, folded, warm payload.",
+    hint: "A common ground for every branch,\nwhere hunger makes alliances.\nFrom there, track fermentation’s reward,\nserved flat, folded, and warm.",
   },
   {
     name: "Cafeteria",
     shortCode: "CAFE",
     keyword: "SWITCH",
-    hint: "Hungry packets queue up here between bells.\nBuffers overflow with chatter, and throughput is measured in plates per minute.\nSearch where students line up to dine.",
+    hint: "Where hunger gathers between bells,\nplates move fast, and chatter swells.\nMeals replace the morning grind—\nsearch where students queue to dine.",
   },
   {
     name: "Jaywant Library",
     shortCode: "LIBRARY",
     keyword: "FIREWALL",
-    hint: "PING sent. Reply expected from the building where the loudest sound is a whisper.\nIts name is a victory cry; its shelves hold the only RFCs that matter.\nLatency here: very high. Volume: zero.",
+    hint: "Victory’s temple holds the scrolls,\nwhere whispers die and silence patrols.\nThe guardian named for triumph’s call—\nknowledge sleeps behind these walls.",
   },
   {
     name: "CSBS Department",
     shortCode: "CSBS",
     keyword: "PROXY",
-    hint: "A dual-stack department that speaks both code and commerce.\nNot only programmers, not only managers: this is where tech meets business.",
+    hint: "Not only programmers, not only managers — this is where tech meets business.",
   },
   {
     name: "FY Department",
     shortCode: "FY",
     keyword: "DNS",
-    hint: "The first hop for every new engineer.\nFresh nodes join the network here and learn the protocols of college life.\nThe launchpad of the campus.",
+    hint: "Where rookies shed their school-day skin,\nengineers take first steps within.\nBeginnings live on every page—\nthe launchpad of the college stage.",
   },
   {
     name: "Physics Lab",
     shortCode: "PHYLAB",
     keyword: "DHCP",
-    hint: "Circuits glow and pendulums swing,\nbeneath the stage where the speakers sing.\nForces meet and laws collide: Newton whispers, Ohm replies.",
+    hint: "Where pendulums swing and circuits glow,\nbeneath the stage where speakers show.\nForces meet and laws collide—\nNewton whispers, Ohm replies.",
   },
   {
     name: "Stationery Store (Food Court)",
     shortCode: "STATIONERY",
     keyword: "NAT",
-    hint: "Hidden among the edible, a node that sells what is not:\nink and paper, bound and bought.\nWhere mistakes get erased and a clean page awaits.",
+    hint: "Among the edible, find what’s not—\nink and paper, bound and bought.\nWhere mistakes retreat with grace,\nand answers get a cleaner face.",
   },
   {
     name: "Xerox Shop",
     shortCode: "XEROX",
     keyword: "BRIDGE",
-    hint: "One packet in, many packets out.\nThis node duplicates every payload: faded notes come out crisp and loud.\nOne idea enters, multiplied.",
+    hint: "Where singularity becomes a crowd,\nfaded notes grow crisp and loud.\nOne idea enters, multiplied—\nclarity printed side by side.",
   },
   {
     name: "Mac Lab",
     shortCode: "MACLAB",
     keyword: "MODEM",
-    hint: "🍎 ➡️ 💻 ➡️ 🚪\nA subnet of silver machines, the same logo on every node.\nMouse and keys work side by side; your next packet waits inside.",
+    hint: "🍎 ➡️ 💻 ➡️ 🚪\nSilver screens in silent rows,\nwhere designs and deadlines go.\nMouse and keys work side by side,\nyour next answer waits inside.",
   },
   {
     name: "Counselling Centre",
     shortCode: "COUNSEL",
     keyword: "REPEATER",
-    hint: "A strong mind survives any outage.\nWhen the signal drops, climb the steps.\nBehind the door where hearts heal, your next secret waits.",
+    hint: "A strong mind wins every heist. When fear rises, climb the steps. Behind the door where hearts heal, your next secret waits.",
   },
   {
     name: "Student Section",
     shortCode: "STUDENT",
     keyword: "HUB",
-    hint: "The request queue of the campus: forms in, approvals out.\nNo classes here, only requests waiting their turn in line.\nSign on the dotted line.",
+    hint: "Where dreams queue up in paper form,\nand patience beats the brightest norm.\nNo classes here, just forms to sign—\nwhere student requests wait in line.",
   },
 ];
-

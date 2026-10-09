@@ -1,7 +1,7 @@
 import Team from "../models/Team.js";
 import { hashPassword } from "../utils/auth.js";
 import { randomBytes } from "node:crypto";
-import { ROLES, FINALE_CHALLENGES } from "../config/constants.js";
+import { ROLES } from "../config/constants.js";
 import logger from "../utils/logger.js";
 import { getSettings } from "./settingsService.js";
 import { buildChallenges } from "./questionService.js";
@@ -86,10 +86,6 @@ export async function createTeamRecord({ name, email, password }) {
     role: ROLES.CANDIDATE,
     path,
     currentLevelIndex: -1,
-    finaleChallenge:
-      Object.values(FINALE_CHALLENGES)[
-        Math.floor(Math.random() * Object.values(FINALE_CHALLENGES).length)
-      ],
     challenges,
     collectedKeywords: [],
     activeSessions: [],

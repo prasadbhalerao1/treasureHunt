@@ -36,7 +36,7 @@ export const ERRORS = {
 export const DEFAULT_SETTINGS = {
   eventName: "TraceRoute",
   tagline: "Follow the hops. Reach the destination.",
-  totalLevels: 7,
+  totalLevels: 6,
   maxAttemptsPerQuestion: 3,
   wrongAnswerCooldownSeconds: 20,
   wrongAnswerTimePenaltySeconds: 30,
@@ -45,26 +45,3 @@ export const DEFAULT_SETTINGS = {
   showLeaderboardToTeams: false,
 };
 
-// Mega Puzzle: sort the collected hop codes by the team's assigned rule
-export const FINALE_CHALLENGES = {
-  ALPHA_ASC: "ALPHA_ASC", // A-Z
-  ALPHA_DESC: "ALPHA_DESC", // Z-A
-  LENGTH_ASC: "LENGTH_ASC", // Shortest First
-  LENGTH_DESC: "LENGTH_DESC", // Longest First
-  SECOND_LETTER: "SECOND_LETTER", // 2nd Letter A-Z
-  LAST_LETTER: "LAST_LETTER", // Last Letter A-Z
-};
-
-export const FINALE_DESCRIPTIONS = {
-  ALPHA_ASC: "REASSEMBLE THE PACKET: ORDER THE HOP CODES ALPHABETICALLY (A → Z)",
-  ALPHA_DESC:
-    "REASSEMBLE THE PACKET: ORDER THE HOP CODES IN REVERSE ALPHABETICAL ORDER (Z → A)",
-  LENGTH_ASC: "REASSEMBLE THE PACKET: ORDER BY LENGTH (SHORTEST → LONGEST)",
-  LENGTH_DESC: "REASSEMBLE THE PACKET: ORDER BY LENGTH (LONGEST → SHORTEST)",
-  SECOND_LETTER:
-    "REASSEMBLE THE PACKET: ORDER ALPHABETICALLY BY THE SECOND LETTER",
-  LAST_LETTER: "REASSEMBLE THE PACKET: ORDER ALPHABETICALLY BY THE LAST LETTER",
-};
-
-export const MEGA_MAX_ATTEMPTS_BEFORE_COOLDOWN = 3;
-export const MEGA_COOLDOWN_SECONDS = 30;

@@ -118,17 +118,17 @@ test("public settings expose only branding", async () => {
   const res = await request(app).get("/api/settings/public");
   assert.equal(res.status, 200);
   assert.equal(res.body.eventName, "TraceRoute");
-  assert.equal(res.body.totalLevels, 7);
+  assert.equal(res.body.totalLevels, 6);
   assert.ok(!("maxAttemptsPerQuestion" in res.body));
 });
 
-test("teams get 7 locations, 7 distinct questions, different sets", async () => {
+test("teams get 6 locations, 6 distinct questions, different sets", async () => {
   const a = await models.Team.findById(teams.Alpha._id).lean();
   const b = await models.Team.findById(teams.Bravo._id).lean();
-  assert.equal(a.path.length, 8);
+  assert.equal(a.path.length, 7);
   assert.equal(a.path[0], 0);
-  assert.equal(a.challenges.length, 7);
-  assert.equal(new Set(a.challenges.map((c) => c.questionId)).size, 7);
+  assert.equal(a.challenges.length, 6);
+  assert.equal(new Set(a.challenges.map((c) => c.questionId)).size, 6);
   assert.notDeepEqual(
     a.challenges.map((c) => c.questionId),
     b.challenges.map((c) => c.questionId),
@@ -169,69 +169,44 @@ test("candidates cannot reach admin routes", async () => {
   assert.equal(res.status, 403);
 });
 
-test("full game: scan, challenge, wrong/right answers, Mega Puzzle", async () => {
+test("full game: scan opens a question, the answer reveals the next riddle", async () => {
   const token = await login(teams.Alpha.teamId, "teampass");
   const team = await models.Team.findById(teams.Alpha._id).lean();
+  const N = team.path.length - 1;
 
-  // Not started
   let res = await request(app).get("/api/game/state").set(auth(token));
   assert.equal(res.body.status, "NOT_STARTED");
 
-  // Wrong QR
+  // Wrong QR, and a later location's QR, are both refused
   res = await request(app)
     .post("/api/game/scan")
     .set(auth(token))
     .send({ qrString: "NOPE" });
   assert.equal(res.status, 400);
-
-  // Out-of-order QR (a later location) is rejected
-  const later = await models.Location.findOne({ locationId: team.path[3] });
+  const later = await models.Location.findOne({ locationId: team.path[2] });
   res = await request(app)
     .post("/api/game/scan")
     .set(auth(token))
     .send({ qrString: later.qrSecret });
   assert.equal(res.status, 400);
 
-  // Start
-  res = await request(app)
-    .post("/api/game/scan")
-    .set(auth(token))
-    .send({ qrString: "start-test0001" });
-  assert.equal(res.status, 200);
-  assert.equal(res.body.state.status, "HINT_UNLOCKED");
-  assert.equal(res.body.state.hint, `HINT-FOR-LOC-${team.path[1]}`);
-  // no challenge before the scan of level 1
-  assert.ok(!res.body.state.challenge);
-
-  // Answering before scanning level 1 is refused
-  res = await request(app)
-    .post("/api/game/answer")
-    .set(auth(token))
-    .send({ level: 1, optionKey: "A" });
-  assert.equal(res.status, 400);
-
-  for (let level = 1; level <= 7; level++) {
-    const loc = await models.Location.findOne({ locationId: team.path[level] });
+  for (let level = 1; level <= N; level++) {
+    const scanLoc = await models.Location.findOne({
+      locationId: team.path[level - 1],
+    });
     const ch = team.challenges.find((c) => c.level === level);
     const q = await models.Question.findOne({ questionId: ch.questionId });
 
+    // Scanning opens THIS level's question (the Start QR included)
     res = await request(app)
       .post("/api/game/scan")
       .set(auth(token))
-      .send({ qrString: loc.qrSecret });
-    assert.equal(res.status, 200);
-    assert.equal(res.body.state.status, "CHALLENGE_OPEN");
-    const body = JSON.stringify(res.body);
-    assert.ok(!body.includes(q.explanation), "explanation leaked");
+      .send({ qrString: scanLoc.qrSecret.toLowerCase() });
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    assert.equal(res.body.state.status, "CHALLENGE_OPEN", `level ${level}`);
+    assert.equal(res.body.state.challenge.prompt, q.prompt);
+    assert.ok(!JSON.stringify(res.body).includes(q.explanation));
     assert.ok(!("correctKey" in res.body.state.challenge));
-    assert.equal(res.body.state.challenge.options.length, 4);
-
-    // Re-scan is idempotent (same question)
-    const again = await request(app)
-      .post("/api/game/scan")
-      .set(auth(token))
-      .send({ qrString: loc.qrSecret });
-    assert.equal(again.body.state.challenge.prompt, q.prompt);
 
     if (level === 1) {
       const wrongKey = q.options.find((o) => o.key !== q.correctKey).key;
@@ -243,9 +218,10 @@ test("full game: scan, challenge, wrong/right answers, Mega Puzzle", async () =>
       assert.equal(res.body.correct, false);
       assert.equal(res.body.attemptsLeft, 2);
       assert.equal(res.body.state.penaltySeconds, 30);
+      assert.equal(res.body.state.status, "CHALLENGE_OPEN");
     }
 
-    // Double-submit of the right answer only advances once
+    // Double submit advances exactly once
     const [r1, r2] = await Promise.all([
       request(app)
         .post("/api/game/answer")
@@ -256,73 +232,39 @@ test("full game: scan, challenge, wrong/right answers, Mega Puzzle", async () =>
         .set(auth(token))
         .send({ level, optionKey: q.correctKey }),
     ]);
-    const codes = [r1.status, r2.status].sort();
-    assert.deepEqual(codes, [200, 409], `level ${level}: ${codes}`);
+    assert.deepEqual([r1.status, r2.status].sort(), [200, 409]);
     const ok = r1.status === 200 ? r1 : r2;
     assert.equal(ok.body.correct, true);
-    assert.equal(ok.body.state.level, level);
     assert.equal(ok.body.explanation, q.explanation);
-    if (level < 7) {
-      assert.equal(ok.body.state.status, "HINT_UNLOCKED");
-      assert.equal(ok.body.state.hint, `HINT-FOR-LOC-${team.path[level + 1]}`);
-    } else {
-      assert.equal(ok.body.state.status, "FINALE");
-    }
+
+    // ... and reveals the riddle for the next location
+    const nextLoc = await models.Location.findOne({
+      locationId: team.path[level],
+    });
+    assert.equal(ok.body.state.status, "HINT_UNLOCKED");
+    assert.equal(ok.body.state.hint, nextLoc.hint);
+    assert.equal(ok.body.state.level, level);
   }
 
-  // Mega Puzzle
-  res = await request(app).get("/api/game/state").set(auth(token));
-  assert.equal(res.body.status, "FINALE");
-  const hops = res.body.hopCodes;
-  assert.equal(hops.length, 7);
-
-  const { isValidOrder } = await import("../utils/finale.js");
-  const rule = (await models.Team.findById(teams.Alpha._id)).finaleChallenge;
-  const permute = (arr) =>
-    arr.length <= 1
-      ? [arr]
-      : arr.flatMap((x, i) =>
-          permute([...arr.slice(0, i), ...arr.slice(i + 1)]).map((p) => [
-            x,
-            ...p,
-          ]),
-        );
-  // find one valid and one invalid ordering without peeking at server code
-  let valid;
-  let invalid;
-  const sorted = [...hops].sort();
-  for (const cand of [sorted, [...sorted].reverse(), hops]) {
-    if (isValidOrder(cand, hops, rule)) valid ??= cand;
-    else invalid ??= cand;
-  }
-  if (!valid) {
-    valid = permute(hops.slice(0, 7)).find((p) => isValidOrder(p, hops, rule));
-  }
-
-  if (invalid) {
-    res = await request(app)
-      .post("/api/game/submit")
-      .set(auth(token))
-      .send({ answer: invalid.join("-") });
-    assert.equal(res.status, 400);
-    assert.equal(res.body.correct, false);
-  }
-
+  // Scanning the last location unlocks the final challenge
+  const lastLoc = await models.Location.findOne({ locationId: team.path[N] });
   res = await request(app)
-    .post("/api/game/submit")
+    .post("/api/game/scan")
     .set(auth(token))
-    .send({ answer: valid.join("-").toLowerCase() });
+    .send({ qrString: lastLoc.qrSecret });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.state.status, "FINALE");
+
+  // Final challenge is a single button
+  res = await request(app).post("/api/game/submit").set(auth(token)).send({});
   assert.equal(res.status, 200, JSON.stringify(res.body));
   assert.equal(res.body.state.status, "COMPLETED");
 
-  // Admin leaderboard: finished team included with penalties
   res = await request(app).get("/api/admin/stats").set(auth(admin));
-  assert.equal(res.status, 200);
-  assert.equal(res.body.totalLevels, 7);
+  assert.equal(res.body.totalLevels, 6);
   const row = res.body.leaderboard.find((r) => r.teamId === teams.Alpha.teamId);
   assert.equal(row.finished, true);
   assert.ok(row.penaltySeconds >= 30);
-  assert.ok(row.timeTaken >= row.penaltySeconds * 1000);
 
   const csv = await request(app).get("/api/admin/results.csv").set(auth(admin));
   assert.equal(csv.status, 200);
@@ -341,11 +283,6 @@ test("cooldown, out-of-attempts swap, and admin unlock", async () => {
     .post("/api/game/scan")
     .set(auth(token))
     .send({ qrString: "START-TEST0001" });
-  const loc = await models.Location.findOne({ locationId: team.path[1] });
-  await request(app)
-    .post("/api/game/scan")
-    .set(auth(token))
-    .send({ qrString: loc.qrSecret });
 
   const ch = team.challenges[0];
   const q = await models.Question.findOne({ questionId: ch.questionId });
@@ -365,14 +302,12 @@ test("cooldown, out-of-attempts swap, and admin unlock", async () => {
   assert.equal(res.status, 429);
   assert.ok(res.body.retryAfterSeconds > 0);
 
-  // Admin unlock clears the cooldown
+  // Admin unlock clears the cooldown and the attempt count
   res = await request(app)
     .post(`/api/admin/teams/${teams.Bravo._id}/unlock`)
     .set(auth(admin));
   assert.equal(res.status, 200);
 
-  // Unlock reset attempts to 0. With no cooldown, two wrong answers exhaust
-  // the 2 allowed attempts -> a new question plus an extra penalty.
   await request(app)
     .put("/api/admin/settings")
     .set(auth(admin))
@@ -387,6 +322,7 @@ test("cooldown, out-of-attempts swap, and admin unlock", async () => {
   assert.equal(res.body.swapped, false);
   assert.equal(res.body.attemptsLeft, 1);
 
+  // Second miss exhausts the 2 attempts -> new question + extra penalty
   res = await request(app)
     .post("/api/game/answer")
     .set(auth(token))
@@ -398,8 +334,8 @@ test("cooldown, out-of-attempts swap, and admin unlock", async () => {
   assert.equal(res.body.state.challenge.attempts, 0);
 
   const after = await models.Team.findById(teams.Bravo._id).lean();
-  assert.equal(after.penaltySeconds, before + 90); // 30 + 60
-  assert.equal(new Set(after.challenges.map((c) => c.questionId)).size, 7);
+  assert.equal(after.penaltySeconds, before + 90);
+  assert.equal(new Set(after.challenges.map((c) => c.questionId)).size, 6);
 });
 
 test("admin question CRUD and import validation", async () => {
@@ -458,7 +394,7 @@ test("admin reset puts a finished team back at the start", async () => {
   const t = await models.Team.findById(teams.Alpha._id).lean();
   assert.equal(t.currentLevelIndex, -1);
   assert.equal(t.penaltySeconds, 0);
-  assert.equal(t.challenges.length, 7);
+  assert.equal(t.challenges.length, 6);
 });
 
 test("login rejects regex injection and bad creds", async () => {

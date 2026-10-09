@@ -9,7 +9,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import request from "supertest";
 import QRCode from "qrcode";
 import { playTeam } from "./helpers/playTeam.js";
-import { LOCATION_DATA } from "../data/locations.js";
+import { LOCATION_DATA, START_HINT } from "../data/locations.js";
 
 const require = createRequire(import.meta.url);
 const jsQR = require("jsqr");
@@ -76,7 +76,7 @@ before(async () => {
     {
       locationId: 0,
       name: "Location-0 (Start)",
-      hint: "Go to the Starting Point.",
+      hint: START_HINT,
       qrSecret: "START-AB12CD34",
       keyword: "START",
     },
@@ -191,7 +191,7 @@ test("admin adds 10 teams and each one is emailed its credentials", async () => 
     assert.equal(mail.name, c.name);
     assert.equal(mail.password, c.password);
     assert.equal(mail.eventName, "TraceRoute");
-    assert.equal(mail.totalLevels, 7);
+    assert.equal(mail.totalLevels, 6);
     assert.equal(mail.loginUrl, "https://traceroute.example.app");
     assert.equal(mail.subject, "Your TraceRoute login");
     assert.ok(!("members" in mail) && !("membersText" in mail));
@@ -209,7 +209,7 @@ test("admin adds 10 teams and each one is emailed its credentials", async () => 
   assert.equal(received.length, 10);
 });
 
-test("each new team got a unique route and its own 7 questions", async () => {
+test("each new team got a unique route and its own 6 questions", async () => {
   const docs = await models.Team.find({ role: "CANDIDATE" }).lean();
   assert.equal(docs.length, 10);
 
@@ -222,14 +222,14 @@ test("each new team got a unique route and its own 7 questions", async () => {
 
   const usage = {};
   for (const d of docs) {
-    assert.equal(d.path.length, 8);
+    assert.equal(d.path.length, 7);
     assert.equal(d.path[0], 0);
-    assert.equal(new Set(d.path).size, 8);
-    assert.equal(d.challenges.length, 7);
-    assert.equal(new Set(d.challenges.map((c) => c.questionId)).size, 7);
+    assert.equal(new Set(d.path).size, 7);
+    assert.equal(d.challenges.length, 6);
+    assert.equal(new Set(d.challenges.map((c) => c.questionId)).size, 6);
     d.path.slice(1).forEach((id) => (usage[id] = (usage[id] || 0) + 1));
   }
-  // 70 visits over 12 locations: balanced means 5 or 6 each
+  // 60 visits over 12 locations: balanced means 5 each
   const counts = Object.values(usage);
   assert.equal(counts.length, 12, "every location is used");
   assert.ok(Math.max(...counts) - Math.min(...counts) <= 1, JSON.stringify(usage));
@@ -260,31 +260,30 @@ test("all 10 teams play the whole event at the same time", async () => {
     assert.ok(hintsSeen.has(id), `hint for location ${id} was never shown`);
   }
 
-  // Each team scanned Start + exactly its 7 locations, in order
+  // Each team scanned Start + exactly its 6 locations, in order
   for (const r of reports) {
-    assert.deepEqual(r.qrsScanned, r.path.slice(0, 8));
-    assert.ok(r.wrong >= 4, "wrong answers were exercised");
-    assert.ok(r.penaltySeconds >= 120, `penalties applied: ${r.penaltySeconds}`);
+    assert.deepEqual(r.qrsScanned, r.path);
+    assert.ok(r.wrong >= 3, "wrong answers were exercised");
+    assert.ok(r.penaltySeconds >= 90, `penalties applied: ${r.penaltySeconds}`);
   }
 
   // DB: all finished, nothing double counted
   const docs = await models.Team.find({ role: "CANDIDATE" }).lean();
   for (const d of docs) {
-    assert.equal(d.currentLevelIndex, 9, `${d.teamId} finished`);
-    assert.equal(d.levelHistory.length, 9, "levels 0..7 plus the Mega Puzzle");
+    assert.equal(d.currentLevelIndex, 8, `${d.teamId} finished`);
     assert.deepEqual(
       d.levelHistory.map((h) => h.level),
-      [0, 1, 2, 3, 4, 5, 6, 7, 8],
+      [0, 1, 2, 3, 4, 5, 6, 7],
+      "start + 6 questions + the final challenge",
     );
     assert.ok(d.challenges.every((c) => c.solved && c.solvedAt));
-    assert.equal(d.collectedKeywords.length, 8, "START + 7 hop codes");
   }
 });
 
 test("leaderboard, per-level view, and CSV cover all 10 teams", async () => {
   let res = await request(app).get("/api/admin/stats").set(auth(admin));
   assert.equal(res.status, 200);
-  assert.equal(res.body.totalLevels, 7);
+  assert.equal(res.body.totalLevels, 6);
   const rows = res.body.leaderboard;
   assert.equal(rows.length, 10);
   assert.ok(rows.every((r) => r.finished));
@@ -293,7 +292,7 @@ test("leaderboard, per-level view, and CSV cover all 10 teams", async () => {
   }
   assert.ok(rows.every((r) => r.timeTaken >= r.penaltySeconds * 1000));
 
-  for (const level of [1, 4, 7]) {
+  for (const level of [1, 3, 6]) {
     res = await request(app)
       .get(`/api/admin/stats?level=${level}`)
       .set(auth(admin));
@@ -345,5 +344,5 @@ test("a team created after the event started can log in and sees level 0", async
     .get("/api/game/state")
     .set(auth(late.body.token));
   assert.equal(state.body.status, "NOT_STARTED");
-  assert.equal(state.body.totalLevels, 7);
+  assert.equal(state.body.totalLevels, 6);
 });

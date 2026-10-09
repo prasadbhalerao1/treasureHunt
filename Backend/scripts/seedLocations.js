@@ -11,7 +11,7 @@ import mongoose from "mongoose";
 import Location from "../models/Location.js";
 import dotenv from "dotenv";
 import { randomBytes } from "node:crypto";
-import { LOCATION_DATA } from "../data/locations.js";
+import { LOCATION_DATA, START_HINT } from "../data/locations.js";
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -36,7 +36,7 @@ const seedLocations = async () => {
       {
         locationId: 0,
         name: "Location-0 (Start)",
-        hint: "Go to the Starting Point.",
+        hint: START_HINT,
         qrSecret: "START-" + randomBytes(4).toString("hex").toUpperCase(),
         keyword: "START",
       },

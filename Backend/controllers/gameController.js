@@ -7,12 +7,8 @@ import {
   EVENT_STATUS,
   OUT_OF_ATTEMPTS,
   ROLES,
-  FINALE_DESCRIPTIONS,
-  MEGA_MAX_ATTEMPTS_BEFORE_COOLDOWN,
-  MEGA_COOLDOWN_SECONDS,
 } from "../config/constants.js";
 import logger from "../utils/logger.js";
-import { isValidOrder } from "../utils/finale.js";
 import { sanitizeChallenge } from "../utils/questionLogic.js";
 import { getSettings } from "../services/settingsService.js";
 import {
@@ -20,7 +16,24 @@ import {
   pickReplacement,
 } from "../services/questionService.js";
 
-export { getSortKey, isValidOrder } from "../utils/finale.js";
+/*
+ * FLOW (path = [Start, L1 .. L6], totalLevels = 6)
+ *
+ *   scan Start QR      -> MCQ 1 opens
+ *   solve MCQ 1        -> riddle for L1
+ *   scan L1 QR         -> MCQ 2 opens
+ *   solve MCQ 2        -> riddle for L2
+ *   ...
+ *   scan L5 QR         -> MCQ 6 opens
+ *   solve MCQ 6        -> riddle for L6
+ *   scan L6 QR         -> FINAL challenge (one button for now)
+ *
+ * currentLevelIndex:
+ *   -1  registered, Start QR not scanned
+ *    k  MCQ k solved (1..6); the team is walking to location k
+ *    path.length (= 7)      all 6 MCQs solved AND the last QR scanned: FINAL
+ *    path.length + 1 (= 8)  finished
+ */
 
 // "Locked until an organiser resets you" is stored as a far-future date
 const FAR_FUTURE = new Date("2999-01-01T00:00:00Z");
@@ -31,12 +44,17 @@ const getHintForLocation = async (locId) => {
   return loc ? loc.hint : "Hint not found.";
 };
 
+// Number of MCQ levels = number of locations after Start
 const levelsOf = (team) => Math.max(team.path.length - 1, 0);
 
 const startedAtOf = (team) => {
   const log = (team.levelHistory || []).find((h) => h.level === 0);
   return log ? log.completedAt : null;
 };
+
+// The QR a team must scan next: Start (index 0) before any MCQ is solved,
+// then the location of the MCQ they just solved.
+const expectedScanIndex = (team) => Math.max(team.currentLevelIndex, 0);
 
 // Ensure the team has one assigned question per level (lazy fallback)
 async function ensureChallenges(team) {
@@ -55,21 +73,23 @@ async function ensureChallenges(team) {
 async function buildState(team) {
   const settings = await getSettings();
   const cur = team.currentLevelIndex;
+  const total = levelsOf(team);
   const base = {
     teamId: team.teamId,
     name: team.name,
     level: cur,
-    totalLevels: levelsOf(team),
+    totalLevels: total,
     penaltySeconds: team.penaltySeconds || 0,
     startedAt: startedAtOf(team),
-    finishedAt: cur >= team.path.length ? team.lastLevelCompletedAt : null,
+    finishedAt: cur > team.path.length ? team.lastLevelCompletedAt : null,
     collectedKeywords: team.collectedKeywords,
     serverTime: new Date(),
     eventStatus: settings.eventStatus,
     eventName: settings.eventName,
   };
 
-  if (cur >= team.path.length) {
+  // Finished
+  if (cur > team.path.length) {
     return {
       ...base,
       status: GAME_STATUS.COMPLETED,
@@ -77,36 +97,27 @@ async function buildState(team) {
     };
   }
 
-  if (cur === team.path.length - 1 && cur >= 0) {
-    const hopCodes = team.collectedKeywords.filter(
-      (k) => k.trim().toUpperCase() !== "START",
-    );
+  // All MCQs solved and the last QR scanned: the final challenge
+  if (cur === team.path.length) {
     return {
       ...base,
       status: GAME_STATUS.FINALE,
-      hint:
-        FINALE_DESCRIPTIONS[team.finaleChallenge] ||
-        "Reassemble the packet: order the hop codes.",
-      hopCodes,
-      finaleRetryAfterSeconds: team.finaleLockedUntil
-        ? Math.max(
-            0,
-            Math.ceil((new Date(team.finaleLockedUntil) - Date.now()) / 1000),
-          )
-        : 0,
+      hint: "Final challenge unlocked. Press the button to finish.",
     };
   }
 
+  // Not started: scan the Start QR
   if (cur === -1) {
     return {
       ...base,
       status: GAME_STATUS.NOT_STARTED,
-      hint: "Go to the START location and scan its QR code to begin the trace.",
+      hint: "Go to the START location and scan its QR code to begin.",
     };
   }
 
-  const nextIndex = cur + 1;
-  const challenge = (team.challenges || []).find((c) => c.level === nextIndex);
+  // A challenge is open when the QR for this step has been scanned
+  const level = cur + 1; // the MCQ that follows the scan of path[cur]
+  const challenge = (team.challenges || []).find((c) => c.level === level);
 
   if (challenge && challenge.firstShownAt && !challenge.solved) {
     const question = await Question.findOne({
@@ -116,7 +127,6 @@ async function buildState(team) {
       return {
         ...base,
         status: GAME_STATUS.CHALLENGE_OPEN,
-        hint: await getHintForLocation(team.path[nextIndex]),
         challenge: {
           ...sanitizeChallenge(question, challenge),
           maxAttempts: settings.maxAttemptsPerQuestion,
@@ -126,18 +136,22 @@ async function buildState(team) {
     }
   }
 
+  // Otherwise: the riddle for the location whose QR they must scan next
   return {
     ...base,
     status: GAME_STATUS.HINT_UNLOCKED,
-    hint: await getHintForLocation(team.path[nextIndex]),
-    nextLevel: nextIndex,
+    hint: await getHintForLocation(team.path[expectedScanIndex(team)]),
+    nextLevel: level,
   };
 }
 
 // Players can only act while the event is LIVE (admins may always test)
 async function eventGate(req, res) {
   const settings = await getSettings();
-  if (req.user.role !== ROLES.ADMIN && settings.eventStatus !== EVENT_STATUS.LIVE) {
+  if (
+    req.user.role !== ROLES.ADMIN &&
+    settings.eventStatus !== EVENT_STATUS.LIVE
+  ) {
     res.status(403).json({
       msg:
         settings.eventStatus === EVENT_STATUS.ENDED
@@ -162,7 +176,8 @@ export const getGameState = async (req, res) => {
   }
 };
 
-// Scan a location QR. Start QR begins the trace; any other QR opens its challenge.
+// Scan the QR at the current location. Every scan opens that step's MCQ,
+// except the final one, which unlocks the final challenge.
 export const scanQR = async (req, res) => {
   try {
     const qrString = String(req.body?.qrString ?? "").trim();
@@ -175,21 +190,21 @@ export const scanQR = async (req, res) => {
 
     let team = await Team.findById(req.user.id);
     if (!team) return res.status(404).json({ msg: "Team not found" });
+    team = await ensureChallenges(team);
 
-    const nextIndex = team.currentLevelIndex + 1;
-
-    if (nextIndex >= team.path.length) {
+    if (team.currentLevelIndex >= team.path.length) {
       return res.status(200).json({
         msg:
-          nextIndex === team.path.length
-            ? "All hops traced! Solve the Mega Puzzle."
+          team.currentLevelIndex === team.path.length
+            ? "Final challenge already unlocked."
             : "Route already complete.",
         state: await buildState(team),
       });
     }
 
+    const scanIndex = expectedScanIndex(team);
     const targetLocation = await Location.findOne({
-      locationId: team.path[nextIndex],
+      locationId: team.path[scanIndex],
     }).lean();
     if (!targetLocation) {
       return res.status(500).json({ msg: "Target Location Data Missing" });
@@ -202,28 +217,46 @@ export const scanQR = async (req, res) => {
 
     const now = new Date();
 
-    // Level 0: Start QR begins the clock, no challenge
-    if (nextIndex === 0) {
+    // The very first scan starts the clock
+    if (team.currentLevelIndex === -1) {
       const started = await Team.findOneAndUpdate(
         { _id: team._id, currentLevelIndex: -1 },
         {
           $set: { currentLevelIndex: 0, lastLevelCompletedAt: now },
           $push: { levelHistory: { level: 0, completedAt: now } },
-          $addToSet: { collectedKeywords: targetLocation.keyword || "START" },
         },
         { new: true },
       );
       team = started || (await Team.findById(team._id));
-      logger.info(`Team ${team.teamId} started the trace`);
+      logger.info(`Team ${team.teamId} started`);
+    }
+
+    // Scanning the LAST location unlocks the final challenge
+    if (scanIndex === team.path.length - 1 && team.currentLevelIndex > 0) {
+      const done = await Team.findOneAndUpdate(
+        { _id: team._id, currentLevelIndex: team.path.length - 1 },
+        {
+          $set: {
+            currentLevelIndex: team.path.length,
+            lastLevelCompletedAt: now,
+          },
+          $addToSet: {
+            collectedKeywords: targetLocation.keyword || `HOP-${scanIndex}`,
+          },
+        },
+        { new: true },
+      );
+      const after = done || (await Team.findById(team._id));
+      logger.info(`Team ${team.teamId} unlocked the final challenge`);
       return res.json({
-        msg: "Trace started! Packet is on its way.",
-        state: await buildState(team),
+        msg: "Final location verified!",
+        state: await buildState(after),
       });
     }
 
-    // Levels 1..N: open the challenge for this location
-    team = await ensureChallenges(team);
-    const challenge = team.challenges.find((c) => c.level === nextIndex);
+    // Otherwise: open the MCQ for this step
+    const level = team.currentLevelIndex + 1;
+    const challenge = team.challenges.find((c) => c.level === level);
     if (!challenge) {
       return res.status(500).json({ msg: "Challenge not assigned" });
     }
@@ -232,16 +265,16 @@ export const scanQR = async (req, res) => {
       await Team.updateOne(
         {
           _id: team._id,
-          challenges: { $elemMatch: { level: nextIndex, firstShownAt: null } },
+          challenges: { $elemMatch: { level, firstShownAt: null } },
         },
         { $set: { "challenges.$.firstShownAt": now } },
       );
-      team = await Team.findById(team._id);
     }
+    team = await Team.findById(team._id);
 
-    logger.info(`Team ${team.teamId} opened challenge ${nextIndex}`);
+    logger.info(`Team ${team.teamId} opened challenge ${level}`);
     res.json({
-      msg: "Location verified. Solve the challenge to continue.",
+      msg: "Location verified. Solve the question to continue.",
       state: await buildState(team),
     });
   } catch (err) {
@@ -250,7 +283,8 @@ export const scanQR = async (req, res) => {
   }
 };
 
-// Answer the MCQ for the currently open level
+// Answer the MCQ that is currently open. A correct answer reveals the riddle
+// for the next location.
 export const answerChallenge = async (req, res) => {
   try {
     const level = Number(req.body?.level);
@@ -272,7 +306,7 @@ export const answerChallenge = async (req, res) => {
       level !== team.currentLevelIndex + 1
     ) {
       return res.status(400).json({
-        msg: "That level is not active.",
+        msg: "That question is not active.",
         state: await buildState(team),
       });
     }
@@ -289,7 +323,7 @@ export const answerChallenge = async (req, res) => {
     if (challenge.lockedUntil && new Date(challenge.lockedUntil) > now) {
       if (isHardLocked(challenge.lockedUntil)) {
         return res.status(429).json({
-          msg: "Out of attempts. Ask an organiser to unlock this level.",
+          msg: "Out of attempts. Ask an organiser to unlock this question.",
           retryAfterSeconds: 0,
           locked: true,
         });
@@ -312,13 +346,8 @@ export const answerChallenge = async (req, res) => {
       return res.status(400).json({ msg: "Invalid option" });
     }
 
-    // ---- Correct answer ----
+    // ---- Correct answer: advance and reveal the next riddle ----
     if (optionKey === question.correctKey) {
-      const location = await Location.findOne({
-        locationId: team.path[level],
-      }).lean();
-      const keyword = location?.keyword || `HOP-${level}`;
-
       const updated = await Team.findOneAndUpdate(
         {
           _id: team._id,
@@ -334,13 +363,11 @@ export const answerChallenge = async (req, res) => {
             "challenges.$.lockedUntil": null,
           },
           $push: { levelHistory: { level, completedAt: now } },
-          $addToSet: { collectedKeywords: keyword },
         },
         { new: true },
       );
 
       if (!updated) {
-        // Double submit: already advanced
         const current = await Team.findById(team._id);
         return res.status(409).json({
           msg: "Already answered.",
@@ -348,12 +375,11 @@ export const answerChallenge = async (req, res) => {
         });
       }
 
-      logger.info(`Team ${team.teamId} solved level ${level}`);
+      logger.info(`Team ${team.teamId} solved question ${level}`);
       return res.json({
         correct: true,
-        msg: "Correct! Packet delivered.",
+        msg: "Correct!",
         explanation: question.explanation,
-        keyword,
         state: await buildState(updated),
       });
     }
@@ -422,15 +448,15 @@ export const answerChallenge = async (req, res) => {
     }
 
     logger.info(
-      `Team ${team.teamId} wrong on level ${level} (attempt ${attempts})`,
+      `Team ${team.teamId} wrong on question ${level} (attempt ${attempts})`,
     );
     res.status(400).json({
       correct: false,
       msg: swapped
         ? "Out of attempts! You got a new question and an extra penalty."
         : locked
-          ? "Out of attempts! Ask an organiser to unlock this level."
-          : "Wrong answer. Packet dropped.",
+          ? "Out of attempts! Ask an organiser to unlock this question."
+          : "Wrong answer.",
       attemptsLeft: Math.max(settings.maxAttemptsPerQuestion - attempts, 0),
       penaltyAdded,
       swapped,
@@ -444,10 +470,9 @@ export const answerChallenge = async (req, res) => {
   }
 };
 
-// Mega Puzzle: order the collected hop codes by the team's rule
+// Final challenge: a single button for now. The real puzzle lands here later.
 export const submitAnswer = async (req, res) => {
   try {
-    const answer = String(req.body?.answer ?? "");
     await dbConnect();
     const settings = await eventGate(req, res);
     if (!settings) return;
@@ -455,14 +480,13 @@ export const submitAnswer = async (req, res) => {
     const team = await Team.findById(req.user.id);
     if (!team) return res.status(404).json({ msg: "Team not found" });
 
-    const finaleIndex = team.path.length - 1;
-
-    if (team.currentLevelIndex < finaleIndex || team.currentLevelIndex < 0) {
-      return res
-        .status(400)
-        .json({ msg: "Mega Puzzle is still locked. Finish every hop first." });
+    if (team.currentLevelIndex < team.path.length) {
+      return res.status(400).json({
+        msg: "Final challenge is still locked. Finish every question first.",
+        state: await buildState(team),
+      });
     }
-    if (team.currentLevelIndex > finaleIndex) {
+    if (team.currentLevelIndex > team.path.length) {
       return res.json({
         msg: "Already completed.",
         state: await buildState(team),
@@ -470,57 +494,8 @@ export const submitAnswer = async (req, res) => {
     }
 
     const now = new Date();
-    if (team.finaleLockedUntil && team.finaleLockedUntil > now) {
-      return res.status(429).json({
-        msg: "Cooling down. Try again shortly.",
-        retryAfterSeconds: Math.ceil((team.finaleLockedUntil - now) / 1000),
-      });
-    }
-
-    const submitted = answer
-      .trim()
-      .toUpperCase()
-      .split("-")
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-
-    const keywords = team.collectedKeywords
-      .map((k) => k.trim().toUpperCase())
-      .filter((k) => k !== "START");
-
-    if (!isValidOrder(submitted, keywords, team.finaleChallenge)) {
-      const attempts = (team.finaleAttempts || 0) + 1;
-      const lock = attempts % MEGA_MAX_ATTEMPTS_BEFORE_COOLDOWN === 0;
-      const retryAfterSeconds = lock ? MEGA_COOLDOWN_SECONDS : 0;
-      const updated = await Team.findOneAndUpdate(
-        { _id: team._id, currentLevelIndex: finaleIndex },
-        {
-          $inc: {
-            finaleAttempts: 1,
-            penaltySeconds: settings.wrongAnswerTimePenaltySeconds,
-          },
-          $set: {
-            finaleLockedUntil: lock
-              ? new Date(now.getTime() + retryAfterSeconds * 1000)
-              : null,
-          },
-        },
-        { new: true },
-      );
-      logger.warn(
-        `Team ${team.teamId} failed Mega Puzzle (${team.finaleChallenge}). Tried: ${submitted.join("-")}`,
-      );
-      return res.status(400).json({
-        correct: false,
-        msg: "Reassembly failed. Check your ordering rule!",
-        penaltyAdded: settings.wrongAnswerTimePenaltySeconds,
-        retryAfterSeconds,
-        state: await buildState(updated || team),
-      });
-    }
-
     const done = await Team.findOneAndUpdate(
-      { _id: team._id, currentLevelIndex: finaleIndex },
+      { _id: team._id, currentLevelIndex: team.path.length },
       {
         $set: {
           currentLevelIndex: team.path.length + 1,
@@ -530,11 +505,11 @@ export const submitAnswer = async (req, res) => {
       },
       { new: true },
     );
-    logger.info(`******* TEAM ${team.teamId} COMPLETED THE TRACE *******`);
+    logger.info(`******* TEAM ${team.teamId} FINISHED *******`);
 
     res.json({
       correct: true,
-      msg: "Packet reassembled. Destination reached!",
+      msg: "Destination reached!",
       state: await buildState(done || team),
     });
   } catch (err) {
