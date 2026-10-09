@@ -3,7 +3,7 @@
 ## 1. Rules in one page
 
 - **Teams** log in with a Team ID and password.
-- The event has **N question levels** (default **6**) and a final challenge. N is `totalLevels` in Settings.
+- The event has **N question levels** (default **5**) and a final challenge. N is `totalLevels` in Settings.
 - A team's route is the **Start** plus N locations drawn from the location list, in a team-specific order, balanced so locations are used evenly.
 - Each team has **N assigned questions**, one per level, drawn from the question bank (distinct within a team, difficulty ramping from easy to hard, least-used first). Option order is shuffled per team.
 - **Winner:** least `elapsed time + penalty seconds`. Tie-break: fewer total attempts, then earlier finish.
@@ -14,8 +14,8 @@
 scan START QR -> question 1 -> riddle for location 1
 scan L1 QR    -> question 2 -> riddle for location 2
 ...
-scan L5 QR    -> question 6 -> riddle for location 6
-scan L6 QR    -> final challenge (a single button for now)
+scan L4 QR    -> question 5 -> riddle for location 5
+scan L5 QR    -> final challenge (a single button for now)
 ```
 
 | Step | Player action | Server effect |

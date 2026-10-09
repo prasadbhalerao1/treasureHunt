@@ -118,17 +118,17 @@ test("public settings expose only branding", async () => {
   const res = await request(app).get("/api/settings/public");
   assert.equal(res.status, 200);
   assert.equal(res.body.eventName, "TraceRoute");
-  assert.equal(res.body.totalLevels, 6);
+  assert.equal(res.body.totalLevels, 5);
   assert.ok(!("maxAttemptsPerQuestion" in res.body));
 });
 
-test("teams get 6 locations, 6 distinct questions, different sets", async () => {
+test("teams get 5 locations, 5 distinct questions, different sets", async () => {
   const a = await models.Team.findById(teams.Alpha._id).lean();
   const b = await models.Team.findById(teams.Bravo._id).lean();
-  assert.equal(a.path.length, 7);
+  assert.equal(a.path.length, 6);
   assert.equal(a.path[0], 0);
-  assert.equal(a.challenges.length, 6);
-  assert.equal(new Set(a.challenges.map((c) => c.questionId)).size, 6);
+  assert.equal(a.challenges.length, 5);
+  assert.equal(new Set(a.challenges.map((c) => c.questionId)).size, 5);
   assert.notDeepEqual(
     a.challenges.map((c) => c.questionId),
     b.challenges.map((c) => c.questionId),
@@ -261,7 +261,7 @@ test("full game: scan opens a question, the answer reveals the next riddle", asy
   assert.equal(res.body.state.status, "COMPLETED");
 
   res = await request(app).get("/api/admin/stats").set(auth(admin));
-  assert.equal(res.body.totalLevels, 6);
+  assert.equal(res.body.totalLevels, 5);
   const row = res.body.leaderboard.find((r) => r.teamId === teams.Alpha.teamId);
   assert.equal(row.finished, true);
   assert.ok(row.penaltySeconds >= 30);
@@ -335,7 +335,7 @@ test("cooldown, out-of-attempts swap, and admin unlock", async () => {
 
   const after = await models.Team.findById(teams.Bravo._id).lean();
   assert.equal(after.penaltySeconds, before + 90);
-  assert.equal(new Set(after.challenges.map((c) => c.questionId)).size, 6);
+  assert.equal(new Set(after.challenges.map((c) => c.questionId)).size, 5);
 });
 
 test("admin question CRUD and import validation", async () => {
@@ -394,7 +394,7 @@ test("admin reset puts a finished team back at the start", async () => {
   const t = await models.Team.findById(teams.Alpha._id).lean();
   assert.equal(t.currentLevelIndex, -1);
   assert.equal(t.penaltySeconds, 0);
-  assert.equal(t.challenges.length, 6);
+  assert.equal(t.challenges.length, 5);
 });
 
 test("login rejects regex injection and bad creds", async () => {

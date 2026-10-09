@@ -6,22 +6,10 @@ export const START_HINT = "Go to the Starting Point.";
 
 export const LOCATION_DATA = [
   {
-    name: "Bus Parking (Behind Cafeteria)",
-    shortCode: "BUSPARK",
-    keyword: "ROUTER",
-    hint: "Not a classroom, not a hall Big yellow giants stand tall. Meals are near, engines sleep, Find your clue where drivers meet.",
-  },
-  {
     name: "Food Court – Dosa Wala",
     shortCode: "DOSA",
     keyword: "GATEWAY",
     hint: "A common ground for every branch,\nwhere hunger makes alliances.\nFrom there, track fermentation’s reward,\nserved flat, folded, and warm.",
-  },
-  {
-    name: "Cafeteria",
-    shortCode: "CAFE",
-    keyword: "SWITCH",
-    hint: "Where hunger gathers between bells,\nplates move fast, and chatter swells.\nMeals replace the morning grind—\nsearch where students queue to dine.",
   },
   {
     name: "Jaywant Library",
@@ -40,12 +28,6 @@ export const LOCATION_DATA = [
     shortCode: "FY",
     keyword: "DNS",
     hint: "Where rookies shed their school-day skin,\nengineers take first steps within.\nBeginnings live on every page—\nthe launchpad of the college stage.",
-  },
-  {
-    name: "Physics Lab",
-    shortCode: "PHYLAB",
-    keyword: "DHCP",
-    hint: "Where pendulums swing and circuits glow,\nbeneath the stage where speakers show.\nForces meet and laws collide—\nNewton whispers, Ohm replies.",
   },
   {
     name: "Stationery Store (Food Court)",

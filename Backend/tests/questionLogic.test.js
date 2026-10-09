@@ -44,7 +44,7 @@ test("validateQuestions rejects a missing or out-of-range answer", () => {
   assert.throws(() => validateQuestions([], 60), /Expected 60/);
 });
 
-test("difficulty ramps up across 7 levels", () => {
+test("difficulty ramps up across the levels", () => {
   const d = [1, 2, 3, 4, 5, 6, 7].map((l) => difficultyForLevel(l, 7));
   assert.deepEqual(d, [
     "EASY",
@@ -57,7 +57,7 @@ test("difficulty ramps up across 7 levels", () => {
   ]);
 });
 
-test("each team gets 7 distinct questions and usage is balanced", () => {
+test("each team gets 5 distinct questions and usage is balanced", () => {
   const pool = parseMcqMarkdown(MD).map((q) => ({
     questionId: q.questionId,
     difficulty: q.difficulty,
@@ -65,8 +65,8 @@ test("each team gets 7 distinct questions and usage is balanced", () => {
   const usage = {};
   const sets = [];
   for (let t = 0; t < 8; t++) {
-    const ids = pickQuestionsForTeam(pool, usage, 7);
-    assert.equal(new Set(ids).size, 7, "no repeats within a team");
+    const ids = pickQuestionsForTeam(pool, usage, 5);
+    assert.equal(new Set(ids).size, 5, "no repeats within a team");
     ids.forEach((id) => (usage[id] = (usage[id] || 0) + 1));
     sets.push(ids.join(","));
   }
@@ -78,7 +78,7 @@ test("each team gets 7 distinct questions and usage is balanced", () => {
 
 test("pickQuestionsForTeam throws when the bank is too small", () => {
   const pool = [{ questionId: 1, difficulty: "EASY" }];
-  assert.throws(() => pickQuestionsForTeam(pool, {}, 7), /too small/);
+  assert.throws(() => pickQuestionsForTeam(pool, {}, 5), /too small/);
 });
 
 test("sanitized challenge never leaks the answer or explanation", () => {

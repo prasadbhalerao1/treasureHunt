@@ -1,4 +1,5 @@
 import Team from "../models/Team.js";
+import Location from "../models/Location.js";
 import { hashPassword } from "../utils/auth.js";
 import { randomBytes } from "node:crypto";
 import { ROLES } from "../config/constants.js";
@@ -26,16 +27,24 @@ export function generateTeamId(name) {
 }
 
 // Generate balanced game path: Start (0) + `levels` least-used random locations.
-// Queries the DB to find the current load on each location.
-export async function generateBalancedPath(levels = 7) {
-  const allTeams = await Team.find({ role: "CANDIDATE" }).select("path");
+// The pool is whatever non-Start locations exist in the DB, so adding or
+// removing a location in the admin needs no code change.
+export async function generateBalancedPath(levels = 5) {
+  const [allTeams, locations] = await Promise.all([
+    Team.find({ role: "CANDIDATE" }).select("path"),
+    Location.find({ locationId: { $ne: 0 } }).select("locationId").lean(),
+  ]);
+
+  const locationIds = locations.map((l) => l.locationId).sort((a, b) => a - b);
+  if (locationIds.length < levels) {
+    throw new Error(
+      `Not enough locations: ${locationIds.length} available, ${levels} needed per team`,
+    );
+  }
+
   const locationUsage = {};
   const existingOrders = new Set();
-
-  // Initialize counts for 1-12
-  for (let i = 1; i <= 12; i++) {
-    locationUsage[i] = 0;
-  }
+  locationIds.forEach((id) => (locationUsage[id] = 0));
 
   allTeams.forEach((t) => {
     existingOrders.add(t.path.join(","));
@@ -46,7 +55,6 @@ export async function generateBalancedPath(levels = 7) {
     });
   });
 
-  const locationIds = Array.from({ length: 12 }, (_, i) => i + 1);
   const count = Math.min(levels, locationIds.length);
 
   let path;

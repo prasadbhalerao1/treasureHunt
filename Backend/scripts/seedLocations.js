@@ -29,33 +29,54 @@ const seedLocations = async () => {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("Connected to MongoDB.");
 
-    await Location.deleteMany({});
-    console.log("Cleared existing locations.");
+    // Existing QR secrets are KEPT so already-printed codes stay valid.
+    // Pass --new-secrets to deliberately rotate them (then reprint everything).
+    const rotate = process.argv.includes("--new-secrets");
+    const existing = await Location.find({}).lean();
+    const secretByName = new Map(existing.map((l) => [l.name, l.qrSecret]));
 
+    const keepOrMake = (name, make) =>
+      !rotate && secretByName.has(name) ? secretByName.get(name) : make();
+
+    const START_NAME = "Location-0 (Start)";
     const locations = [
       {
         locationId: 0,
-        name: "Location-0 (Start)",
+        name: START_NAME,
         hint: START_HINT,
-        qrSecret: "START-" + randomBytes(4).toString("hex").toUpperCase(),
+        qrSecret: keepOrMake(
+          START_NAME,
+          () => "START-" + randomBytes(4).toString("hex").toUpperCase(),
+        ),
         keyword: "START",
       },
     ];
 
     LOCATION_DATA.forEach((loc, index) => {
-      const secretNumber = Math.floor(100000 + Math.random() * 900000);
       locations.push({
         locationId: index + 1,
         name: loc.name,
         hint: loc.hint,
-        qrSecret: `${loc.shortCode}_${secretNumber}`,
+        qrSecret: keepOrMake(
+          loc.name,
+          () =>
+            `${loc.shortCode}_${Math.floor(100000 + Math.random() * 900000)}`,
+        ),
         keyword: loc.keyword,
       });
     });
 
+    await Location.deleteMany({});
     await Location.insertMany(locations);
+
+    const reused = locations.filter((l) => secretByName.get(l.name) === l.qrSecret).length;
     console.log(`✅ Seeded ${locations.length} locations (incl. Start).`);
-    console.log("Run `npm run generate:qr` to build the printable QR codes.");
+    console.log(
+      rotate
+        ? "   All QR secrets were REGENERATED: reprint every QR code."
+        : `   Kept ${reused} existing QR secret(s); ${locations.length - reused} new.`,
+    );
+    console.log("Run `npm run generate:qr` to rebuild the QR images.");
     process.exit(0);
   } catch (error) {
     console.error("❌ Error seeding locations:", error);
