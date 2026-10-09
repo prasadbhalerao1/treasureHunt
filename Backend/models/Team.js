@@ -9,7 +9,6 @@ const TeamSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true }, // Leader Email
     passwordHash: { type: String, required: true }, // Scrypt hash
     salt: { type: String, required: true }, // Unique salt
-    members: [String], // Member names
 
     role: {
       type: String,
@@ -38,7 +37,8 @@ const TeamSchema = new mongoose.Schema(
     // 0 = Scanned Start (Loc 0), looking for Path[1].
     // 1 = Found Path[1], looking for Path[2].
     // ...
-    // 7 = Completed all levels
+    // N = Solved level N (N = totalLevels -> Mega Puzzle open)
+    // path.length + 1 = Mega Puzzle solved (finished)
     currentLevelIndex: { type: Number, default: -1 },
 
     // Timestamp when the LAST level was completed
@@ -52,7 +52,30 @@ const TeamSchema = new mongoose.Schema(
       },
     ],
 
-    // Inventory
+    // Per-level MCQ challenges (index 0 of this array = level 1)
+    challenges: [
+      {
+        _id: false,
+        level: { type: Number, required: true },
+        questionId: { type: Number, required: true },
+        optionOrder: [String], // shuffled option keys for this team
+        attempts: { type: Number, default: 0 },
+        solved: { type: Boolean, default: false },
+        firstShownAt: { type: Date, default: null },
+        solvedAt: { type: Date, default: null },
+        lockedUntil: { type: Date, default: null },
+        swapped: { type: Number, default: 0 },
+      },
+    ],
+
+    // Total seconds of penalty added to the team's final time
+    penaltySeconds: { type: Number, default: 0 },
+
+    // Mega Puzzle attempts
+    finaleAttempts: { type: Number, default: 0 },
+    finaleLockedUntil: { type: Date, default: null },
+
+    // Inventory (hop codes, in visit order)
     collectedKeywords: [String],
 
     // Security
