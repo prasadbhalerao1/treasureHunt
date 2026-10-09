@@ -1,156 +1,76 @@
-# 🏴‍☠️ BERLIN HEIST - System Documentation
+# TraceRoute: Game Documentation
 
-> Complete technical documentation for the treasure hunt platform.
+## 1. Rules in one page
 
-## 1. Database Structure
+- **Teams** log in with a Team ID and password.
+- The event has **N levels** (default **7**) and a **Mega Puzzle**. N is `totalLevels` in Settings.
+- A team's route is the **Start** plus N locations drawn from the location list, in a team-specific order, balanced so locations are used evenly.
+- Each team has **N assigned questions**, one per level, drawn from the question bank (distinct within a team, difficulty ramping from easy to hard, least-used first). Option order is shuffled per team.
+- **Winner:** least `elapsed time + penalty seconds`. Tie-break: fewer total attempts, then earlier finish.
 
-### **Team Model** (`Team.js`)
+## 2. Flow per team
 
-- **teamId**: String (Unique, e.g., "TITAN-X99")
-- **name**: String
-- **email**: String (Unique)
-- **passwordHash**: String (Scrypt)
-- **salt**: String
-- **members**: [String]
-- **role**: Enum ["CANDIDATE", "ADMIN"]
-- **finaleChallenge**: Enum [ALPHA_ASC, ALPHA_DESC, LENGTH_ASC, LENGTH_DESC, SECOND_LETTER, LAST_LETTER]
-- **path**: [Number] (Array of Location IDs, ordered sequence)
-  - Length: 7 (Start + 6 Levels)
-  - Index 0: Location 0 (Start)
-  - Indices 1-6: Randomized Locations (1-12)
-- **currentLevelIndex**: Number (Tracks progress in `path`)
-  - 0 = At Start
-  - 1 = Completed Start, looking for Path[1]
-  - ...
-  - 7 = Completed all levels
-- **collectedKeywords**: [String]
-- **lastLevelCompletedAt**: Date
-- **levelHistory**: [{level: Number, completedAt: Date}]
-- **activeSessions**: [String] (JWT session IDs, max 4)
+| Step | Player action | Server effect |
+| :-- | :-- | :-- |
+| Not started | Scan the **Start** QR | Starts the clock (level 0), reveals the hint for hop 1 |
+| Hop *k* (1…N) | Go to the hinted location, scan its QR | Opens challenge *k* (first view timestamp is stored once; re-scan is harmless) |
+| | Pick an option, **Send packet** | Correct: level *k* is done, hint for hop *k+1* is revealed (or the Mega Puzzle opens after hop N). Wrong: penalty plus cooldown |
+| Mega Puzzle | Tap the collected hop codes in the required order | Correct: the clock stops. Wrong: penalty, and a 30 s lock after every third miss |
 
-### **Location Model** (`Location.js`)
+Scanning a QR out of order is rejected. Only the QR for the team's *next* location opens anything.
 
-- **locationId**: Number (0-12)
-- **name**: String ("Location-0", "Location-1"...)
-- **hint**: String (Text hint to find this location)
-- **qrSecret**: String (Content of QR code)
-- **keyword**: String ("Keyword-1"...)
+### Wrong answers
 
----
+Controlled by Settings:
 
-## 2. Team Flow Logic
+| Setting | Default | Meaning |
+| :-- | :-- | :-- |
+| `maxAttemptsPerQuestion` | 3 | Tries before the out-of-attempts rule applies |
+| `wrongAnswerCooldownSeconds` | 20 | Wait before the next try |
+| `wrongAnswerTimePenaltySeconds` | 30 | Added to the final time on every wrong answer |
+| `outOfAttemptsAction` | `SWAP_QUESTION` | Give a new question plus an **extra** penalty, or `LOCK_UNTIL_ADMIN` |
 
-### **Levels & Progression**
+### Mega Puzzle
 
-- **Total Levels**: 6 (excluding Start)
-- **Total Locations**: 12 (plus Start = 13)
-- **Start**: All teams start at **Location-0** (Level 0).
-- **Randomization**: Levels 1 to 6 are assigned unique, random locations from 1-12.
-- **Hint Rule**: When on Level `N`, the user sees the hint for Level `N+1`.
-  - e.g., At Start (Level 0), user sees hint for `path[1]`.
-  - Upon scanning QR for `path[1]`, user advances to Level 1 and sees hint for `path[2]`.
+Each location has a **hop code** (ROUTER, GATEWAY, SWITCH…). Solving a hop awards its code. In the finale the team sees its codes and a personal rule, one of: alphabetical (A→Z or Z→A), by length (short→long or long→short), by second letter, by last letter. Ties are accepted in any order. The team taps the codes into the right sequence.
 
-### **Flow Example**
+To use a different finale, change `utils/finale.js` (rules) and `FinalePanel.jsx` (UI). `isValidOrder` is unit-tested.
 
-`Team-1`:
-`Location-0` (Level 0) -> `Location-5` (Level 1) -> `Location-7` (Level 2) -> ...
+## 3. Level and state values
 
----
+`Team.currentLevelIndex`:
 
-## 3. QR & Keyword Validation
+| Value | Meaning |
+| :-- | :-- |
+| `-1` | Registered, Start QR not scanned |
+| `0` | Start scanned, looking for hop 1 |
+| `k` | Hop *k* solved |
+| `N` (= `path.length - 1`) | All hops solved, **Mega Puzzle open** |
+| `path.length + 1` | Mega Puzzle solved, finished |
 
-### **QR Codes**
+API status values: `NOT_STARTED`, `HINT_UNLOCKED`, `CHALLENGE_OPEN`, `FINALE`, `COMPLETED`.
 
-- Generated for all 13 locations.
-- Content: `SHORTCODE_RANDOMNUM` (e.g., `PHYLAB_839210`).
-- Validation:
-  - User scans QR.
-  - System checks user's `currentLevelIndex`.
-  - Target Location = `team.path[currentLevelIndex + 1]`.
-  - If Scanned QR matches Target Location's Secret -> Success.
-  - Else -> Invalid Location.
+## 4. Admin dashboard
 
-### **Keywords**
+| Tab | Purpose |
+| :-- | :-- |
+| Dashboard | Leaderboard (time, penalties, status), per-level fastest teams, distribution chart, CSV export. Polls every 10 s |
+| User Management | Create / delete teams. A team is a name, the **team lead's email** and a password; the login is emailed to the lead via the Make.com webhook |
+| Game Flow | View or edit a team's path before it starts. **Unlock level**, **Force-complete level**, **Reshuffle questions**, **Reset team**, per-level challenge table with answers (organiser-only) |
+| Locations | Add / edit / delete locations, hop codes and hints, regenerate a QR secret, download one QR or print all |
+| Question Bank | Search, add, edit, enable / disable, delete, import / export JSON. Shows active questions against the number needed |
+| Settings | Event name, tagline, levels, attempts, cooldown, penalty, out-of-attempts rule, event status |
 
-- Each location (1-12) has a unique **City Keyword** (e.g., `BERLIN`, `TOKYO`).
-- Upon successful QR scan, the keyword is awarded to the Team.
+**Event status:** `DRAFT` and `ENDED` block players from scanning and answering. Admins can always test. Switch to `LIVE` to start.
 
----
+## 5. Security notes
 
-## 4. Admin Workflows
+- `correctKey` and `explanation` never reach a team before the question is solved. After solving, only the explanation is sent.
+- Scan, answer and Mega Puzzle updates are atomic (`findOneAndUpdate` with preconditions), so double taps cannot advance two levels.
+- Sessions: a JWT carries a session id. At most 4 devices per team; a 5th login ejects the oldest. A removed session is rejected on the next request.
+- Rate limits: 120 requests/min per token, 30 logins/min per IP, 30 answers/min per token.
+- Login lookups escape user input (no regex injection).
 
-### **User Management**
+## 6. Make.com webhook (optional)
 
-- **View**: Excel-style table listing all teams.
-- **Add Team**: Modal form.
-  - Fields: Name, Email, Members, Password.
-  - **Trigger**: Calls Make.com Webhook with team details.
-- **Delete**: Remove team and wipes progress.
-- **Manage Flow**: Click "View Flow" on a team row to edit their path.
-
-### **Location Management**
-
-- List all 13 locations.
-- Edit `Hint` and `QRSecret`.
-- Updates reflect immediately for all players targeting that location.
-
-## 5. Webhook Integration (Optional)
-
-The system supports Make.com webhooks for sending team activation emails.
-
-### Setup Guide
-
-1. Create a [Make.com](https://make.com) account
-2. Create a new scenario with "Webhooks" → "Custom webhook" as trigger
-3. Add an "Email" action module to send team credentials
-4. Copy the webhook URL to your `.env` file:
-   ```ini
-   MAKE_WEBHOOK_URL=https://hook.eu1.make.com/YOUR_WEBHOOK_ID
-   ```
-
-### Webhook Payload
-
-When a team is created, the following payload is sent:
-
-```json
-{
-  "teamId": "TITAN-X99",
-  "name": "Titans",
-  "email": "leader@titans.com",
-  "to": "leader@titans.com",
-  "members": ["A", "B"],
-  "password": "...",
-  "pathAsString": "0->5->12..."
-}
-```
-
-> **Note**: If `MAKE_WEBHOOK_URL` is not set, teams can still be created—emails just won't be sent automatically. Use the seeding scripts to create teams without webhooks.
-
-## 6. Game Progression
-
-### **State Machine**
-
-1. **Login** -> Dashboard shows Level 0, Hint for Location 1
-2. **Scan QR at Location 1** -> Keyword collected, Level advances to 1
-3. **Dashboard updates** -> Shows Level 1, Hint for Location 2
-4. **Repeat** -> Until Level 6 completed
-5. **Finale** -> Submit sorted keywords
-
-### **Finale Logic**
-
-**Randomized Challenges**: Each team is assigned one of 6 sorting challenges at creation:
-
-| Type            | Rule                   |
-| --------------- | ---------------------- |
-| `ALPHA_ASC`     | Alphabetical A → Z     |
-| `ALPHA_DESC`    | Reverse Z → A          |
-| `LENGTH_ASC`    | Shortest word first    |
-| `LENGTH_DESC`   | Longest word first     |
-| `SECOND_LETTER` | Sort by 2nd character  |
-| `LAST_LETTER`   | Sort by last character |
-
-**Ties Allowed**: If two words have the same key, either order is valid.
-
-**Admin Override**: Submit `OVERRIDE-VICTORY` to bypass validation.
-
-- Success → `currentLevelIndex = 7` (COMPLETED)
+If `MAKE_WEBHOOK_URL` is set, creating a team in the admin POSTs `{teamId, name, email, to, password, eventName, tagline, totalLevels, loginUrl, subject}` so a Make scenario can email the credentials.

@@ -1,98 +1,37 @@
-# 📱 BERLIN HEIST Client (Frontend)
+# 📱 TraceRoute Client (Frontend)
 
-> A **Brutalist**, mobile-first React application for players and admins.
+React 18 + Vite 5 + Tailwind 3 (neo-brutalist). Mobile-first for the players, desktop-friendly for the admin.
 
----
+## Run
 
-## ✨ Core Features
-
-| Feature                 | Description                                                                  |
-| :---------------------- | :--------------------------------------------------------------------------- |
-| **🎨 Brutalist UI**     | High-contrast black/white with neon accents. No gradients, hard 4px borders. |
-| **📷 Browser Scanner**  | `html5-qrcode` integration. Works on mobile without app install.             |
-| **🔄 Real-Time Sync**   | Dashboard polls API every 5 seconds for live state updates.                  |
-| **🛡️ Role-Based Views** | Candidates see game UI, Admins see analytics and team management.            |
-| **📊 Admin Charts**     | `recharts` powered leaderboard and level distribution graphs.                |
-
----
-
-## 📂 File Structure
-
-```
-Frontend/
-├── public/             # Static assets
-│
-├── src/
-│   ├── components/
-│   │   ├── admin/
-│   │   │   ├── FlowManagement.jsx
-│   │   │   ├── LocationManagement.jsx
-│   │   │   └── UserManagement.jsx
-│   │   ├── ui/
-│   │   │   └── index.jsx      # Button, Input, Card primitives
-│   │   ├── Loader.jsx         # "CONTACTING SATELLITE" spinner
-│   │   └── Scanner.jsx        # QR Camera wrapper
-│   │
-│   ├── context/
-│   │   └── AuthContext.jsx    # Global auth state (user, token)
-│   │
-│   ├── pages/
-│   │   ├── Login.jsx          # Team ID + Password
-│   │   ├── Dashboard.jsx      # Main game UI (Candidate)
-│   │   └── Admin.jsx          # Stats + Leaderboard + Management
-│   │
-│   ├── utils/
-│   │   └── api.js             # Axios instance with interceptors
-│   │
-│   ├── App.jsx                # React Router setup
-│   ├── main.jsx               # Entry point
-│   └── index.css              # Tailwind directives
-│
-├── .env                       # VITE_API_URL
-├── tailwind.config.js
-└── vite.config.js
+```bash
+npm install --legacy-peer-deps
+cp .env.example .env     # VITE_API_URL=http://localhost:5000/api
+npm run dev              # http://localhost:5173
+npm run build            # production build into dist/
 ```
 
----
+The camera scanner needs HTTPS (or `localhost`). On a phone, use the deployed or tunnelled HTTPS URL.
 
-## 🎨 Design System
+## Screens
 
-| Element        | Style                                                     |
-| :------------- | :-------------------------------------------------------- |
-| **Borders**    | `border-4 border-black`                                   |
-| **Shadows**    | `shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]`                  |
-| **Buttons**    | Black fill, white text, uppercase, `active:translate-x-1` |
-| **Cards**      | White background, thick border, no border-radius          |
-| **Typography** | `font-black`, `uppercase`, `tracking-widest`              |
+| Route | Who | What |
+| :-- | :-- | :-- |
+| `/login` | everyone | Team ID + password. Shows the event name and tagline from Settings |
+| `/dashboard` | teams | Hop progress, running timer, hint card, QR scanner, MCQ challenge, Mega Puzzle, result |
+| `/admin` | admins | Dashboard, User Management, Game Flow, Locations, Question Bank, Settings |
 
----
+## Structure
 
-## 📄 Pages
+```
+src/
+  pages/            Login, Dashboard, Admin
+  components/
+    Dashboard/      ChallengeCard (MCQ), FinalePanel (Mega Puzzle)
+    admin/          Settings, QuestionBank, Locations (+ QR print), Flow (+ team actions), Users
+    Scanner.jsx     html5-qrcode wrapper
+  context/          AuthContext, SettingsContext (event name / status)
+  utils/            api (axios), constants (+ formatDuration)
+```
 
-| Page          | Route    | Role      | Description                               |
-| :------------ | :------- | :-------- | :---------------------------------------- |
-| **Login**     | `/login` | All       | Enter Team ID + Password.                 |
-| **Dashboard** | `/`      | Candidate | View level, hint, scan QR.                |
-| **Admin**     | `/admin` | Admin     | Live leaderboard, stats, team management. |
-
----
-
-## 🛠️ Scripts
-
-| Script         | Command         | Description                    |
-| :------------- | :-------------- | :----------------------------- |
-| **Dev Server** | `npm run dev`   | Runs Vite at `localhost:5173`. |
-| **Build**      | `npm run build` | Production bundle in `dist/`.  |
-| **Lint**       | `npm run lint`  | ESLint check.                  |
-
----
-
-## 📱 Mobile Testing
-
-1.  Find your PC's IP: `ipconfig` (Windows) or `ifconfig` (Mac).
-2.  Update `.env`:
-    ```ini
-    VITE_API_URL=http://192.168.1.5:5000/api
-    ```
-3.  Connect phone to same Wi-Fi.
-4.  Open `http://192.168.1.5:5173` in mobile browser.
+The team screen is a pure render of the `state` object returned by the API; it keeps no game logic of its own. It re-syncs on tab focus and every 15 s, and corrects its clock with `serverTime`.

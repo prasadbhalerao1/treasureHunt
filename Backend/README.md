@@ -1,122 +1,52 @@
-# ⚙️ BERLIN HEIST API (Backend)
+# ⚙️ TraceRoute API (Backend)
 
-> The core game engine handling authentication, game state, and QR verification logic.
+Express 4 + Mongoose 8 API for the TraceRoute challenge hunt. See the [root README](../README.md) for the full setup and [docs/](../docs/) for design and API details.
 
----
+## Run
 
-## ✨ Core Features
-
-| Feature                 | Description                                                        |
-| :---------------------- | :----------------------------------------------------------------- |
-| **🔐 Scrypt Auth**      | Native Node.js crypto for password hashing (no bcrypt dependency). |
-| **🎫 JWT Sessions**     | Stateless auth with max 4 concurrent devices per team.             |
-| **📧 Webhook Dispatch** | Make.com integration for instant team emails.                      |
-| **🎯 QR Validation**    | Sequential QR scanning with location-based progression.            |
-| **📊 Admin Analytics**  | Aggregated stats: leaderboard, team distribution per level.        |
-
----
-
-## 📂 File Structure
-
-```
-Backend/
-├── config/
-│   ├── dbConnect.js       # MongoDB Singleton (Serverless-safe)
-│   ├── express.js         # Middleware configuration
-│   └── constants.js       # Shared constants (ROLES, GAME_STATUS)
-│
-├── controllers/
-│   ├── authController.js  # Login
-│   ├── gameController.js  # Game State & QR Scanning
-│   └── adminController.js # Dashboard & Team Mgmt
-│
-├── services/
-│   └── teamService.js     # Team Creation & Webhook
-│
-├── middleware/
-│   └── authMiddleware.js  # JWT Verification Guard
-│
-├── models/
-│   ├── Team.js            # User/Team Schema
-│   └── Location.js        # Level hints, QR secrets
-│
-├── routes/
-│   ├── authRoutes.js      # /api/auth/*
-│   ├── gameRoutes.js      # /api/game/*
-│   └── adminRoutes.js     # /api/admin/*
-│
-├── utils/
-│   ├── auth.js            # Password hashing (Scrypt)
-│   └── logger.js          # Logging utility
-│
-├── index.js               # Express app entry
-└── vercel.json            # Serverless routing config
+```bash
+npm install --legacy-peer-deps
+cp .env.example .env        # MONGODB_URI (with a database name), JWT_SECRET
+npm run setup:all           # seed everything + QR codes
+npm run dev                 # http://localhost:5000
 ```
 
----
+## Environment
 
-## 🔌 API Endpoints
+| Variable | Required | Purpose |
+| :-- | :-- | :-- |
+| `MONGODB_URI` | yes | Atlas connection string. Include a database name (`/traceroute`) |
+| `JWT_SECRET` | yes | Signs session tokens |
+| `PORT` | no | Defaults to 5000 |
+| `CORS_ORIGINS` | production | Comma-separated frontend URLs (localhost is always allowed) |
+| `ADMIN_PASSWORD`, `ADMIN_EMAIL` | no | Used by `npm run seed:admin` (random password if unset) |
+| `DEMO_TEAM_PASSWORD` | no | Password for `seed:teams` demo teams (default `123456`) |
+| `MAKE_WEBHOOK_URL` | no | POSTs new team credentials for emailing (see docs/EMAIL_TEMPLATE.md) |
+| `FRONTEND_URL` | no | Public web app URL, used as the login link in the email |
 
-### Auth (`/api/auth`)
+## Routes
 
-| Method | Route    | Description                      |
-| :----- | :------- | :------------------------------- |
-| `POST` | `/login` | Returns JWT token + team object. |
+| Method | Path | Notes |
+| :-- | :-- | :-- |
+| GET | `/api/health` | Liveness |
+| POST | `/api/auth/login` | Team or admin |
+| GET | `/api/settings/public` | Branding, no auth |
+| GET | `/api/game/state` | Resumable state |
+| POST | `/api/game/scan` | Start QR, or open a level's challenge |
+| POST | `/api/game/answer` | Answer the MCQ |
+| POST | `/api/game/submit` | Mega Puzzle |
+| `*` | `/api/admin/*` | Stats, settings, teams, locations, questions (ADMIN only) |
 
-### Game (`/api/game`)
+Full spec: [docs/openapi.yaml](../docs/openapi.yaml).
 
-| Method | Route     | Auth | Description                                  |
-| :----- | :-------- | :--- | :------------------------------------------- |
-| `GET`  | `/state`  | ✅   | Current level, hint, collected keywords.     |
-| `POST` | `/scan`   | ✅   | Submit QR string. Advances level on success. |
-| `POST` | `/submit` | ✅   | Final level answer submission.               |
+## Tests
 
-### Admin (`/api/admin`)
+```bash
+npm test
+```
 
-| Method   | Route             | Auth     | Description                         |
-| :------- | :---------------- | :------- | :---------------------------------- |
-| `GET`    | `/stats`          | ✅ Admin | Team distribution + leaderboard.    |
-| `GET`    | `/teams`          | ✅ Admin | List all teams.                     |
-| `POST`   | `/teams`          | ✅ Admin | Create new team (triggers webhook). |
-| `DELETE` | `/teams/:id`      | ✅ Admin | Delete team.                        |
-| `PUT`    | `/teams/:id/path` | ✅ Admin | Update team's location path.        |
-| `GET`    | `/locations`      | ✅ Admin | List all locations.                 |
-| `PUT`    | `/locations/:id`  | ✅ Admin | Update location hint/QR secret.     |
+`node --test` runs the unit tests (question parser, picker, Mega Puzzle rules, answer-leak check) and an end-to-end game played through the real Express app against an in-memory MongoDB (`mongodb-memory-server`, downloaded on first run).
 
-## 🛠️ Scripts
+## Seed scripts
 
-| Script             | Command                      | Description                          |
-| :----------------- | :--------------------------- | :----------------------------------- |
-| **Full Setup**     | `npm run setup:all`          | Seeds everything + generates QRs     |
-| **Quick Setup**    | `npm run setup:quick`        | Only locations + admin               |
-| **Seed Locations** | `npm run seed:locations`     | 13 locations with riddles            |
-| **Seed Admin**     | `npm run seed:admin`         | Creates admin account                |
-| **Seed Teams**     | `npm run seed:teams`         | Creates 20 test teams                |
-| **Generate QRs**   | `npm run generate:qr`        | Creates QR code images               |
-| **Generate Print** | `npm run generate:printable` | Creates printable HTML               |
-| **Wipe DB**        | `npm run db:wipe`            | Clears teams (keeps admin)           |
-| **Dev Server**     | `npm run dev`                | Starts with `--watch` for hot reload |
-
-### Utility Scripts
-
-Run these directly with `node scripts/<script>.js`:
-
-| Script                  | Command                             | Description                          |
-| :---------------------- | :---------------------------------- | :----------------------------------- |
-| **List All Teams**      | `node scripts/listAll.js`           | Lists all teams in console           |
-| **List Admins**         | `node scripts/listAdmins.js`        | Lists admin accounts                 |
-| **Generate Team Flows** | `node scripts/generateTeamFlows.js` | Generates markdown doc of team paths |
-
----
-
-## ⚠️ Vercel Notes
-
-- Set `MONGODB_URI` whitelist to `0.0.0.0/0` (Vercel uses dynamic IPs).
-- Connection pooling is set to `maxPoolSize: 1` to prevent storms.
-- Webhook is fire-and-forget (non-blocking) for instant responses.
-
----
-
-<p align="center">
-  <sub>Created by <a href="https://www.linkedin.com/in/prasadbhalerao">Prasad Bhalerao</a></sub>
-</p>
+See the table in the [root README](../README.md#-npm-scripts-backend). `restore`-style scripts that depend on private data (`seedMyAdmin.js`, `seedEventAccounts.js`) are gitignored.

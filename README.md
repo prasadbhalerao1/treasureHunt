@@ -1,256 +1,145 @@
-# 🏴‍☠️ BERLIN HEIST
+<p align="center"><img src="Frontend/public/title.png" alt="TraceRoute: a networking-themed treasure hunt" width="640"></p>
 
-> A **MERN-based** real-world treasure hunt platform for collegiate events.
+# TraceRoute
 
----
+> A **MERN** real-world QR hunt where every checkpoint is a **challenge**. Scan the QR at a location, solve a networking MCQ, and the next location unlocks. Seven hops later comes the **Mega Puzzle**. The fastest team wins.
 
-## ✨ Core Features
-
-| Feature                     | Description                                                             |
-| :-------------------------- | :---------------------------------------------------------------------- |
-| **📱 Mobile-First UI**      | Brutalist design optimized for handheld play. No app download required. |
-| **🔒 QR Code Progression**  | Players scan QR codes at physical locations to advance levels.          |
-| **📧 Webhook Dispatch**     | Teams receive activation emails via Make.com webhook (optional).        |
-| **📊 Live Admin Dashboard** | Real-time leaderboard and team distribution charts.                     |
-| **⚡ Campus Wi-Fi Ready**   | Relaxed rate limits (300k/15min) to handle shared NAT IPs.              |
-| **☁️ Vercel Optimized**     | Serverless-ready MongoDB connection pooling (`maxPoolSize: 1`).         |
+Everything about the event (name, tagline, number of levels, attempts, cooldowns, penalties, question bank, locations and QR codes) is editable from the admin dashboard.
 
 ---
 
-## 🚀 Quick Start (Clone & Run)
+## ✨ How a game works
+
+1. A team logs in with its Team ID and password.
+2. **Start:** the team scans the Start QR. The clock starts and the first location hint appears.
+3. **Each hop (7 by default):** the team walks to the hinted location and scans its QR. A random MCQ opens. A correct answer unlocks the next hint. A wrong answer costs a time penalty and a short cooldown.
+4. **Mega Puzzle:** after the last hop the team gets the hop codes it collected and must put them in the order its personal rule asks for.
+5. **Winner:** least total time (elapsed time plus penalties).
+
+Every team gets its own route (7 of the 12 locations, balanced across teams) and its own set of 7 questions from the bank, each with the options shuffled.
+
+| Feature | Description |
+| :-- | :-- |
+| **Question bank** | 60 networking MCQs seeded from `computer_networks_placement_mcqs.md`. Add, edit, disable, import and export from the admin. |
+| **Per-team randomisation** | Distinct questions per level, difficulty ramps up, least-used questions first, option order shuffled per team. |
+| **Anti-cheat** | Answers stay on the server. Atomic updates stop double submits. Attempt limits, cooldowns and penalties. |
+| **Resumable** | Refresh or log in on a second phone and the team continues exactly where it was. |
+| **Live admin** | Leaderboard with penalties, per-level fastest teams, CSV export, unlock / force-complete / reset a team. |
+| **Adaptable** | Event name, level count, attempts, cooldown, penalty, event status (DRAFT / LIVE / ENDED). |
+| **QR tooling** | Print or download QR codes from the browser, regenerate a secret, add or delete locations. |
+
+---
+
+## 🚀 Quick start
 
 ### Prerequisites
 
-- Node.js 18+
-- MongoDB Atlas account (free tier works)
-- Git
+- Node.js 18+ (20 recommended)
+- A MongoDB Atlas cluster (free tier works)
 
-### 1. Clone & Install
+### 1. Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/TreasureHunt.git
-cd TreasureHunt
+git clone <your-repo-url>
+cd <your-repo-folder>
 
-# Backend
+cd Backend && npm install --legacy-peer-deps
+cd ../Frontend && npm install --legacy-peer-deps
+```
+
+### 2. Configure
+
+```bash
 cd Backend
-npm install
-
-# Frontend
+cp .env.example .env     # set MONGODB_URI (use a database name, e.g. /traceroute) and JWT_SECRET
 cd ../Frontend
-npm install
+cp .env.example .env     # VITE_API_URL=http://localhost:5000/api
 ```
 
-### 2. Configure Environment
-
-**Backend** (`Backend/.env`):
-
-```ini
-PORT=5000
-NODE_ENV=development
-MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/treasurehunt
-JWT_SECRET=your_super_secret_key_change_this
-
-# Optional: Make.com webhook for team emails
-# MAKE_WEBHOOK_URL=https://hook.eu1.make.com/your_webhook_id
-```
-
-**Frontend** (`Frontend/.env`):
-
-```ini
-VITE_API_URL=http://localhost:5000/api
-```
-
-### 3. Setup Database (One Command!)
+### 3. Seed everything
 
 ```bash
 cd Backend
-
-# Full setup: Locations + Admin + 20 Teams + QR Codes + Printable
-npm run setup:all
-
-# OR minimal setup: Just Locations + Admin
-npm run setup:quick
+ADMIN_PASSWORD=choose-one npm run setup:all
 ```
 
-> 📋 **Save the admin credentials** shown in the console!
+`setup:all` seeds the 13 locations, the settings document, the 60 questions, 20 demo teams (`Team-1`…`Team-20`, password `123456`), the admin account, and generates the QR PNGs plus the printable sheet in `Frontend/public/`.
 
-### 4. Run Development Servers
-
-**Terminal 1 (API)**:
+### 4. Run
 
 ```bash
-cd Backend
-npm run dev
+# terminal 1
+cd Backend && npm run dev
+# terminal 2
+cd Frontend && npm run dev
 ```
 
-**Terminal 2 (Client)**:
-
-```bash
-cd Frontend
-npm run dev
-```
-
-Access at `http://localhost:5173`
+Open <http://localhost:5173>.
 
 ---
 
-## 🕹️ Deep Dive: Game Logic & Features
+## 🧰 npm scripts (Backend)
 
-### 1. The "Phygital" Gameplay Loop
+| Script | What it does |
+| :-- | :-- |
+| `npm run setup:all` | Locations, settings, questions, demo teams, admin, QR codes, printable sheet |
+| `npm run setup:quick` | Locations, settings, questions, admin (no demo teams) |
+| `npm run seed:locations` | Wipes and recreates the Start + 12 locations with fresh QR secrets |
+| `npm run seed:questions [-- file.md\|file.json]` | Loads the question bank (default: the bundled 60 MCQs) |
+| `npm run seed:settings [-- --reset]` | Creates the settings document (or resets it) |
+| `npm run seed:teams [-- --count=N]` | Wipes **all** teams and creates N demo teams |
+| `npm run seed:admin` | Creates the admin (`ADMIN_PASSWORD` / `ADMIN_EMAIL` env, otherwise random) |
+| `npm run generate:qr` / `generate:printable` | QR PNGs (`00_…png`, `01_…png`, …) and the A4 print sheet |
+| `npm run db:wipe` | Deletes the teams |
+| `npm test` | Unit and end-to-end API tests (in-memory MongoDB) |
+| `npm run lint` | ESLint |
 
-The system bridges the physical and digital worlds using a strict State Machine:
-
-1.  **Level 0 (Start)**:
-    - **Action**: Team scans the "Start QR" at the base.
-    - **Result**: Timer Starts. Level 1 Hint is revealed.
-2.  **Levels 1-6 (The Hunt)**:
-    - **Dynamic Pathing**: Each team follows a unique, consistent sequence of 6 randomized locations (out of 12) to prevent overcrowding.
-    - **Riddle System**: Players only see the riddle for their _next_ specific location.
-    - **Validation**: Scanning a QR checks `CurrentLocation == TargetLocation`.
-      - _Success_: Awards a unique "City Keyword" (e.g., "TOKYO") and unlocks next level.
-      - _Failure_: "Wrong Location" error prevents skipping.
-
-3.  **Level 7 (The Finale)**:
-    - **Condition**: All 6 keywords collected.
-    - **Challenge**: A randomized sorting puzzle (e.g., "Sort keywords by Length" or "Alphabetical").
-    - **Victory**: Submitting correct order verifies the win and stops the clock.
-
-### 2. Admin & Organization Flow
-
-#### ⚡ Team Onboarding (The "AI" Email Workflow)
-
-1.  **Admin Input**: Admin uses the dashboard to add Team Name & Leader Email.
-2.  **System Generation**: Backend creates a unique `TeamID` (e.g., `TITAN-X99`) and strong password.
-3.  **Webhook Trigger**: System fires a payload to **Make.com**.
-4.  **Instant Delivery**: An automated email acts as the "Mission Brief" containing credentials, sent instantly to the team leader.
-
-#### 📊 Admin Dashboard
-
-- **Live Leaderboard**: Ranked by **Chip Time** (Duration), not just finish order.
-  - _Fairness_: A team starting 30 mins late can still win if they complete the course faster.
-- **Distribution Charts**: Real-time bar charts showing how many teams are stuck at each level/location.
-- **Intervention**: Admins can force-complete levels for teams if a physical QR goes missing.
-
-### 3. Security & Fairness Architecture
-
-- **Session Locking**: Max **4 concurrent devices** per team to prevent account sharing across campus.
-- **Anti-Bruteforce**: API rate-limiting prevents teams from guessing QR codes.
-- **Offline Resilience**: Game state is persistent in MongoDB; if a phone dies, progress is safe.
+Adding more questions: put them in the same Markdown format or a JSON array and run `npm run seed:questions -- path/to/file`, or use **Admin → Question Bank → Import JSON**.
 
 ---
 
-## 🛠️ Available Scripts
-
-### Backend (`cd Backend`)
-
-| Script             | Command                      | Description                              |
-| :----------------- | :--------------------------- | :--------------------------------------- |
-| **Full Setup**     | `npm run setup:all`          | Seeds everything + generates QRs         |
-| **Quick Setup**    | `npm run setup:quick`        | Only locations + admin                   |
-| **Seed Locations** | `npm run seed:locations`     | 13 locations with riddles                |
-| **Seed Admin**     | `npm run seed:admin`         | Creates admin account                    |
-| **Seed Teams**     | `npm run seed:teams`         | Creates 20 test teams (password: 123456) |
-| **Generate QRs**   | `npm run generate:qr`        | Creates QR code images                   |
-| **Generate Print** | `npm run generate:printable` | Creates printable HTML                   |
-| **Wipe DB**        | `npm run db:wipe`            | Clears teams (keeps admin)               |
-| **Dev Server**     | `npm run dev`                | Starts with hot reload                   |
-
-### Utility Scripts (run with `node scripts/...`)
-
-| Script                  | Command                             | Description                          |
-| :---------------------- | :---------------------------------- | :----------------------------------- |
-| **List All Teams**      | `node scripts/listAll.js`           | Lists all teams in console           |
-| **List Admins**         | `node scripts/listAdmins.js`        | Lists admin accounts                 |
-| **Generate Team Flows** | `node scripts/generateTeamFlows.js` | Generates markdown doc of team paths |
-
----
-
-## 🛠️ Tech Stack
-
-### Backend
-
-| Package              | Purpose            |
-| :------------------- | :----------------- |
-| `express`            | REST API Framework |
-| `mongoose`           | MongoDB ODM        |
-| `jsonwebtoken`       | JWT Authentication |
-| `helmet`             | Security Headers   |
-| `express-rate-limit` | API Throttling     |
-| `qrcode`             | QR Code Generation |
-
-### Frontend
-
-| Package            | Purpose                |
-| :----------------- | :--------------------- |
-| `react` + `vite`   | UI Framework & Bundler |
-| `tailwindcss`      | Utility-First CSS      |
-| `react-router-dom` | Client-side Routing    |
-| `axios`            | HTTP Client            |
-| `html5-qrcode`     | In-Browser QR Scanner  |
-| `lucide-react`     | Icon Library           |
-| `recharts`         | Admin Dashboard Charts |
-
----
-
-## 📂 Project Structure
+## 🗂️ Project layout
 
 ```
-TreasureHunt/
-├── Backend/
-│   ├── config/          # Database, Express, & Constants
-│   ├── controllers/     # Business Logic (Auth, Game, Admin)
-│   ├── scripts/         # Setup & Seeding Scripts
-│   ├── middleware/      # Auth Guard
-│   ├── models/          # Mongoose Schemas (Team, Location)
-│   ├── routes/          # API Endpoints
-│   └── utils/           # Helpers (Crypto, Logger)
-│
-├── Frontend/
-│   ├── src/
-│   │   ├── components/  # UI Components
-│   │   ├── context/     # AuthContext
-│   │   ├── pages/       # Route Views
-│   │   └── utils/       # API Client
-│   └── public/          # Static Assets & QR Codes
-│
-├── docs/                # Documentation
-│   ├── ARCHITECTURE.md      # System Design
-│   ├── DOCUMENTATION.md     # Game Logic & Webhooks
-│   ├── RIDDLES_MASTER_LIST.md # Location Hints Reference
-│   ├── state_machine_diagram.md # Game State Diagrams
-│   └── openapi.yaml         # API Specification
-│
-├── simulation_guide.md  # Step-by-step Mock Event Guide
-└── LICENSE              # MIT License
+Backend/
+  config/         constants, express middleware, dbConnect
+  controllers/    auth, game (scan / answer / Mega Puzzle), admin
+  models/         Team, Location, Question, Settings
+  routes/         auth, game, admin, settings
+  services/       teamService, questionService, settingsService
+  utils/          questionLogic (parser, picker), finale (Mega Puzzle rules)
+  scripts/        seed + QR generators
+  tests/          node:test unit + supertest end-to-end
+Frontend/
+  src/pages/      Login, Dashboard (team), Admin
+  src/components/ Dashboard/ (ChallengeCard, FinalePanel), admin/*, Scanner
+docs/             architecture, game logic, runbook, API spec
+shared/           documented API contracts
 ```
 
 ---
 
-## 📚 Documentation
+## 📚 Docs
 
-- **[Architecture](./docs/ARCHITECTURE.md)**: System Design & Scalability
-- **[Documentation](./docs/DOCUMENTATION.md)**: Game Logic & Webhook Setup
-- **[Simulation Guide](./simulation_guide.md)**: Step-by-step mock event
-- **[API Specification](./docs/openapi.yaml)**: OpenAPI/Swagger spec
-- **[Riddles](./docs/RIDDLES_MASTER_LIST.md)**: Location hints reference
-- **[State Machine](./docs/state_machine_diagram.md)**: Game state diagrams
-
----
-
-## 📄 License
-
-MIT License - see [LICENSE](./LICENSE) for details.
+- [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md): game rules and flow
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): system design
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): Vercel + Atlas setup
+- [docs/ADMIN_RUNBOOK.md](docs/ADMIN_RUNBOOK.md): event-day checklist
+- [docs/LOCATIONS_AND_REVEALS.md](docs/LOCATIONS_AND_REVEALS.md): the 12 locations and their hints
+- [docs/openapi.yaml](docs/openapi.yaml): API spec
+- [docs/EMAIL_TEMPLATE.md](docs/EMAIL_TEMPLATE.md): Make.com login email + HTML template
+- [simulation_guide.md](simulation_guide.md): dry-run before the event
 
 ---
 
-## 🏆 Credits
+## ☁️ Deployment
 
-**Author**: [Prasad Bhalerao](https://www.linkedin.com/in/prasadbhalerao)
-
-**Created for**: JSPM's Abhyudaya 3.0 - CSBS Department
+Live: **https://traceroute-cn.vercel.app** (web app) and **https://traceroute-api.vercel.app** (API), both on Vercel with MongoDB Atlas. Setup, environment variables and gotchas are in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ---
 
-<p align="center">
-  <sub>Made with ❤️ for treasure hunters everywhere</sub>
-</p>
+## 👤 Author
+
+**Prasad Bhalerao** · [LinkedIn](https://www.linkedin.com/in/prasadbhalerao)
+
+Released under the MIT License (see [LICENSE](LICENSE)).

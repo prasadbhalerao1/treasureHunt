@@ -1,210 +1,79 @@
-# 🏴‍☠️ BERLIN HEIST - Architecture
+# TraceRoute: Architecture
 
-## System Overview
-
-A real-time QR-based treasure hunt game platform.
-
-> **Event**: JSPM Abhyudaya 3.0 - CSBS Department
-
-## Technology Stack
-
-| Layer    | Technology                        |
-| -------- | --------------------------------- |
-| Frontend | React + Vite, TailwindCSS         |
-| Backend  | Express.js (Serverless on Vercel) |
-| Database | MongoDB Atlas                     |
-| Auth     | JWT (12h expiry), Scrypt hashing  |
-| Email    | Make.com Webhook                  |
-
----
-
-## Database Schema
-
-### Team
-
-| Field                | Type                     | Description                    |
-| -------------------- | ------------------------ | ------------------------------ |
-| teamId               | String (unique, indexed) | e.g., "TIT-A3F2"               |
-| name                 | String                   | Team name                      |
-| email                | String (unique)          | Leader email                   |
-| passwordHash         | String                   | Scrypt hash                    |
-| salt                 | String                   | Password salt                  |
-| members              | [String]                 | Member names                   |
-| role                 | Enum                     | "CANDIDATE" or "ADMIN"         |
-| finaleChallenge      | Enum                     | One of 6 challenge types       |
-| path                 | [Number]                 | Ordered Location IDs (7 items) |
-| currentLevelIndex    | Number                   | Current progress (0-7)         |
-| lastLevelCompletedAt | Date                     | For leaderboard sorting        |
-| levelHistory         | [{level, completedAt}]   | For time calculations          |
-| collectedKeywords    | [String]                 | Collected keywords             |
-| activeSessions       | [String]                 | JWT session IDs (max 4)        |
-
-### Location
-
-| Field      | Type                  | Description             |
-| ---------- | --------------------- | ----------------------- |
-| locationId | Number (0-12, unique) | Location identifier     |
-| name       | String                | Display name            |
-| hint       | String                | Riddle shown to players |
-| qrSecret   | String                | QR validation string    |
-| keyword    | String                | Awarded on scan         |
-
----
-
-## API Contracts
-
-### Auth
-
-| Method | Endpoint    | Request              | Response                                     |
-| ------ | ----------- | -------------------- | -------------------------------------------- |
-| POST   | /auth/login | `{teamId, password}` | `{token, team: {teamId, name, role, level}}` |
-
-### Game
-
-| Method | Endpoint     | Request      | Response                                           |
-| ------ | ------------ | ------------ | -------------------------------------------------- |
-| GET    | /game/state  | -            | `{teamId, level, status, hint, collectedKeywords}` |
-| POST   | /game/scan   | `{qrString}` | `{msg, keyword, nextLevel, nextHint}`              |
-| POST   | /game/submit | `{answer}`   | `{msg}` (Finale only)                              |
-
-### Admin
-
-| Method | Endpoint              | Request                            | Response                      |
-| ------ | --------------------- | ---------------------------------- | ----------------------------- |
-| GET    | /admin/stats          | `?level=Global\|0-6`               | `{distribution, leaderboard}` |
-| GET    | /admin/teams          | -                                  | `[Team]`                      |
-| POST   | /admin/teams          | `{name, email, members, password}` | `{msg, team}`                 |
-| DELETE | /admin/teams/:id      | -                                  | `{msg}`                       |
-| PUT    | /admin/teams/:id/path | `{path: [Number]}`                 | `{msg, team}`                 |
-| GET    | /admin/locations      | -                                  | `[Location]`                  |
-| PUT    | /admin/locations/:id  | `{hint?, qrSecret?}`               | `{msg, location}`             |
-
----
-
-## Game Logic
-
-### Path Structure
-
-- `path[0]` = Starting location (always 0)
-- `path[1-6]` = 6 random locations from 1-12
-- Total: 7 locations per team (Start + 6 Levels)
-
-### Progression
-
-1. `currentLevelIndex = 0` → Show hint for `path[1]`
-2. Player scans QR at `path[1]` → `currentLevelIndex = 1`
-3. Continue until `currentLevelIndex = 6` (Finale)
-4. Submit sorted keywords → `currentLevelIndex = 7` (COMPLETED)
-
-### Finale Logic
-
-**Randomized Challenges**: Each team is assigned one of 6 sorting challenges:
-
-| Challenge       | Description            |
-| --------------- | ---------------------- |
-| `ALPHA_ASC`     | Sort A → Z             |
-| `ALPHA_DESC`    | Sort Z → A             |
-| `LENGTH_ASC`    | Shortest → Longest     |
-| `LENGTH_DESC`   | Longest → Shortest     |
-| `SECOND_LETTER` | Sort by 2nd character  |
-| `LAST_LETTER`   | Sort by last character |
-
-**Edge Cases**: If two words have the same sort key (e.g., same length), either order is accepted.
-
-**Override**: Submitting `OVERRIDE-VICTORY` bypasses validation (admin use only).
-
----
-
-## Scalability Design
-
-| Decision       | Reason                                     |
-| -------------- | ------------------------------------------ |
-| Indexed fields | O(1) lookups for teamId, email, locationId |
-| Lean selects   | Only fetch required fields                 |
-| No polling     | Frontend only refreshes on user action     |
-| Stateless API  | No in-memory state                         |
-| Webhook emails | Offload to Make.com                        |
-| Session FIFO   | Max 4 concurrent sessions per team         |
-
----
-
-## File Structure
-
-```
-Backend/
-├── config/
-│   ├── dbConnect.js          # MongoDB Singleton
-│   ├── express.js            # Middleware configuration
-│   └── constants.js          # Shared constants (ROLES, GAME_STATUS)
-├── controllers/
-│   ├── adminController.js    # Admin CRUD operations
-│   ├── authController.js     # Login only
-│   └── gameController.js     # Game state & progression
-├── services/
-│   └── teamService.js        # Centralized team creation
-├── models/
-│   ├── Team.js
-│   └── Location.js
-├── routes/
-│   ├── adminRoutes.js
-│   ├── authRoutes.js
-│   └── gameRoutes.js
-├── utils/
-│   ├── auth.js               # Password hashing
-│   └── logger.js             # Logging utility
-└── middleware/
-    └── authMiddleware.js
-
-Frontend/
-├── pages/
-│   ├── Admin.jsx             # Admin dashboard
-│   ├── Dashboard.jsx         # Player interface
-│   └── Login.jsx
-├── components/
-│   ├── Auth/
-│   │   └── ProtectedRoute.jsx  # Route guard component
-│   ├── admin/
-│   │   ├── UserManagement.jsx
-│   │   ├── FlowManagement.jsx
-│   │   └── LocationManagement.jsx
-│   ├── Scanner.jsx
-│   └── ui/                   # Reusable UI components
-├── utils/
-│   ├── api.js                # Axios client
-│   └── constants.js          # Shared constants (ROLES, GAME_STATUS)
-└── context/
-    └── AuthContext.jsx
+```mermaid
+flowchart LR
+  P[Player phone<br/>React + html5-qrcode] -->|REST + JWT| API
+  A[Admin browser<br/>React] -->|REST + JWT| API
+  subgraph Vercel
+    API[Express API<br/>serverless]
+  end
+  API --> DB[(MongoDB Atlas)]
+  API -.optional.-> W[Make.com webhook]
 ```
 
----
+## Stack
 
-## Admin Workflows
+| Layer | Tech |
+| :-- | :-- |
+| Frontend | React 18, Vite 5, Tailwind 3 (neo-brutalist), react-router 6, axios, html5-qrcode, recharts, qrcode |
+| Backend | Node 18+, Express 4, Mongoose 8, jsonwebtoken, helmet, express-rate-limit |
+| Data | MongoDB Atlas. Collections: `teams` (players **and** admins by `role`), `locations`, `questions`, `settings` |
+| Hosting | Vercel (frontend static, backend serverless). `maxPoolSize: 1` per instance |
 
-### Team Creation
+There are no sockets. The team app refreshes state after each action, on tab focus and every 15 s; the admin dashboard polls every 10 s.
 
-1. Admin fills form → POST /admin/teams
-2. Backend: Generate ID, hash password, create path
-3. Trigger Make.com webhook → Email sent
-4. Team can login immediately
+## Data model
 
-### Flow Management
+**Team**: `teamId, name, email (team lead), passwordHash, salt, role, path[], currentLevelIndex, lastLevelCompletedAt, levelHistory[], collectedKeywords[], finaleChallenge, penaltySeconds, finaleAttempts, finaleLockedUntil, activeSessions[]` and
 
-1. Select team → View 7-step path
-2. Edit dropdown → Select different location
-3. Save → PUT /admin/teams/:id/path
-4. Backend validates no duplicates
+```
+challenges: [{ level, questionId, optionOrder[], attempts, solved,
+               firstShownAt, solvedAt, lockedUntil }]
+```
 
-### Location Management
+**Location**: `locationId (0 = Start), name, hint, qrSecret, keyword (hop code)`.
 
-1. View all 13 locations
-2. Edit hint or QR secret
-3. Changes reflect immediately for players
+**Question**: `questionId, prompt, options[{key,text}], correctKey, explanation, section, difficulty, active`.
 
----
+**Settings** (one document, `key: "main"`): `eventName, tagline, totalLevels, maxAttemptsPerQuestion, wrongAnswerCooldownSeconds, wrongAnswerTimePenaltySeconds, outOfAttemptsAction, eventStatus, showLeaderboardToTeams`.
 
-## Security
+## Request flow (a hop)
 
-- JWT with session tracking (max 4 concurrent)
-- Scrypt password hashing
-- Admin routes protected by role check
-- Input validation on all endpoints
+```mermaid
+sequenceDiagram
+  participant T as Team app
+  participant S as API
+  participant D as MongoDB
+  T->>S: POST /game/scan {qrString}
+  S->>D: team + expected location
+  S->>D: set challenge.firstShownAt (once)
+  S-->>T: state = CHALLENGE_OPEN + sanitized question
+  T->>S: POST /game/answer {level, optionKey}
+  S->>D: findOneAndUpdate(precondition: currentLevelIndex == level-1, unsolved)
+  alt correct
+    S-->>T: state = HINT_UNLOCKED (next hint) + explanation
+  else wrong
+    S->>D: $inc attempts, $inc penaltySeconds, set lockedUntil
+    S-->>T: 400 + attemptsLeft + retryAfterSeconds
+  end
+```
+
+The client never decides anything: the server returns a full `state` object on every call and the UI renders it.
+
+## Key modules
+
+| File | Responsibility |
+| :-- | :-- |
+| `controllers/gameController.js` | `buildState`, `scanQR`, `answerChallenge`, `submitAnswer` (Mega Puzzle) |
+| `controllers/adminController.js` | Leaderboard aggregation, teams, locations, settings, question bank, results CSV |
+| `services/teamService.js` | Balanced path generation, team creation, webhook |
+| `services/questionService.js` | Assign questions to a team, pick replacements |
+| `utils/questionLogic.js` | Markdown parser, difficulty ramp, least-used picker, answer-free serializer |
+| `utils/finale.js` | Mega Puzzle ordering rules |
+| `middleware/authMiddleware.js` | JWT + live-session check, role gate |
+
+## Scalability notes
+
+- The hot path is a few indexed single-document reads/writes per request. A 1,000-player event fits comfortably on the free Atlas tier plus Vercel.
+- Campus Wi-Fi often NATs many phones behind one IP, so rate limits are keyed on the auth token, not the IP (login excepted).
+- Question and location lookups are small; add caching only if profiling shows a need.

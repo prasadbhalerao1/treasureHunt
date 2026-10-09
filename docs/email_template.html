@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>{{1.subject}}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#111111;-webkit-font-smoothing:antialiased;">
+
+  <!-- Preheader (hidden preview text in the inbox list) -->
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#f4f4f5;">
+    Your team login for {{1.eventName}} is inside. Keep this email until the event ends.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f4f5;padding:32px 12px;">
+    <tr>
+      <td align="center">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff;border:4px solid #000000;">
+
+          <!-- Header (text only, no images) -->
+          <tr>
+            <td align="center" style="background-color:#ffffff;padding:30px 32px 22px 32px;border-bottom:4px solid #000000;">
+              <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#71717a;font-weight:800;">Mission briefing</div>
+              <div style="font-size:44px;line-height:1.05;font-weight:900;letter-spacing:-1px;text-transform:uppercase;margin-top:8px;"><span style="color:#0b1a2e;">TRACE</span><span style="color:#2563eb;">ROUTE</span></div>
+              <div style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#2563eb;margin-top:12px;font-weight:800;">{{1.tagline}}</div>
+            </td>
+          </tr>
+
+          <!-- Greeting -->
+          <tr>
+            <td style="padding:32px 32px 8px 32px;">
+              <div style="font-size:18px;font-weight:800;">Welcome aboard, {{1.name}}!</div>
+              <p style="font-size:15px;line-height:1.6;color:#3f3f46;margin:12px 0 0 0;">
+                Your team is registered. Below are your login details. You will use them on your phone during the event, so keep this email handy.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Credentials -->
+          <tr>
+            <td style="padding:20px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:3px solid #000000;background-color:#fafafa;">
+                <tr>
+                  <td style="padding:18px 20px 6px 20px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#71717a;font-weight:800;">Team ID</td>
+                </tr>
+                <tr>
+                  <td style="padding:0 20px 14px 20px;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:24px;font-weight:800;color:#000000;letter-spacing:1px;">{{1.teamId}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 20px 6px 20px;border-top:2px dashed #d4d4d8;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#71717a;font-weight:800;">Password</td>
+                </tr>
+                <tr>
+                  <td style="padding:0 20px 18px 20px;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:24px;font-weight:800;color:#000000;letter-spacing:1px;">{{1.password}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Button -->
+          <tr>
+            <td align="center" style="padding:4px 32px 28px 32px;">
+              <a href="{{1.loginUrl}}" style="display:inline-block;background-color:#000000;color:#ffffff !important;text-decoration:none;font-weight:900;font-size:16px;letter-spacing:2px;text-transform:uppercase;padding:16px 36px;border:3px solid #000000;">Open {{1.eventName}}</a>
+              <div style="font-size:12px;color:#71717a;margin-top:12px;word-break:break-all;">
+                Or open: <a href="{{1.loginUrl}}" style="color:#52525b;">{{1.loginUrl}}</a>
+              </div>
+            </td>
+          </tr>
+
+          <!-- How it works -->
+          <tr>
+            <td style="padding:0 32px 8px 32px;">
+              <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:900;border-bottom:3px solid #000000;padding-bottom:8px;">How the trace works</div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;">
+                <tr>
+                  <td width="36" valign="top" style="font-size:20px;font-weight:900;">1</td>
+                  <td style="font-size:14px;line-height:1.55;color:#27272a;padding-bottom:12px;"><strong>Log in and scan the START QR.</strong> Your clock starts and your first hint appears.</td>
+                </tr>
+                <tr>
+                  <td width="36" valign="top" style="font-size:20px;font-weight:900;">2</td>
+                  <td style="font-size:14px;line-height:1.55;color:#27272a;padding-bottom:12px;"><strong>Follow the hint</strong> to the next location and scan the QR code posted there.</td>
+                </tr>
+                <tr>
+                  <td width="36" valign="top" style="font-size:20px;font-weight:900;">3</td>
+                  <td style="font-size:14px;line-height:1.55;color:#27272a;padding-bottom:12px;"><strong>Solve the challenge.</strong> Each scan opens a question. A correct answer unlocks the next hint. Wrong answers cost time and force a short wait.</td>
+                </tr>
+                <tr>
+                  <td width="36" valign="top" style="font-size:20px;font-weight:900;">4</td>
+                  <td style="font-size:14px;line-height:1.55;color:#27272a;padding-bottom:12px;"><strong>{{1.totalLevels}} hops, then the Mega Puzzle.</strong> Collect the hop code from every hop and put them in the right order to finish.</td>
+                </tr>
+                <tr>
+                  <td width="36" valign="top" style="font-size:20px;font-weight:900;">5</td>
+                  <td style="font-size:14px;line-height:1.55;color:#27272a;">The team with the <strong>least total time</strong> wins.</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Tips -->
+          <tr>
+            <td style="padding:16px 32px 28px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fef9c3;border:3px solid #000000;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Before you start</div>
+                    <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.7;color:#27272a;">
+                      <li>Use your phone, charged, with mobile data or campus Wi-Fi.</li>
+                      <li>Allow <strong>camera access</strong> when the browser asks, so the scanner can read QR codes.</li>
+                      <li>You can log in on up to 4 devices. Your progress follows you.</li>
+                      <li>Answers are checked by the server. Do not share your login, and no peeking at other teams.</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#fafafa;border-top:3px solid #000000;padding:20px 32px;text-align:center;">
+              <div style="font-size:12px;color:#71717a;line-height:1.6;">
+                Sent to {{1.email}} because your team was registered for {{1.eventName}}.<br>
+                Lost your password? Ask an organiser at the venue.
+              </div>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
