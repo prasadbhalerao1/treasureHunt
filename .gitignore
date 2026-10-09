@@ -1,9 +1,5 @@
 # Dependencies
 node_modules/
-venv/
-.venv/
-env/
-__pycache__/
 
 # Environment variables
 .env
@@ -14,8 +10,6 @@ __pycache__/
 dist/
 build/
 out/
-bin/
-obj/
 
 # Logs
 *.log
@@ -32,17 +26,12 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
-*.suo
-*.user
 
-# scripts/
-
+# Local backups
 local_backup_*.json
 
-# Private admin script (DO NOT COMMIT)
-scripts/seedMyAdmin.js
-# Private: restores previous-event logins from the local backup
-scripts/seedEventAccounts.js
+# Private scripts (DO NOT COMMIT)
+Backend/scripts/seedMyAdmin.js
 
-.vercel
-.env*
+# QR codes are secrets: never commit the printable PDF
+TraceRoute_QR_Codes.pdf
