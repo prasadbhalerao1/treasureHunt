@@ -34,3 +34,7 @@ Thumbs.db
 /coverage
 .vercel
 .env*
+
+# Printed QR codes contain the location secrets: never commit them
+public/qr_codes/
+public/print_qrs.html
