@@ -5,11 +5,13 @@ import { Button, Input, Card } from "../components/ui";
 import Loader from "../components/Loader";
 import { ROLES } from "../utils/constants";
 import { Eye, EyeOff } from "lucide-react";
+import { useSettings } from "../context/SettingsContext";
 
 export default function Login() {
   const [form, setForm] = useState({ teamId: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,9 +44,18 @@ export default function Login() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-zinc-50 p-4">
       <Card className="w-full max-w-md border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white p-6 md:p-8">
-        <h2 className="text-3xl md:text-4xl font-black mb-6 md:mb-8 text-center uppercase tracking-tighter">
-          BERLIN HEIST
-        </h2>
+        <h1 className="sr-only">{settings.eventName}</h1>
+        <img
+          src="/title.png"
+          alt={settings.eventName}
+          width="1400"
+          height="410"
+          className="w-full h-auto mb-4 select-none"
+          draggable="false"
+        />
+        <p className="text-center text-xs font-black uppercase tracking-widest text-zinc-500 mb-6 md:mb-8">
+          {settings.tagline}
+        </p>
         {error && (
           <div className="bg-red-100 border-2 border-red-500 text-red-900 p-3 mb-6 font-bold text-center uppercase tracking-wide">
             {error}
@@ -58,7 +69,7 @@ export default function Login() {
             </label>
             <Input
               type="text"
-              placeholder="e.g. TITAN-X99"
+              placeholder="e.g. TEAM-1"
               value={form.teamId}
               onChange={(e) => setForm({ ...form, teamId: e.target.value })}
               required

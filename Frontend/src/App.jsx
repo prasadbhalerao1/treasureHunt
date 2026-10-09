@@ -5,6 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { SettingsProvider } from "./context/SettingsContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
@@ -23,6 +24,7 @@ const RoleRedirect = () => {
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <SettingsProvider>
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -48,6 +50,7 @@ function App() {
           <Route path="/" element={<RoleRedirect />} />
         </Routes>
       </AuthProvider>
+      </SettingsProvider>
     </Router>
   );
 }

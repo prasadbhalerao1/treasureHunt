@@ -6,7 +6,7 @@ const ProtectedRoute = ({ children, roles }) => {
 
   if (loading)
     return (
-      <div className="p-10 font-bold text-xl">Loading Berlin Protocol...</div>
+      <div className="p-10 font-bold text-xl">Establishing route...</div>
     );
   if (!user) return <Navigate to="/login" />;
   if (roles && !roles.includes(user.role))
