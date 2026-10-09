@@ -19,6 +19,7 @@ import {
 import { validateQuestions } from "../utils/questionLogic.js";
 import { ROLES, GAME_STATUS } from "../config/constants.js";
 import logger from "../utils/logger.js";
+import { broadcastToTeams, TEST_ADDRESS } from "../services/broadcastService.js";
 
 // Dashboard Stats - Duration-based Ranking
 export const getDashboardStats = async (req, res) => {
@@ -843,5 +844,44 @@ export const exportResults = async (req, res) => {
   } catch (err) {
     logger.error(err.message, err);
     res.status(500).json({ msg: "Server Error" });
+  }
+};
+
+// Emails every team a free-form message (e.g. "join this group for updates").
+// Defaults to a single test email; mailing the roster needs an explicit confirm.
+export const sendBroadcast = async (req, res) => {
+  try {
+    await dbConnect();
+    const subject = String(req.body?.subject ?? "").trim();
+    const body = String(req.body?.body ?? "").trim();
+    const mode = req.body?.mode === "ALL" ? "ALL" : "TEST";
+
+    if (!subject || subject.length > 150) {
+      return res.status(400).json({ msg: "Subject is required (max 150)" });
+    }
+    if (!body || body.length > 5000) {
+      return res.status(400).json({ msg: "Message body is required (max 5000)" });
+    }
+
+    const result = await broadcastToTeams({
+      subject,
+      body,
+      mode,
+      confirm: req.body?.confirm,
+    });
+
+    const where =
+      result.mode === "ALL"
+        ? `${result.sent}/${result.total} teams`
+        : `the test address (${TEST_ADDRESS})`;
+    res.json({
+      msg: result.failed
+        ? `Sent to ${where}; ${result.failed} failed.`
+        : `Sent to ${where}.`,
+      ...result,
+    });
+  } catch (err) {
+    logger.error(err.message, err);
+    res.status(400).json({ msg: err.message });
   }
 };

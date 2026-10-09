@@ -9,12 +9,13 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { LogOut, Users, Map, Route, BarChart2, Settings, HelpCircle, Download } from "lucide-react";
+import { LogOut, Users, Map, Route, BarChart2, Settings, HelpCircle, Download, Mail } from "lucide-react";
 import UserManagement from "../components/admin/UserManagement";
 import LocationManagement from "../components/admin/LocationManagement";
 import FlowManagement from "../components/admin/FlowManagement";
 import SettingsManagement from "../components/admin/SettingsManagement";
 import QuestionBank from "../components/admin/QuestionBank";
+import BroadcastEmail from "../components/admin/BroadcastEmail";
 import { useSettings } from "../context/SettingsContext";
 import { formatDuration } from "../utils/constants";
 
@@ -244,6 +245,7 @@ export default function Admin() {
           { id: "flow", label: "Game Flow", icon: Route },
           { id: "locations", label: "Locations", icon: Map },
           { id: "questions", label: "Question Bank", icon: HelpCircle },
+          { id: "broadcast", label: "Broadcast", icon: Mail },
           { id: "settings", label: "Settings", icon: Settings },
         ].map((tab) => (
           <button
@@ -268,6 +270,7 @@ export default function Admin() {
         )}
         {activeTab === "locations" && <LocationManagement />}
         {activeTab === "questions" && <QuestionBank />}
+        {activeTab === "broadcast" && <BroadcastEmail />}
         {activeTab === "settings" && <SettingsManagement />}
       </div>
     </div>

@@ -24,6 +24,7 @@ import {
   deleteQuestion,
   importQuestions,
   exportQuestions,
+  sendBroadcast,
 } from "../controllers/adminController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
@@ -57,6 +58,9 @@ router.post("/locations", createLocation);
 router.put("/locations/:id", updateLocation); // body: { hint, qrSecret, name, keyword }
 router.post("/locations/:id/regenerate-secret", regenerateLocationSecret);
 router.delete("/locations/:id", deleteLocation);
+
+// Broadcast email. body: { subject, body, mode: "TEST"|"ALL", confirm }
+router.post("/broadcast", sendBroadcast);
 
 // Question Bank
 router.get("/questions", getQuestions);
