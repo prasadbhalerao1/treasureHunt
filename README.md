@@ -89,7 +89,9 @@ Open <http://localhost:5173>.
 | `npm run seed:settings [-- --reset]` | Creates the settings document (or resets it) |
 | `npm run seed:teams [-- --count=N]` | Wipes **all** teams and creates N demo teams |
 | `npm run seed:admin` | Creates the admin (`ADMIN_PASSWORD` / `ADMIN_EMAIL` env, otherwise random) |
-| `npm run generate:qr` / `generate:printable` | QR PNGs (`00_…png`, `01_…png`, …) and the A4 print sheet |
+| `npm run generate:qr` | QR PNGs (`00_…png`, `01_…png`, …) |
+| `npm run generate:printable` | A4 print sheet: the 12 location QRs, 4 per page (no Start QR) |
+| `npm run generate:start` | 16:9 slide with the Start QR in the middle, for the smartboard |
 | `npm run db:wipe` | Deletes the teams |
 | `npm test` | Unit and end-to-end API tests (in-memory MongoDB) |
 | `npm run lint` | ESLint |

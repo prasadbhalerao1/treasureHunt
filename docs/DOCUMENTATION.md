@@ -74,3 +74,9 @@ API status values: `NOT_STARTED`, `HINT_UNLOCKED`, `CHALLENGE_OPEN`, `FINALE`, `
 ## 6. Make.com webhook (optional)
 
 If `MAKE_WEBHOOK_URL` is set, creating a team in the admin POSTs `{teamId, name, email, to, password, eventName, tagline, totalLevels, loginUrl, subject}` so a Make scenario can email the credentials.
+
+## 7. Printing the QR codes
+
+- **Locations 1-12:** `npm run generate:qr` then `npm run generate:printable` builds an A4 sheet (4 QR per page, white cards with the location name). Print it from Chrome (A4, margins none).
+- **Start:** `npm run generate:start` builds a 16:9 slide (1920x1080) with only the Start QR, to project on the smartboard at the starting place. Export it to PDF or PNG from Chrome.
+- Both files are gitignored and never deployed, because the QR codes are secrets.

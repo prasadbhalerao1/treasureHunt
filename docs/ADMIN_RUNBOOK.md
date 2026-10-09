@@ -6,7 +6,8 @@
 - [ ] Admin → **Settings**: check name, levels (7), attempts, cooldown, penalty. Leave status `DRAFT`.
 - [ ] Admin → **Question Bank**: 60 active questions, at least as many as the levels needed. Skim for typos.
 - [ ] Admin → **Locations**: check every hint. Stick each printed QR at its location (on sturdy paper).
-- [ ] Print the QR codes from **Admin → Locations → Print all QRs** (they are deliberately not hosted on the public site).
+- [ ] Print the 12 location QR codes (A4, 4 per page) from `TraceRoute_QR_Codes.pdf`, or from **Admin → Locations → Print all QRs**. They are deliberately not hosted on the public site.
+- [ ] **Start QR:** do not print it. Show the 16:9 slide `TraceRoute_Start_QR.png` (or `.pdf`) fullscreen on the smartboard at the starting place. Regenerate with `npm run generate:start` after any change to the Start secret.
 - [ ] Scan every QR with a phone once to confirm it reads the right text.
 - [ ] Create the real teams (**Admin → User Management → Add**: team name, **team lead email**, password). Each team lead is emailed the login through Make.com (see [EMAIL_TEMPLATE.md](EMAIL_TEMPLATE.md)). If the admin shows "email NOT sent", share the credentials manually.
 - [ ] Run the [simulation guide](../simulation_guide.md) with 2 test teams, then **Reset team** on both.
