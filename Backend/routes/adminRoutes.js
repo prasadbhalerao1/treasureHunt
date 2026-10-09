@@ -59,7 +59,7 @@ router.put("/locations/:id", updateLocation); // body: { hint, qrSecret, name, k
 router.post("/locations/:id/regenerate-secret", regenerateLocationSecret);
 router.delete("/locations/:id", deleteLocation);
 
-// Broadcast email. body: { subject, body, mode: "TEST"|"ALL", confirm }
+// Email one team. body: { teamId, subject, body }
 router.post("/broadcast", sendBroadcast);
 
 // Question Bank

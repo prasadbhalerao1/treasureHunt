@@ -3,17 +3,34 @@ import { ROLES } from "../config/constants.js";
 import logger from "../utils/logger.js";
 import { getSettings } from "./settingsService.js";
 
-// Sends one webhook request per recipient so the Make.com scenario stays a
-// simple single-email template, the same shape as the credentials webhook.
-// Requests go out in small batches: a serverless function would otherwise
-// risk its time limit on a large roster.
-const BATCH_SIZE = 4;
+// One webhook request per recipient, so the Make.com scenario stays a simple
+// single-email template (the same shape as the credentials webhook).
+// Mail goes out one team at a time, chosen in the admin UI: there is no
+// send-to-everyone call, so a stray click cannot reach the whole roster.
+export async function sendToTeam(teamId, { subject, body }) {
+  const url = process.env.MAKE_BROADCAST_WEBHOOK_URL;
+  if (!url) {
+    throw new Error("MAKE_BROADCAST_WEBHOOK_URL is not configured");
+  }
 
-// A real send must be asked for explicitly. Anything else goes to the test
-// address only, so a mistaken click can never reach the teams.
-export const TEST_ADDRESS = "prasad9a38@gmail.com";
+  const team = await Team.findOne({ teamId, role: ROLES.CANDIDATE })
+    .select("teamId name email")
+    .lean();
+  if (!team) throw new Error("Team not found");
+  if (!team.email) throw new Error("That team has no email address");
 
-async function sendOne(url, payload) {
+  const settings = await getSettings();
+  const payload = {
+    teamId: team.teamId,
+    name: team.name,
+    email: team.email,
+    to: team.email,
+    subject,
+    body,
+    eventName: settings.eventName,
+    tagline: settings.tagline,
+  };
+
   try {
     const res = await fetch(url, {
       method: "POST",
@@ -21,82 +38,13 @@ async function sendOne(url, payload) {
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(8000),
     });
-    return res.ok
-      ? { email: payload.email, teamId: payload.teamId, sent: true }
-      : {
-          email: payload.email,
-          teamId: payload.teamId,
-          sent: false,
-          reason: `HTTP ${res.status}`,
-        };
-  } catch (err) {
-    return {
-      email: payload.email,
-      teamId: payload.teamId,
-      sent: false,
-      reason: err.message,
-    };
-  }
-}
-
-/**
- * Broadcasts a message.
- *
- * mode "TEST" (the default) sends exactly one email to TEST_ADDRESS.
- * mode "ALL" sends to every candidate team and requires confirm === "SEND TO ALL
- * TEAMS", so no single click or stray request can mail the roster.
- */
-export async function broadcastToTeams({ subject, body, mode = "TEST", confirm }) {
-  const url = process.env.MAKE_BROADCAST_WEBHOOK_URL;
-  if (!url) {
-    throw new Error("MAKE_BROADCAST_WEBHOOK_URL is not configured");
-  }
-
-  const settings = await getSettings();
-  const base = {
-    subject,
-    body,
-    eventName: settings.eventName,
-    tagline: settings.tagline,
-  };
-
-  let recipients;
-  if (mode === "ALL") {
-    if (confirm !== "SEND TO ALL TEAMS") {
-      throw new Error(
-        'Refusing to mail every team: confirm must be exactly "SEND TO ALL TEAMS"',
-      );
+    logger.info(`Broadcast to ${team.teamId} responded ${res.status}`);
+    if (!res.ok) {
+      return { sent: false, email: team.email, reason: `Webhook returned HTTP ${res.status}` };
     }
-    const teams = await Team.find({ role: ROLES.CANDIDATE })
-      .select("teamId name email")
-      .lean();
-    recipients = teams
-      .filter((t) => t.email)
-      .map((t) => ({ ...base, teamId: t.teamId, name: t.name, email: t.email, to: t.email }));
-  } else {
-    recipients = [
-      {
-        ...base,
-        teamId: "TEST",
-        name: "Test Run",
-        email: TEST_ADDRESS,
-        to: TEST_ADDRESS,
-        subject: `[TEST] ${subject}`,
-      },
-    ];
+    return { sent: true, email: team.email };
+  } catch (err) {
+    logger.error(`Broadcast to ${team.teamId} failed: ${err.message}`, err);
+    return { sent: false, email: team.email, reason: err.message };
   }
-
-  if (!recipients.length) {
-    return { mode, total: 0, sent: 0, failed: 0, results: [] };
-  }
-
-  const results = [];
-  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
-    const batch = recipients.slice(i, i + BATCH_SIZE);
-    results.push(...(await Promise.all(batch.map((p) => sendOne(url, p)))));
-  }
-
-  const sent = results.filter((r) => r.sent).length;
-  logger.info(`Broadcast (${mode}) "${subject}": ${sent}/${results.length} sent`);
-  return { mode, total: results.length, sent, failed: results.length - sent, results };
 }
