@@ -853,20 +853,11 @@ export const sendBroadcast = async (req, res) => {
   try {
     await dbConnect();
     const teamId = String(req.body?.teamId ?? "").trim();
-    const subject = String(req.body?.subject ?? "").trim();
-    const body = String(req.body?.body ?? "").trim();
-
     if (!teamId) {
       return res.status(400).json({ msg: "teamId is required" });
     }
-    if (!subject || subject.length > 150) {
-      return res.status(400).json({ msg: "Subject is required (max 150)" });
-    }
-    if (!body || body.length > 5000) {
-      return res.status(400).json({ msg: "Message body is required (max 5000)" });
-    }
 
-    const result = await sendToTeam(teamId, { subject, body });
+    const result = await sendToTeam(teamId);
     res.status(result.sent ? 200 : 502).json({
       msg: result.sent
         ? `Sent to ${result.email}`

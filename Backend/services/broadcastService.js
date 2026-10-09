@@ -3,11 +3,11 @@ import { ROLES } from "../config/constants.js";
 import logger from "../utils/logger.js";
 import { getSettings } from "./settingsService.js";
 
-// One webhook request per recipient, so the Make.com scenario stays a simple
-// single-email template (the same shape as the credentials webhook).
+// One webhook request per recipient. The email's own subject and copy live in
+// the Make.com scenario; this only tells it who to send to.
 // Mail goes out one team at a time, chosen in the admin UI: there is no
 // send-to-everyone call, so a stray click cannot reach the whole roster.
-export async function sendToTeam(teamId, { subject, body }) {
+export async function sendToTeam(teamId) {
   const url = process.env.MAKE_BROADCAST_WEBHOOK_URL;
   if (!url) {
     throw new Error("MAKE_BROADCAST_WEBHOOK_URL is not configured");
@@ -25,8 +25,6 @@ export async function sendToTeam(teamId, { subject, body }) {
     name: team.name,
     email: team.email,
     to: team.email,
-    subject,
-    body,
     eventName: settings.eventName,
     tagline: settings.tagline,
   };

@@ -4,8 +4,6 @@ import { Button, Card } from "../ui";
 import { Send, Check, X, Loader2, RefreshCw } from "lucide-react";
 
 export default function BroadcastEmail() {
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
   const [teams, setTeams] = useState(null);
   const [error, setError] = useState(null);
   // teamId -> { sending } | { sent: true, email } | { sent: false, reason }
@@ -27,24 +25,15 @@ export default function BroadcastEmail() {
 
   useEffect(loadTeams, []);
 
-  const ready = subject.trim() && body.trim();
-
   const sendOne = async (teamId) => {
     setStatus((s) => ({ ...s, [teamId]: { sending: true } }));
     try {
-      const { data } = await api.post("/admin/broadcast", {
-        teamId,
-        subject,
-        body,
-      });
+      const { data } = await api.post("/admin/broadcast", { teamId });
       setStatus((s) => ({ ...s, [teamId]: { sent: true, email: data.email } }));
     } catch (err) {
       setStatus((s) => ({
         ...s,
-        [teamId]: {
-          sent: false,
-          reason: err.response?.data?.msg || "Failed",
-        },
+        [teamId]: { sent: false, reason: err.response?.data?.msg || "Failed" },
       }));
     }
   };
@@ -67,43 +56,10 @@ export default function BroadcastEmail() {
         </button>
       </div>
       <p className="text-sm font-bold text-zinc-600 mb-6">
-        Write the message, then send it row by row. Nothing goes out until you
-        click Send on a row.
+        The email itself lives in the Make.com scenario. Each Send here passes
+        one team&apos;s name and address to it. Nothing goes out until you click
+        a row.
       </p>
-
-      <label className="block text-xs font-black uppercase tracking-widest mb-2">
-        Subject
-      </label>
-      <input
-        value={subject}
-        onChange={(e) => setSubject(e.target.value)}
-        maxLength={150}
-        placeholder="Join the TraceRoute group for updates"
-        className="w-full mb-5 p-3 border-4 border-black font-bold focus:outline-none focus:bg-yellow-50"
-      />
-
-      <label className="block text-xs font-black uppercase tracking-widest mb-2">
-        Message
-      </label>
-      <textarea
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        maxLength={5000}
-        rows={7}
-        placeholder={
-          "Hey!\n\nJoin this group for all event updates:\nhttps://chat.whatsapp.com/...\n\nSee you at A-217 at 2 PM sharp."
-        }
-        className="w-full p-3 border-4 border-black font-bold focus:outline-none focus:bg-yellow-50 resize-y"
-      />
-      <p className="text-right text-xs font-bold text-zinc-500 mt-1 mb-6">
-        {body.length}/5000
-      </p>
-
-      {!ready && (
-        <div className="border-4 border-black bg-yellow-200 p-3 font-bold text-sm mb-6">
-          Fill in the subject and message to enable sending.
-        </div>
-      )}
 
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-black uppercase tracking-widest">
@@ -168,7 +124,7 @@ export default function BroadcastEmail() {
 
                 <Button
                   type="button"
-                  disabled={!ready || st.sending}
+                  disabled={st.sending}
                   onClick={() => sendOne(t.teamId)}
                   className={`shrink-0 h-11 px-5 font-black uppercase tracking-widest text-sm rounded-none border-4 border-black flex items-center justify-center gap-2 ${
                     st.sent === true

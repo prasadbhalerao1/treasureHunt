@@ -59,7 +59,7 @@ router.put("/locations/:id", updateLocation); // body: { hint, qrSecret, name, k
 router.post("/locations/:id/regenerate-secret", regenerateLocationSecret);
 router.delete("/locations/:id", deleteLocation);
 
-// Email one team. body: { teamId, subject, body }
+// Email one team through the Make.com scenario. body: { teamId }
 router.post("/broadcast", sendBroadcast);
 
 // Question Bank
