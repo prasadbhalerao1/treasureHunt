@@ -103,7 +103,10 @@ export default function Admin() {
             <span>
               {selectedLevel === "Global"
                 ? "Leaderboard"
-                : `Fastest Teams (Level ${selectedLevel})`}
+                : Number(selectedLevel) >
+                    (stats.totalLevels || settings.totalLevels)
+                  ? "Fastest Teams (Final Round)"
+                  : `Fastest Teams (Level ${selectedLevel})`}
             </span>
             <div className="flex gap-2">
               <select
@@ -120,6 +123,10 @@ export default function Admin() {
                     Level {l}
                   </option>
                 ))}
+                {/* the rapid-fire round is logged as one more level */}
+                <option value={(stats.totalLevels || settings.totalLevels) + 1}>
+                  Final Round
+                </option>
               </select>
               <button
                 onClick={downloadResults}
