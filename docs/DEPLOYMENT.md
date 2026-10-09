@@ -17,7 +17,7 @@ TraceRoute runs as **two Vercel projects**: the API (`Backend/`) and the web app
 | :-- | :-- |
 | `MONGODB_URI` | Atlas connection string **with a database name** (`.../traceroute?...`) |
 | `JWT_SECRET` | Long random string |
-| `CORS_ORIGINS` | `https://traceroute-cn.vercel.app,https://traceroute-ivory.vercel.app` |
+| `CORS_ORIGINS` | Comma-separated frontend URLs: `https://traceroute-cn.vercel.app,https://traceroute-ivory.vercel.app,https://traceroute-prasads-projects-b60fa4b6.vercel.app,https://traceroute-*-prasads-projects-b60fa4b6.vercel.app`. A `*` matches one hostname label (any deployment URL of the frontend); trailing slashes are ignored |
 | `FRONTEND_URL` | `https://traceroute-cn.vercel.app` (login link in the email) |
 | `MAKE_WEBHOOK_URL` | Your Make.com webhook |
 | `MONGOMS_DISABLE_POSTINSTALL` | `1` (stops the test-only in-memory MongoDB from downloading ~780 MB during the build) |
@@ -52,6 +52,12 @@ vercel deploy --prod
 - `.npmrc` sets `legacy-peer-deps=true` in both apps (the ESLint peer ranges conflict otherwise).
 - `Backend/.vercelignore` keeps `.env`, tests, scripts and local backups out of the upload.
 - Changing `CORS_ORIGINS`, `FRONTEND_URL` or any API variable needs an API redeploy: `cd Backend && vercel deploy --prod`.
+
+## CORS
+
+Only the origins in `CORS_ORIGINS` (plus `localhost:5173` / `:3000` for development) may call the API from a browser. Anything else gets no CORS headers, so the browser blocks it. Error responses (401, 400, 429...) still carry the headers, so the app can read the real error message. `Backend/tests/cors.test.js` covers this.
+
+If you add a new frontend domain, add it to `CORS_ORIGINS` and redeploy the API.
 
 ## Health checks
 
