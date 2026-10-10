@@ -38,6 +38,8 @@ Thumbs.db
 # scripts/
 
 local_backup_*.json
+# Post-event database dumps: password hashes and QR secrets
+backup_*.json
 
 # Private admin script (DO NOT COMMIT)
 scripts/seedMyAdmin.js

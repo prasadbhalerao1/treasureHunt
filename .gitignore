@@ -29,6 +29,10 @@ Thumbs.db
 
 # Local backups
 local_backup_*.json
+backup_*.json
+
+# Attendance sheet: contains the shared team password
+TraceRoute_Attendance.csv
 
 # Private scripts (DO NOT COMMIT)
 Backend/scripts/seedMyAdmin.js
